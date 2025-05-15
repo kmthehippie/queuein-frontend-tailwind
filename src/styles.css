@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --default-font-family: Poppins, san-serif;
+
+  --color-primary-green: rgba(73, 123, 4, 1);
+  --color-primary-light-green: rgba(143, 198, 34, 1);
+  --color-primary-dark-green: rgba(38, 82, 8, 1);
+  --color-primary-ultra-dark-green: rgba(15, 23, 10, 1);
+  --color-primary-cream: rgba(254, 253, 251, 1);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-internal-autofill-selected, /* Add this line */
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-internal-autofill-selected, /* Add this line */
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-internal-autofill-selected /* Add this line */ {
+  -webkit-box-shadow: 0 0 0 1000px rgba(254, 253, 251, 1) inset !important;
+  -webkit-text-fill-color: #4b505a !important;
+}
