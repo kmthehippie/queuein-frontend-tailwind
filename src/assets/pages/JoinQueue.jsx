@@ -15,6 +15,8 @@ const JoinQueue = () => {
   const [customerPaxError, setCustomerPaxError] = useState("");
   const [vip, setVIP] = useState(true);
   const [warning, setWarning] = useState(false);
+  const [warningDiffQueue, setWarningDiffQueue] = useState(false);
+  const [warningDiffQueueInfo, setWarningDiffQueueInfo] = useState("");
   const [accountInfo, setAccountInfo] = useState("");
   const [outlet, setOutlet] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,6 +42,9 @@ const JoinQueue = () => {
   const closeWarning = () => {
     setWarning(false);
   };
+  // const closeWarningDiffQueue = () => {
+  //   setWarningDiffQueue(false);
+  // };
 
   //Tailwind
   const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800 `;
@@ -208,13 +213,22 @@ const JoinQueue = () => {
           navigate(`/${acctSlug}/queueItem/${queueItem.id}`, {
             state: { data: data },
           });
+        } else if (err.status === 406) {
+          console.log("Error 406", err?.response.data);
+          const data = {
+            ...err?.response.data,
+          };
+          //pop up a modal asking if user wish to leave their previous queue
+          setWarningDiffQueue(true);
+          setWarningDiffQueueInfo(data);
+        } else {
+          setErrors({
+            message:
+              err.response.data.message ||
+              "Error queueing up. Please ask host for assistance.",
+            statusCode: err.response?.status || 500,
+          });
         }
-        setErrors({
-          message:
-            err.response.data.message ||
-            "Error queueing up. Please ask host for assistance.",
-          statusCode: err.response?.status || 500,
-        });
       }
     };
 
@@ -232,6 +246,72 @@ const JoinQueue = () => {
     accountInfo,
   ]);
 
+  const handleSubmitYes = async (e) => {
+    e.preventDefault();
+    const yesData = {
+      pax: customerPax,
+      localStorageInfo,
+      remainInPreviousQueue: true,
+      prevData: warningDiffQueueInfo,
+    };
+    console.log("Yes, ", yesData);
+    console.log("prev data have outlet and account info? ", yesData.prevData);
+    try {
+      const res = await api.post(
+        `/customerFormRepost/${acctSlug}/${outlet.id}/${queueId}`,
+        yesData
+      );
+      console.log("This is res", res);
+
+      if (res?.status === 201) {
+        const navStateData = {
+          ...res?.data,
+          accountInfo,
+          pax: customerPax,
+        };
+        const queueItem = res?.data.queueItem;
+        navigate(`/${acctSlug}/queueItem/${queueItem.id}`, {
+          state: { data: navStateData },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleSubmitNo = async (e) => {
+    e.preventDefault();
+    console.log("Trying to send NO");
+    const noData = {
+      pax: customerPax,
+      localStorageInfo,
+      remainInPreviousQueue: false,
+      prevData: warningDiffQueueInfo,
+    };
+    console.log("no, ", noData);
+    try {
+      const res = await api.post(
+        `/customerFormRepost/${acctSlug}/${outlet.id}/${queueId}`,
+        noData
+      );
+      console.log("This is res", res);
+
+      if (res?.status === 201) {
+        const navStateData = {
+          ...res?.data,
+          accountInfo,
+          outlet,
+          pax: customerPax,
+        };
+        const queueItem = res?.data.queueItem;
+        navigate(`/${acctSlug}/queueItem/${queueItem.id}`, {
+          state: { data: navStateData },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
   useEffect(() => {
     fetchFormData();
   }, [queueId]);
@@ -246,7 +326,10 @@ const JoinQueue = () => {
   return (
     <div className="p-3 md:p-5">
       {warning && (
-        <div className="bg-primary-ultra-dark-green/85 min-w-screen min-h-screen absolute top-0 left-0 z-5"></div>
+        <div className="bg-primary-ultra-dark-green/85 min-w-full min-h-full absolute top-0 left-0 z-5"></div>
+      )}
+      {warningDiffQueue && (
+        <div className="bg-primary-ultra-dark-green/85 min-w-full min-h-full absolute top-0 left-0 z-5"></div>
       )}
 
       <Link
@@ -283,6 +366,29 @@ const JoinQueue = () => {
             <button className={buttonClass} onClick={closeWarning}>
               Close
             </button>
+          </div>
+        )}
+        {warningDiffQueue && (
+          <div className="bg-primary-cream z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/3 left-1/2 -translate-1/2 p-10 md:min-w-md">
+            <h1 className="text-red-900">Alert:</h1>
+            <p className="text-sm">{warningDiffQueueInfo.message}</p>
+            <br />
+            <p>Do you wish to remain in the previous queue?</p>
+
+            <div className="flex gap-5 justify-center">
+              <button
+                className="bg-primary-green mt-3 hover:bg-primary-dark-green w-35 transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                onClick={handleSubmitYes}
+              >
+                Yes
+              </button>
+              <button
+                className="bg-primary-green mt-3 hover:bg-primary-dark-green w-35  transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                onClick={handleSubmitNo}
+              >
+                No
+              </button>
+            </div>
           </div>
         )}
         <form onSubmit={handleSubmit}>

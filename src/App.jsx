@@ -1,6 +1,8 @@
 //Import Router Stuff
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
 import { Suspense, lazy } from "react";
+import { AuthProvider } from "./assets/context/AuthContext.jsx";
+import { SocketProvider } from "./assets/context/SocketContext.jsx";
 
 //Import Pages
 const Layout = lazy(() => import("./assets/pages/Layout"));
@@ -18,6 +20,7 @@ const Home = lazy(() => import("./assets/pages/Home"));
 
 //Import Components
 import ProtectedRoutes from "./assets/components/ProtectedRoutes";
+import LeaveQueue from "./assets/pages/LeaveQueue";
 
 const router = createBrowserRouter([
   {
@@ -64,17 +67,33 @@ const router = createBrowserRouter([
           {
             path: "queueItem/:queueItem",
             element: (
+              <SocketProvider>
+                <Suspense fallback={<div>Loading...</div>}>
+                  <Waiting />
+                </Suspense>
+              </SocketProvider>
+            ),
+          },
+          {
+            path: "leftQueue/:queueItem",
+            element: (
               <Suspense fallback={<div>Loading...</div>}>
-                <Waiting />
+                <LeaveQueue />
               </Suspense>
             ),
           },
-          { path: "leftQueue/:queueItem", element: <Waiting /> },
           { path: "seated/:queueItem", element: <Waiting /> },
         ],
       },
       {
         path: "/db",
+        element: (
+          <AuthProvider>
+            <Suspense fallback={<div>Loading...</div>}>
+              <Outlet /> {/* Render child routes within AuthProvider */}
+            </Suspense>
+          </AuthProvider>
+        ),
         children: [
           { path: "login", element: <Login /> },
           { path: "register", element: <Register /> },

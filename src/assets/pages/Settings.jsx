@@ -5,7 +5,7 @@ const Settings = () => {
   const interceptedApiPrivate = useApiPrivate();
 
   // const fakeDataForOutlet = {
-  //   name: "Desa New Hartamas",
+  //   name: "Desa Seri Hartamas",
   //   location:
   //     "NO 1 - G, Wisma CKL, Jalan 22A/70A, Desa Sri Hartamas, 50480 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur",
   //   googleMaps: "https://maps.app.goo.gl/U4hXsu7ycSFgtny79",
@@ -48,10 +48,10 @@ const Settings = () => {
   //   logo: "https://nlbh.my/wp-content/uploads/2024/12/Website-Logo-NLBH-150x150.png",
   // };
 
-  // const startFakeQueue = {
-  //   outletId: 3,
-  //   name: "Starting fake queue for outlet 3",
-  // };
+  const startFakeQueue = {
+    outletId: 1,
+    name: "Starting fake queue for outlet 1",
+  };
 
   //create customer for outlet 3
   // const createCustomerAndQueueItem = {
@@ -116,10 +116,7 @@ const Settings = () => {
   const handleClick = async (e) => {
     e.preventDefault();
     try {
-      const response = interceptedApiPrivate.post(
-        "/test",
-        createCustomerAndQueueItem
-      );
+      const response = interceptedApiPrivate.post("/test", startFakeQueue);
       console.log("Received response from /test ", response.data);
     } catch (err) {
       console.error(
