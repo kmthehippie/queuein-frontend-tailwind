@@ -9,42 +9,26 @@ import api from "../api/axios";
 import SocketContext from "../context/SocketContext";
 
 const Waiting = () => {
-  const socket = useContext(SocketContext);
+  const { socket, isConnected, reconnect } = useContext(SocketContext);
 
   const [accountInfo, setAccountInfo] = useState("");
-
   const [outlet, setOutlet] = useState("");
-
-  const [queueItem, setQueueItem] = useState("");
-
+  const [queueItem, setQueueItem] = useState(null);
   const [customer, setCustomer] = useState("");
-
   const [pax, setPax] = useState("");
-
   const [newPax, setNewPax] = useState("");
-
   const [message, setMessage] = useState("");
-
   const [currentlyServing, setCurrentlyServing] = useState("");
-
   const [customerPosition, setCustomerPosition] = useState("");
-
   const [connection, setConnection] = useState(true);
-
+  //ewt = estimated wait time
   const [ewt, setEwt] = useState("");
-
   const [lastUpdated, setLastUpdated] = useState(new Date());
-
   const [dataLoaded, setDataLoaded] = useState(false);
-
   const [modalUpdate, setModalUpdate] = useState(false);
-
   const [modalLeave, setModalLeave] = useState(false);
-
   const [barType, setBarType] = useState("");
-
   const [progressBar, setProgressBar] = useState("");
-
   const [partiesAhead, setPartiesAhead] = useState("");
 
   //* useStuff
@@ -63,26 +47,20 @@ const Waiting = () => {
 
   const calculateEstWaitTime = (custPos, currServ, estWaitTime) => {
     const inMs = (custPos - currServ + 1) * estWaitTime;
-
     const inMins = inMs / 1000 / 60;
-
     return inMins;
   };
 
   //* Tailwind class
 
   const labelClass = `text-gray-500 text-sm `;
-
   const dotClass = "animate-pulse bg-stone-800 w-1 h-1 rounded-full";
-
   const youClass =
     "bg-primary-light-green text-white text-xs text-center min-w-10 h-full flex items-center justify-center border-r-1 border-stone-100";
 
   const dotBGClass = "bg-stone-200 flex rounded-r w-full items-center h-full";
-
   const progBarClass =
     "flex w-full max-w-md justify-self-center mt-3 items-center h-[25px]";
-
   const buttonClass = `mt-3 transition ease-in text-white font-light py-2 px-4 rounded-full focus:outline-none focus:shadow-outline min-w-20`;
 
   //* INSTANTIATE
@@ -102,25 +80,34 @@ const Waiting = () => {
   }, []);
 
   //* SOCKET HERE
+  //!SOMETHING WRONG WITH THE SOCKET. CURRENTLY SERVING AND YOUR NUMBER AND EWT NOT SHOWING. WE GET THESE INFO FROM SOCKET ONLY.
+  useEffect(() => {
+    if (socket && isConnected && queueItem?.queueId && queueItem?.customerId) {
+      console.log(
+        "Socket connected and queueItem available in Waiting. Setting up listeners and emitting initial events."
+      );
+      socket.emit("join_queue", `queue_${queueItem.queueId}`);
+      console.log("Trying to set customer id, ", queueItem);
+      socket.emit("set_customer_id", queueItem.customerId);
+      socket.emit("cust_req_queue_refresh", queueItem.queueId);
+      setConnection(true); // Update local connection state
+    } else if (socket && !isConnected) {
+      console.log(
+        "Socket not connected, attempting to reconnect in 5 seconds..."
+      );
+      const timer = setTimeout(reconnect, 5000); // Retry every 5 seconds
+      return () => clearTimeout(timer); // Cleanup the timer
+    }
+  }, [socket, isConnected, queueItem?.queueId, queueItem?.customerId]);
 
   useEffect(() => {
-    if (dataLoaded && !!queueItem) {
+    if (dataLoaded && queueItem !== null && !!socket && isConnected) {
       console.log(
         "Data is loaded and queueItem exist",
         !!dataLoaded,
-        !!queueItem
+        !!queueItem,
+        socket
       );
-      socket.on("connect", () => {
-        socket.emit("join_queue", `queue_${queueItem.queueId}`);
-        socket.emit("set_customer_id", queueItem.id);
-        console.log("connecting in socket");
-        socket.emit("cust_req_queue_refresh", queueItem.queueId);
-        setConnection(true);
-      });
-
-      socket.on("disconnect", () => {
-        setConnection(false);
-      });
 
       socket.on("queue_update", (data) => {
         console.log("connecting in socket");
@@ -155,11 +142,17 @@ const Waiting = () => {
         socket.off("res_queue_refresh");
       };
     }
-  }, [dataLoaded, queueItem?.queueId, queueItem?.id, customer?.id, socket]);
+  }, [
+    dataLoaded,
+    queueItem?.queueId,
+    queueItem?.id,
+    customer?.id,
+    socket,
+    isConnected,
+  ]);
 
   const leaveQueue = async (e) => {
     e.preventDefault();
-
     setModalLeave(true);
   };
 
@@ -170,15 +163,19 @@ const Waiting = () => {
       const acctSlug = accountInfo.slug;
       const queueId = queueItem.queueId;
       const queueItemId = queueItem.id;
+      console.log("Customer is trying to leave queue: ", queueItemId);
       const res = await api.post(
         `/customerQuit/${acctSlug}/${queueId}/${queueItemId}`
       );
 
       if (res?.status === 201) {
-        socket.emit("leave_queue", queueId);
+        console.log("201 status for leaving queue: ", res.data);
+        console.log("This is the queueId before quit: ", queueId);
+
+        socket.emit("queue_update", queueId);
         const navStateData = { ...res?.data };
         setTimeout(() => {
-          navigate(`${acctSlug}/leftQueue/${queueItemId}`, navStateData);
+          navigate(`/${acctSlug}/leftQueue/${queueItemId}`, navStateData);
         }, 100);
       }
     } catch (error) {
@@ -223,7 +220,7 @@ const Waiting = () => {
 
   const requestQueueRefresh = () => {
     if (socket && socket.connected && queueItem) {
-      socket.emit("queue_update", queueItem.queueId);
+      socket.emit("cust_req_queue_refresh", queueItem.queueId);
     } else {
       setConnection(false);
     }
@@ -341,12 +338,12 @@ const Waiting = () => {
       >
         <img
           src={accountInfo.logo || null}
-          alt={`${accountInfo.companyName} logo`}
+          alt={`${accountInfo.companyName || null} logo`}
           className="w-20"
         />
 
         <h1 className="font-bold pl-3 text-2xl sm:text-4xl sm:pl-6 lg:text-6xl ">
-          {accountInfo.companyName}
+          {accountInfo.companyName || null}
         </h1>
       </Link>
 
