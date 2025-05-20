@@ -11,12 +11,13 @@ const ErrorDB = lazy(() => import("./assets/pages/ErrorDB"));
 const Login = lazy(() => import("./assets/pages/Login"));
 const Register = lazy(() => import("./assets/pages/Register"));
 const Settings = lazy(() => import("./assets/pages/Settings"));
-const Outlets = lazy(() => import("./assets/pages/Outlets"));
+const DBLayout = lazy(() => import("./assets/pages/DBLayout"));
 const AccountLanding = lazy(() => import("./assets/pages/AccountLanding"));
 const OutletLanding = lazy(() => import("./assets/pages/OutletLanding"));
 const JoinQueue = lazy(() => import("./assets/pages/JoinQueue"));
 const Waiting = lazy(() => import("./assets/pages/Waiting"));
 const Home = lazy(() => import("./assets/pages/Home"));
+const AllOutlets = lazy(() => import("./assets/pages/AllOutlets.jsx"));
 
 //Import Components
 import ProtectedRoutes from "./assets/components/ProtectedRoutes";
@@ -90,7 +91,7 @@ const router = createBrowserRouter([
         element: (
           <AuthProvider>
             <Suspense fallback={<div>Loading...</div>}>
-              <Outlet /> {/* Render child routes within AuthProvider */}
+              <DBLayout /> {/* Render child routes within AuthProvider */}
             </Suspense>
           </AuthProvider>
         ),
@@ -102,15 +103,21 @@ const router = createBrowserRouter([
             path: ":accountId",
             element: <ProtectedRoutes />,
             children: [
-              { path: "outlets", element: <Outlets /> },
               {
+                //* ALL OUTLETS
+                path: "outlets",
+                element: <AllOutlets />,
+              },
+              {
+                //* SETTINGS PAGE
                 path: "settings",
                 element: <Settings />,
                 //element: settings -- set the outlet settings, egs. how long the default estimated wait time is. add new outlets. pay monies to me yay.
                 //To edit info such as default estimated wait time, name, address, location map links, waze links, hours open, etc. (So this should be an editable form)
               },
               {
-                path: "outletId",
+                //* INDIVIDUAL OUTLET
+                path: "outlet/:outletId",
                 //element: outlet -- here we are inside the outlet element where we can start a queue, or not. etc.
                 children: [
                   {

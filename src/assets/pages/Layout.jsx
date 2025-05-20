@@ -1,16 +1,31 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import Sidenav from "../components/Sidenav";
 
 const Layout = () => {
+  const pathname = useLocation().pathname;
+  const [dbPath, setDbPath] = useState(false);
+
+  useEffect(() => {
+    if (pathname.slice(1, 3) === "db") {
+      setDbPath(true);
+    } else {
+      setDbPath(false);
+    }
+  }, [pathname]);
   return (
     <div className="relative w-screen h-screen overflow-hidden flex justify-center items-center">
-      <Link to="/">
-        <div className="absolute top-0 left-3 z-10 m-3 cursor-pointer block md:left-auto">
-          <span className="flex items-end font-black text-primary-green">
-            <img src="/Q-logo.svg" alt="Queue In Logo" className=" w-15 " />{" "}
-            UEUE IN
-          </span>
-        </div>
-      </Link>
+      {!dbPath && (
+        <Link to="/">
+          <div className="absolute top-0 left-3 z-10 m-3 cursor-pointer block md:left-auto">
+            <span className="flex items-end font-black text-primary-green">
+              <img src="/Q-logo.svg" alt="Queue In Logo" className=" w-15 " />{" "}
+              UEUE IN
+            </span>
+          </div>
+        </Link>
+      )}
+
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 bg-fixed ">
         <img
           src="/BackgroundImage.jpg"

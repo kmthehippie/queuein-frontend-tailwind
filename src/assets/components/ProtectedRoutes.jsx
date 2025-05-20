@@ -8,7 +8,6 @@ const ProtectedRoutes = () => {
   const location = useLocation();
   const refresh = useRefreshToken();
   const [isLoading, setIsLoading] = useState(true);
-  console.log("In protected routes. Is authenticated :", isAuthenticated);
 
   useEffect(() => {
     const verifyAuth = async () => {

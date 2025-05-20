@@ -154,8 +154,6 @@ const JoinQueue = () => {
 
   //This useEffect is to POST to backend
   useEffect(() => {
-    console.log("Is there validation error?", validationError);
-    console.log("Should post? ", shouldPost);
     const data = {
       customerInfo: {
         customerName: customerName,

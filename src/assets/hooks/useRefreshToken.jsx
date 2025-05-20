@@ -9,15 +9,13 @@ const useRefreshToken = () => {
 
   const refresh = async () => {
     try {
-      console.log("Trying to refresh in useRefreshToken");
       const response = await apiPrivate.post("/refresh");
-      console.log("Response from refreshing: ", response.data);
       if (response?.data?.accessToken) {
         updateAccessToken(response.data.accessToken);
         updateIsAuthenticated(true);
         console.log(
           "Refresh token successfully updated access token: ",
-          accessToken
+          response.data.accessToken
         );
         return response.data.accessToken;
       } else {
