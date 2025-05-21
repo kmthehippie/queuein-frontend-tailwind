@@ -64,32 +64,37 @@ const Register = () => {
     if (companyEmail.length < 6) {
       setErrors({ general: "Email invalid" });
       setCompanyEmailErr(true);
-      console.log(companyEmail);
+      return;
     }
     if (ownerEmail.length < 6) {
       setErrors({ general: "Email invalid" });
       setOwnerEmailErr(true);
-      console.log(companyEmail);
+      return;
     }
     if (companyPassword !== companyCfmPassword) {
       setErrors({ general: "Passwords do not match" });
       setConfirmCompanyPasswordError(true);
+      return;
     }
     if (companyPassword.length < 6) {
       setErrors({ general: "Invalid password" });
       setPasswordCompanyError(true);
+      return;
     }
     if (companyName.length < 3) {
       setErrors({ general: "Invalid company name" });
       setCompanyNameErr(true);
+      return;
     }
     if (ownerName.length === 0) {
       setErrors({ general: "Invalid owner name" });
       setOwnerNameErr(true);
+      return;
     }
     if (ownerPassword.length < 6) {
       setErrors({ general: "Invalid password" });
       setOwnerPasswordError(true);
+      return;
     }
 
     const accountInfo = {
@@ -107,6 +112,7 @@ const Register = () => {
       !ownerName
     ) {
       setErrors({ general: "Please fill out the required fields" });
+      return;
     }
 
     const ownerInfo = {
@@ -129,7 +135,7 @@ const Register = () => {
         login(accessToken, accountId);
         setErrors({});
         setTimeout(() => {
-          navigate(`/db/${res.data.accountId}/settings`);
+          navigate(`/db/${res.data.accountId}/outlets/all`);
         }, 1500);
       } else {
         console.error("Unexpected success response:", res.data);

@@ -11,17 +11,18 @@ const ErrorDB = lazy(() => import("./assets/pages/ErrorDB"));
 const Login = lazy(() => import("./assets/pages/Login"));
 const Register = lazy(() => import("./assets/pages/Register"));
 const Settings = lazy(() => import("./assets/pages/Settings"));
-const DBLayout = lazy(() => import("./assets/pages/DBLayout"));
 const AccountLanding = lazy(() => import("./assets/pages/AccountLanding"));
 const OutletLanding = lazy(() => import("./assets/pages/OutletLanding"));
 const JoinQueue = lazy(() => import("./assets/pages/JoinQueue"));
 const Waiting = lazy(() => import("./assets/pages/Waiting"));
 const Home = lazy(() => import("./assets/pages/Home"));
 const AllOutlets = lazy(() => import("./assets/pages/AllOutlets.jsx"));
+const NewOutlet = lazy(() => import("./assets/pages/NewOutlet.jsx"));
+const LeaveQueue = lazy(() => import("./assets/pages/LeaveQueue.jsx"));
 
 //Import Components
 import ProtectedRoutes from "./assets/components/ProtectedRoutes";
-import LeaveQueue from "./assets/pages/LeaveQueue";
+import Sidenav from "./assets/components/Sidenav.jsx";
 
 const router = createBrowserRouter([
   {
@@ -91,22 +92,41 @@ const router = createBrowserRouter([
         element: (
           <AuthProvider>
             <Suspense fallback={<div>Loading...</div>}>
-              <DBLayout /> {/* Render child routes within AuthProvider */}
+              <Outlet />
             </Suspense>
           </AuthProvider>
         ),
         children: [
           { path: "login", element: <Login /> },
           { path: "register", element: <Register /> },
-          //forgotpassword,
+          //TODO: forgotpassword,
           {
             path: ":accountId",
-            element: <ProtectedRoutes />,
+            element: (
+              <ProtectedRoutes>
+                <div className="h-full w-full md:grid md:grid-cols-5">
+                  <Sidenav />
+                  <div className="md:col-span-4 ">
+                    <Outlet />
+                  </div>
+                </div>
+              </ProtectedRoutes>
+            ),
             children: [
               {
                 //* ALL OUTLETS
                 path: "outlets",
-                element: <AllOutlets />,
+                element: <Outlet />,
+                children: [
+                  {
+                    path: "new",
+                    element: <NewOutlet />,
+                  },
+                  {
+                    path: "all",
+                    element: <AllOutlets />,
+                  },
+                ],
               },
               {
                 //* SETTINGS PAGE

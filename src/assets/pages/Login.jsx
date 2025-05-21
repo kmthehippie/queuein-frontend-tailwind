@@ -60,7 +60,7 @@ const Login = () => {
         login(accessToken, accountId);
         setErrors({});
         setTimeout(() => {
-          navigate(`/db/${res.data.accountId}/settings`);
+          navigate(`/db/${res.data.accountId}/outlets/all`);
         }, 1500);
       } else {
         console.error("Unexpected success response:", res.data);

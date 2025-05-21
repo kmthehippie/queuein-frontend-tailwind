@@ -3,7 +3,7 @@ import useAuth from "../hooks/useAuth";
 import useRefreshToken from "../hooks/useRefreshToken";
 import { useEffect, useState } from "react";
 
-const ProtectedRoutes = () => {
+const ProtectedRoutes = ({ children }) => {
   const { isAuthenticated, logout } = useAuth();
   const location = useLocation();
   const refresh = useRefreshToken();
@@ -32,7 +32,7 @@ const ProtectedRoutes = () => {
     return <div className="">Loading ... </div>;
   }
   return isAuthenticated ? (
-    <Outlet />
+    children
   ) : (
     <Navigate to="/db/login" state={{ from: location }} replace />
   );
