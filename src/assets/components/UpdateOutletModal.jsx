@@ -64,7 +64,6 @@ const OutletUpdateModal = ({
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-
     setErrors({});
     setDefaultEstWaitTimeError(false);
     setNameError(false);
@@ -170,7 +169,6 @@ const OutletUpdateModal = ({
         <h1 className="text-2xl font-light text-center">
           Updating Your Outlet Details
         </h1>
-
         <form className="mt-5" onSubmit={handleUpdate}>
           <div className={inputDivClass}>
             <label htmlFor="name" className={labelClass}>

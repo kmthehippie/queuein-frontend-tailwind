@@ -35,7 +35,7 @@ const Sidenav = () => {
   }, [params]);
 
   return (
-    <div className="">
+    <div className=" ">
       <p
         className="p-5 cursor-pointer hover:text-primary-dark-green ease-in md:hidden"
         onClick={toggleSideNav}
@@ -45,8 +45,8 @@ const Sidenav = () => {
       <div
         className={`
           bg-primary-cream pt-3 h-full 
-          absolute top-0 left-0 
-          w-2/3
+          fixed top-0 left-0
+          w-[300px]
           md:relative md:w-full md:pl-2  z-10
        ${showSideNav ? "block" : "hidden"} md:block 
         `}
@@ -58,12 +58,16 @@ const Sidenav = () => {
           <i className="fa-solid fa-bars"></i>
         </p>
 
+        <div className="cursor-pointer w-full hidden md:left-auto md:block">
+          <span className="flex items-end font-black text-primary-green">
+            <img src="/Q-logo.svg" alt="Queue In Logo" className=" w-15 " />{" "}
+            UEUE IN
+          </span>
+        </div>
+
         <Link to={`/db/${params.accountId}/outlets/all`}>
-          <div className=" cursor-pointer block w-full md:left-auto">
-            <span className="flex items-end font-black text-primary-green">
-              <img src="/Q-logo.svg" alt="Queue In Logo" className=" w-15 " />{" "}
-              UEUE IN
-            </span>
+          <div className="pl-3 pt-5 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer">
+            <i className="fa-solid fa-house"></i> Outlets
           </div>
         </Link>
 
@@ -85,8 +89,20 @@ const Sidenav = () => {
 
         <div>
           <Link to={`/db/${params.accountId}/outlets/new`}>
-            <div className={sideNavButtonClass}>Create a new outlet +</div>
+            <div className={sideNavButtonClass + " font-semibold"}>
+              Create a new outlet +
+            </div>
           </Link>
+        </div>
+
+        <div className="pl-3 pt-3 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer">
+          <i className="fa-solid fa-gear"></i> Settings
+        </div>
+        <div className="cursor-pointer absolute bottom-5 left-5 w-full md:left-auto ">
+          <span className="flex items-end font-black text-primary-green">
+            <img src="/Q-logo.svg" alt="Queue In Logo" className=" w-15 " />{" "}
+            UEUE IN
+          </span>
         </div>
       </div>
     </div>

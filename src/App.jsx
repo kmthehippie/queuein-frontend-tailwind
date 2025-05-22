@@ -19,6 +19,9 @@ const Home = lazy(() => import("./assets/pages/Home"));
 const AllOutlets = lazy(() => import("./assets/pages/AllOutlets.jsx"));
 const NewOutlet = lazy(() => import("./assets/pages/NewOutlet.jsx"));
 const LeaveQueue = lazy(() => import("./assets/pages/LeaveQueue.jsx"));
+const IndividualOutlet = lazy(() =>
+  import("./assets/pages/IndividualOutlet.jsx")
+);
 
 //Import Components
 import ProtectedRoutes from "./assets/components/ProtectedRoutes";
@@ -138,6 +141,7 @@ const router = createBrowserRouter([
               {
                 //* INDIVIDUAL OUTLET
                 path: "outlet/:outletId",
+                element: <IndividualOutlet />,
                 //element: outlet -- here we are inside the outlet element where we can start a queue, or not. etc.
                 children: [
                   {
