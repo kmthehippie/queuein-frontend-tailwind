@@ -26,6 +26,8 @@ const IndividualOutlet = lazy(() =>
 //Import Components
 import ProtectedRoutes from "./assets/components/ProtectedRoutes";
 import Sidenav from "./assets/components/Sidenav.jsx";
+import InactiveOutlet from "./assets/pages/InactiveOutlet.jsx";
+import ActiveOutlet from "./assets/pages/ActiveOutlet.jsx";
 
 const router = createBrowserRouter([
   {
@@ -142,15 +144,14 @@ const router = createBrowserRouter([
                 //* INDIVIDUAL OUTLET
                 path: "outlet/:outletId",
                 element: <IndividualOutlet />,
-                //element: outlet -- here we are inside the outlet element where we can start a queue, or not. etc.
                 children: [
                   {
                     path: "inactive",
-                    //element: inactiveQueue -- queue is inactive
+                    element: <InactiveOutlet />,
                   },
                   {
                     path: "active/:queueId",
-                    //element: activeQueue -- the active queue where we can call, seat, etc.
+                    element: <ActiveOutlet />,
                   },
                 ],
               },

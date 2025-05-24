@@ -1,4 +1,7 @@
 LOGS
+24 May 2025
+
+1. Error trying to fetch active queue data
 
 23 MAY 2025
 
@@ -38,7 +41,7 @@ WHEN TIRED LIST:
 
 DAILY CHECK LIST
 
-1. GIT COMMITS
+1. GIT COMMITS //done
 
 21 MAY 2025
 NOTES
