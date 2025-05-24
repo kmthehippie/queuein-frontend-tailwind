@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { apiPrivate } from "../api/axios";
 
-const CreateCustomer = ({ setModal }) => {
+const CreateCustomer = ({ setModal, setNotice, setNotification }) => {
   const params = useParams();
   const [customerName, setCustomerName] = useState("");
   const [number, setNumber] = useState("");
-  const [formattedNumber, setFormattedNumber] = useState("");
+
   const [customerPax, setCustomerPax] = useState(null);
   const [vip, setVIP] = useState(true);
   const [validationError, setValidationError] = useState("");
@@ -33,6 +33,7 @@ const CreateCustomer = ({ setModal }) => {
   };
   //1. form for customer post
   const handleSubmit = (e) => {
+    let formattedNumber;
     e.preventDefault();
     //Validation
     if (customerName.length === 0) {
@@ -41,8 +42,7 @@ const CreateCustomer = ({ setModal }) => {
     const validNumber = validMalaysianNumber(number);
     if (validNumber) {
       const extractedNumber = extractNumerals(number);
-      console.log("Is number valid: ", extractedNumber);
-      setFormattedNumber(extractedNumber);
+      formattedNumber = extractedNumber;
     } else {
       return setValidationError({
         general: "Please enter a valid Malaysian Phone Number",
@@ -74,6 +74,8 @@ const CreateCustomer = ({ setModal }) => {
         );
         if (res?.status === 201) {
           console.log("Success! New Customer created: ", res?.data);
+          setNotice(res?.data.message);
+          setNotification(true);
           setModal(false);
         } else if (res?.status === 406) {
           console.log("Customer exist in a queue of a different location");
@@ -116,7 +118,6 @@ const CreateCustomer = ({ setModal }) => {
     e.preventDefault();
     setCustomerName("");
     setNumber("");
-    setFormattedNumber("");
     setCustomerPax(null);
     setVIP(false);
     setValidationError("");

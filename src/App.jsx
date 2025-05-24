@@ -19,15 +19,18 @@ const Home = lazy(() => import("./assets/pages/Home"));
 const AllOutlets = lazy(() => import("./assets/pages/AllOutlets.jsx"));
 const NewOutlet = lazy(() => import("./assets/pages/NewOutlet.jsx"));
 const LeaveQueue = lazy(() => import("./assets/pages/LeaveQueue.jsx"));
+const InactiveOutlet = lazy(() => import("./assets/pages/InactiveOutlet.jsx"));
+const ActiveOutlet = lazy(() => import("./assets/pages/ActiveOutlet.jsx"));
 const IndividualOutlet = lazy(() =>
   import("./assets/pages/IndividualOutlet.jsx")
+);
+const StaffManagement = lazy(() =>
+  import("./assets/pages/StaffManagement.jsx")
 );
 
 //Import Components
 import ProtectedRoutes from "./assets/components/ProtectedRoutes";
 import Sidenav from "./assets/components/Sidenav.jsx";
-import InactiveOutlet from "./assets/pages/InactiveOutlet.jsx";
-import ActiveOutlet from "./assets/pages/ActiveOutlet.jsx";
 
 const router = createBrowserRouter([
   {
@@ -158,6 +161,10 @@ const router = createBrowserRouter([
               {
                 path: "customers",
                 //element: customers -- displays all customers that agree to share their data here. but if the customer refuse to share data, automatically delete in 24 hours
+              },
+              {
+                path: "staff",
+                element: <StaffManagement />,
               },
             ],
           },

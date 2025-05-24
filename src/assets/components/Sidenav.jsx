@@ -67,7 +67,7 @@ const Sidenav = () => {
 
         <Link to={`/db/${params.accountId}/outlets/all`}>
           <div className="pl-3 pt-5 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer">
-            <i className="fa-solid fa-house"></i> Outlets
+            <i className="fa-solid fa-house pr-1"></i> Outlets
           </div>
         </Link>
 
@@ -96,7 +96,12 @@ const Sidenav = () => {
         </div>
 
         <div className="pl-3 pt-3 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer">
-          <i className="fa-solid fa-gear"></i> Settings
+          <i className="fa-solid fa-gear pr-1"></i> Settings
+        </div>
+        <div className="pl-3 pt-3 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer">
+          <Link to={`/db/${params.accountId}/staff`}>
+            <i className="fa-solid fa-users"></i> Staff
+          </Link>
         </div>
         <div className="cursor-pointer absolute bottom-5 left-5 w-full md:left-auto ">
           <span className="flex items-end font-black text-primary-green">
