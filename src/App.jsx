@@ -112,9 +112,9 @@ const router = createBrowserRouter([
             path: ":accountId",
             element: (
               <ProtectedRoutes>
-                <div className="h-full w-full md:grid md:grid-cols-5">
+                <div className="h-full w-full lg:grid lg:grid-cols-5">
                   <Sidenav />
-                  <div className="md:col-span-4 ">
+                  <div className="lg:col-span-4 ">
                     <Outlet />
                   </div>
                 </div>
@@ -154,7 +154,13 @@ const router = createBrowserRouter([
                   },
                   {
                     path: "active/:queueId",
-                    element: <ActiveOutlet />,
+                    element: (
+                      <SocketProvider>
+                        <Suspense fallback={<div>Loading...</div>}>
+                          <ActiveOutlet />
+                        </Suspense>
+                      </SocketProvider>
+                    ),
                   },
                 ],
               },

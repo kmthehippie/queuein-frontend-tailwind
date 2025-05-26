@@ -42,9 +42,7 @@ const JoinQueue = () => {
   const closeWarning = () => {
     setWarning(false);
   };
-  // const closeWarningDiffQueue = () => {
-  //   setWarningDiffQueue(false);
-  // };
+
 
   //Tailwind
   const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800 `;

@@ -1,11 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
-
 import { useLocation, Link, useNavigate } from "react-router-dom";
-
 import moment from "moment";
-
 import api from "../api/axios";
-
 import SocketContext from "../context/SocketContext";
 
 const Waiting = () => {
@@ -34,17 +30,13 @@ const Waiting = () => {
   //* useStuff
 
   const navigate = useNavigate();
-
   const location = useLocation();
-
   const receivedData = location.state?.data;
 
   //* Helper functions
-
   const formatLastUpdated = (date) => {
     return moment(date).fromNow();
   };
-
   const calculateEstWaitTime = (custPos, currServ, estWaitTime) => {
     const inMs = (custPos - currServ + 1) * estWaitTime;
     const inMins = inMs / 1000 / 60;
@@ -57,7 +49,6 @@ const Waiting = () => {
   const dotClass = "animate-pulse bg-stone-800 w-1 h-1 rounded-full";
   const youClass =
     "bg-primary-light-green text-white text-xs text-center min-w-10 h-full flex items-center justify-center border-r-1 border-stone-100";
-
   const dotBGClass = "bg-stone-200 flex rounded-r w-full items-center h-full";
   const progBarClass =
     "flex w-full max-w-md justify-self-center mt-3 items-center h-[25px]";
@@ -80,7 +71,6 @@ const Waiting = () => {
   }, []);
 
   //* SOCKET HERE
-  //!SOMETHING WRONG WITH THE SOCKET. CURRENTLY SERVING AND YOUR NUMBER AND EWT NOT SHOWING. WE GET THESE INFO FROM SOCKET ONLY.
   useEffect(() => {
     if (socket && isConnected && queueItem?.queueId && queueItem?.customerId) {
       console.log(
@@ -331,7 +321,7 @@ const Waiting = () => {
           </div>
         </div>
       )}
-
+      {/* Add function to trigger when customer is in waiting and called is called */}
       <Link
         to={`/${accountInfo.slug}`}
         className="flex items-center pb-3 border-b-2 border-stone-400 "

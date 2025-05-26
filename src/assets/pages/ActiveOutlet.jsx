@@ -1,13 +1,16 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useContext } from "react";
 import { apiPrivate } from "../api/axios";
 import { useParams } from "react-router-dom";
 import CreateCustomer from "../components/CreateCustomer";
 import moment from "moment";
+import SocketContext from "../context/SocketContext";
 
 const ActiveOutlet = () => {
+  const { socket, isConnected, reconnect } = useContext(SocketContext);
+
   const params = useParams();
   const [queueItems, setQueueItems] = useState([]);
-  const [landscape, setLandscape] = useState(false);
+  const [lg, setLg] = useState(false);
   const [createCustomerModal, setCreateCustomerModal] = useState(false);
   const [notification, setNotification] = useState(false);
   const [notice, setNotice] = useState({});
@@ -43,16 +46,22 @@ const ActiveOutlet = () => {
   }, []);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(orientation: landscape)");
-    const handleOrientationChange = (e) => setLandscape(e.matches);
-    setLandscape(mediaQuery.matches);
-    mediaQuery.addEventListener("change", handleOrientationChange);
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+    const handleMediaQueryChange = (e) => setLg(e.matches);
+    setLg(mediaQuery.matches);
+    mediaQuery.addEventListener("change", handleMediaQueryChange);
+    console.log(mediaQuery);
     return () =>
-      mediaQuery.removeEventListener("change", handleOrientationChange);
+      mediaQuery.removeEventListener("change", handleMediaQueryChange);
   }, []);
 
   //SOCKET HERE
-
+  useEffect(() => {
+    if (socket && isConnected) {
+      console.log("Socket is connected ");
+      socket.emit("join_queue", `queue_${params.queueId}`);
+    }
+  }, []);
   //HANDLES
   const handleAddCustomer = useCallback((e) => {
     console.log("Add customer");
@@ -94,7 +103,7 @@ const ActiveOutlet = () => {
     console.log("End Queue");
   }, []);
   return (
-    <div className="">
+    <div className="relative">
       {notification && (
         <p className="text-primary-green light text-xs">{notice}</p>
       )}
@@ -102,7 +111,7 @@ const ActiveOutlet = () => {
         <button
           className={
             buttonClass +
-            "  bg-red-700 border-1 border-red-500 hover:bg-red-900 fixed top-0 right-0 mr-3"
+            "  bg-red-700 border-1 border-red-500 hover:bg-red-900 fixed top-0 right-0 lg:absolute mr-3"
           }
           onClick={handleEndQueue}
         >
@@ -136,15 +145,16 @@ const ActiveOutlet = () => {
           >
             Add Customer
           </button>
+
           {/* PORTRAIT */}
-          {!landscape && queueItems.length > 0 && (
-            <div>
+          {!lg && queueItems.length > 0 && (
+            <div className="">
               <div className="">
                 {queueItems.map((item) => {
                   if (item.active === true) {
                     return (
                       <div className="" key={item.id}>
-                        <div className="flex-row w-full  my-3 rounded-2xl p-2 shadow-2xl bg-primary-cream md:hidden">
+                        <div className="flex-row w-full  my-3 rounded-2xl p-2 shadow-2xl bg-primary-cream ">
                           <div className="grid grid-cols-2 border-b-1">
                             <div className="flex items-center p-1 border-r-1">
                               <div className={activeTableHeader + " mr-5"}>
@@ -240,7 +250,7 @@ const ActiveOutlet = () => {
                   if (item.active === false) {
                     return (
                       <div className="" key={item.id}>
-                        <div className="flex-row w-full  my-3 rounded-2xl p-2 shadow-2xl bg-stone-300 md:hidden">
+                        <div className="flex-row w-full  my-3 rounded-2xl p-2 shadow-2xl bg-stone-300 ">
                           <div className="grid grid-cols-2">
                             <div className="flex items-center p-1 ">
                               <div className={activeTableHeader + ""}>
@@ -266,29 +276,50 @@ const ActiveOutlet = () => {
             </div>
           )}
           {/* HEADER FOR LANDSCAPE*/}
-          {landscape && queueItems.length > 0 && (
-            <div className="">
+          {lg && queueItems.length > 0 && (
+            <div className="hidden md:block overflow-auto">
               <div className="grid grid-cols-13 mt-3 rounded-md p-2 shadow-2xl bg-primary-cream text-center">
                 <div
                   className={
                     landscapeHeaderClass +
-                    " col-span-2 border-l-10 rounded-l-xl"
+                    " text-primary-dark-green col-span-2 border-l-10 rounded-l-xl"
                   }
                 >
                   Customer Queue Number
                 </div>
-                <div className={landscapeHeaderClass + " col-span-2"}>
+                <div
+                  className={
+                    landscapeHeaderClass + " text-primary-dark-green col-span-2"
+                  }
+                >
                   Time Waited
                 </div>
-                <div className={landscapeHeaderClass + " col-span-1"}>PAX</div>
-                <div className={landscapeHeaderClass + " col-span-2"}>
+                <div
+                  className={
+                    landscapeHeaderClass + " text-primary-dark-green col-span-1"
+                  }
+                >
+                  PAX
+                </div>
+                <div
+                  className={
+                    landscapeHeaderClass + " text-primary-dark-green col-span-2"
+                  }
+                >
                   Customer Name
                 </div>
-                <div className={landscapeHeaderClass + " col-span-3"}>
+                <div
+                  className={
+                    landscapeHeaderClass + " text-primary-dark-green col-span-3"
+                  }
+                >
                   Customer Contact Number
                 </div>
                 <div
-                  className={landscapeHeaderClass + " col-span-3 rounded-r-xl"}
+                  className={
+                    landscapeHeaderClass +
+                    " text-primary-dark-green col-span-3 rounded-r-xl"
+                  }
                 >
                   Status
                 </div>

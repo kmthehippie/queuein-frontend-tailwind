@@ -47,7 +47,6 @@ const Login = () => {
       rememberDevice: rmbDevice,
     };
 
-    console.log("credentials, ", credentials);
     try {
       const res = await apiPrivate.post("/login", {
         credentials,

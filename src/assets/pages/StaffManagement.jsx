@@ -1,102 +1,287 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { apiPrivate } from "../api/axios";
+import { useParams } from "react-router-dom";
 
 const StaffManagement = () => {
+  const [viewModal, setViewModal] = useState(false);
+  const [staffList, setStaffList] = useState([]);
+
   const [email, setEmail] = useState("");
   const [emailErr, setEmailErr] = useState(false);
   const [password, setPassword] = useState("");
+  const [cfmPassword, setCfmPassword] = useState("");
+  const [passwordErr, setPasswordErr] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [name, setName] = useState("");
+  const [nameErr, setNameErr] = useState(false);
+  const [selectedRole, setSelectedRole] = useState("");
+  const [refreshPg, setRefreshPg] = useState(false);
+
+  const params = useParams();
+  const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800 `;
+  const inputClass = (hasError) =>
+    `border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 text-xs leading-tight focus:outline-none focus:border-black peer active:border-black
+  ${hasError ? "border-red-500" : ""}`;
+  const errorClass = `text-red-600 text-center`;
+  const buttonClass = ` mt-3 hover:bg-primary-dark-green hover:text-primary-cream transition ease-in font-light py-2 px-8 rounded-xl focus:outline-none focus:shadow-outline hover:border-transparent border-primary-dark-green border-1`;
+  const tableClass = `border-l-1 border-t-1 border-b-1 border-r-1 border-primary-green text-sm`;
+
+  const toggleModal = (toggle) => {
+    if (toggle === true) {
+      setViewModal(true);
+    } else if (toggle === false) {
+      setEmail("");
+      setPassword("");
+      setCfmPassword("");
+      setName("");
+      setViewModal(false);
+      setRefreshPg(false);
+    }
+  };
+  const handleOpenModal = () => {
+    toggleModal(true);
+  };
+  const handleRoleChange = (e) => {
+    setSelectedRole(e.target.value);
+  };
+
+  useEffect(() => {
+    //Get all existing staff
+    const fetchStaff = async () => {
+      try {
+        const res = await apiPrivate.get(`/staffList/${params.accountId}`);
+        if (res.status === 200) {
+          console.log("response from staff", res.data);
+          setStaffList(res.data);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchStaff();
+  }, [refreshPg]);
+
+  const handleCreateNewStaff = (e) => {
+    e.preventDefault();
+    if (password.length < 6) {
+      setPasswordErr(true);
+      setErrors({ general: "Password must be at least 6 characters long." });
+      return;
+    }
+    if (password !== cfmPassword) {
+      setPasswordErr(true);
+      setErrors({ general: "Confirm password does not match password" });
+      return;
+    }
+    if (name.length === 0) {
+      setNameErr(true);
+      setErrors({
+        general:
+          "Name cannot be empty. Staff name will be used to login and verify.",
+      });
+      return;
+    }
+
+    //refresh the page to display the latest staff
+    const createStaff = async () => {
+      try {
+        const data = {
+          email: email,
+          name: name,
+          password: password,
+          role: selectedRole,
+        };
+        console.log("Trying to create a staff: ", data);
+        const res = await apiPrivate.post(
+          `/newStaff/${params.accountId}`,
+          data
+        );
+        if (res.status === 200) {
+          setRefreshPg(true);
+          setTimeout(() => {
+            toggleModal(false);
+          }, 1000);
+          console.log("response from create staff", res.data);
+        }
+      } catch (error) {
+        console.error(error);
+        setErrors({ general: error.message });
+      }
+    };
+    createStaff();
+  };
   return (
-    <div>
-      <div className="">All staff details</div>
+    <div className=" flex flex-col items-center justify-center md:mt-2 md:p-5">
       <div className="">
-        <button>Create New Staff</button>
+        <h1 className="text-2xl font-semibold">Staff Onboard</h1>
       </div>
-      <div className="">
-        Modal for creating new staff
-        <form>
-          <div className="flex-row p-1 ">
-            <div>
-              <label htmlFor="owner-name" className={labelClass}>
-                Owner Name
-              </label>
-              <input
-                id="owner-name"
-                type="text"
-                placeholder="Enter your Owner Name"
-                className={inputClass(ownerNameErr)} // Use the function
-                onChange={(e) => {
-                  setOwnerName(e.target.value);
-                }}
-                autoComplete="name"
-                required
-              />
+
+      {viewModal && (
+        <div className="bg-primary-cream p-5 rounded-2xl m-2 w-md relative">
+          <h3 className="text-xl pb-2 text-center">Create a new staff</h3>
+
+          <p
+            className="absolute top-0 right-0 text-red-700 pr-5 pt-2 hover:text-red-950 transition ease-in active:text-red-950 font-bold cursor-pointer"
+            onClick={() => toggleModal(false)}
+          >
+            X
+          </p>
+          <form>
+            <div className="flex-row p-1 ">
+              <div>
+                <label htmlFor="staff-name" className={labelClass}>
+                  Staff Name
+                </label>
+                <input
+                  id="staff-name"
+                  type="text"
+                  placeholder="Enter your staff name"
+                  className={inputClass(nameErr)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                  }}
+                  autoComplete="name"
+                  required
+                />
+              </div>
+              <small className="text-xs italic text-stone-600">
+                Your staff will be using this to login
+              </small>
+              <div className={``}>
+                <label htmlFor="email" className={labelClass}>
+                  Staff Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  className={inputClass(emailErr)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                  }}
+                  autoComplete="email"
+                  required
+                />
+              </div>
+              <div className="">
+                <label htmlFor="role" className={labelClass}>
+                  Staff Role
+                </label>
+                <br />
+                <select
+                  id="role"
+                  name="role"
+                  className="border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 text-xs leading-tight focus:outline-none focus:border-black peer active:border-black"
+                  value={selectedRole}
+                  onChange={handleRoleChange}
+                >
+                  <option value="" disabled defaultValue>
+                    Select a Role
+                  </option>
+                  <optgroup label="Allowed to perform sensitive functions">
+                    <option value="MANAGER">Manager</option>
+                    <option value="ASSISTANT_MANAGER">Assistant Manager</option>
+                    <option value="HOST">Host</option>
+                  </optgroup>
+                  <optgroup label="Allowed to perform basic functions">
+                    <option value="Server">Server</option>
+                    <option value="CASHIER">Cashier</option>
+                    <option value="BARISTA">Barista</option>
+                  </optgroup>
+                </select>
+                <small className="text-xs italic text-stone-500">
+                  If you do not choose a role, it will default to Host.
+                </small>
+              </div>
+              <div className={``}>
+                <label htmlFor="password" className={labelClass}>
+                  Staff Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your staff password"
+                  className={inputClass(passwordErr)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                  }}
+                  autoComplete="password"
+                  required
+                />
+              </div>
+              <small className="text-xs italic text-stone-500">
+                Remember this password
+              </small>
+              <div>
+                <label htmlFor="cfm-staff-password" className={labelClass}>
+                  Confirm Staff Password
+                </label>
+                <input
+                  id="cfm-staff-password"
+                  type="password"
+                  placeholder="Confirm Staff password"
+                  className={inputClass()}
+                  onChange={(e) => {
+                    setCfmPassword(e.target.value);
+                  }}
+                  autoComplete="password"
+                  required
+                />
+              </div>
+              <button
+                className={buttonClass + " bg-primary-green text-white"}
+                onClick={handleCreateNewStaff}
+              >
+                Submit New Staff
+              </button>
             </div>
-            <div className={``}>
-              <label htmlFor="email" className={labelClass}>
-                Staff Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                className={inputClass(!!emailErr)} // Use the function
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                }}
-                autoComplete="email"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="company-name" className={labelClass}>
-                Company name
-              </label>
-              <input
-                id="company-name"
-                type="text"
-                placeholder="Enter your company name"
-                className={inputClass(!!companyNameErr)} // Use the function
-                onChange={(e) => {
-                  setCompanyName(e.target.value);
-                }}
-                autoComplete="name"
-                required
-              />
-            </div>
-            <div className={``}>
-              <label htmlFor="password" className={labelClass}>
-                Staff Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                placeholder="Enter your owner password"
-                className={inputClass(!!passwordError)} // Use the function
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                }}
-                autoComplete="password"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="cfm-company-password" className={labelClass}>
-                Confirm Company Password
-              </label>
-              <input
-                id="cfm-company-password"
-                type="password"
-                placeholder="Confirm Company password"
-                className={inputClass(!!confirmCompanyPasswordError)} // Use the function
-                onChange={(e) => {
-                  setCompanyCfmPassword(e.target.value);
-                }}
-                autoComplete="password"
-                required
-              />
-            </div>
+            {errors && <p className={errorClass}>{errors.general}</p>}{" "}
+          </form>
+        </div>
+      )}
+      {!viewModal && (
+        <div className="p-5 bg-primary-cream w-full rounded-2xl max-w-lg">
+          <div className="my-3 ">
+            <button
+              className={
+                buttonClass +
+                " bg-primary-cream  text-primary-green cursor-pointer mb-3"
+              }
+              onClick={handleOpenModal}
+            >
+              Create New Staff +
+            </button>
           </div>
-        </form>
-      </div>
+          {staffList.length > 0 && (
+            <div className="grid grid-cols-7 w-full text-primary-dark-green font-semibold">
+              <div className={tableClass + " col-span-2 rounded-l-lg p-5 "}>
+                Name
+              </div>
+              <div className={tableClass + " col-span-2 p-5 "}>Role</div>
+              <div className={tableClass + " col-span-3 rounded-r-lg p-5"}>
+                Email
+              </div>
+            </div>
+          )}
+          {staffList.length > 0 &&
+            staffList.map((staff) => (
+              <div
+                className="grid grid-cols-7 w-full font-light"
+                key={staff.id}
+              >
+                <div className={tableClass + " col-span-2 rounded-l-lg p-2 "}>
+                  {staff.name}
+                </div>
+                <div className={tableClass + " col-span-2 p-2 "}>
+                  {staff.role.replace(/_/g, " ")}
+                </div>
+                <div className={tableClass + " col-span-3 rounded-r-lg p-2 "}>
+                  {staff.email}
+                </div>
+              </div>
+            ))}
+        </div>
+      )}
     </div>
   );
 };

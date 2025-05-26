@@ -1,4 +1,8 @@
 LOGS
+25 May 2025
+
+1.
+
 24 May 2025
 
 1. Error trying to fetch active queue data
@@ -8,9 +12,12 @@ LOGS
 1. DELETE PG DROP DATABASE queuein
 2. Double check user -- ARE THEY AUTHORIZED?
 3. Individual Outlet -- How should it look?
-   a. Design vertical queue management
-   b. Design horizontal queue management
+   a. Design vertical queue management //DONE
+   b. Design horizontal queue management //DONE
+   - Both inactive queue //done
 4. <i class="fa-solid fa-trash"></i> Delete an outlet AT ALLOUTLETS
+5. SOCKET IO
+6. Need to create a staff
 
 WHEN TIRED LIST:
 
