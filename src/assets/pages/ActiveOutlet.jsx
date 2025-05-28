@@ -247,10 +247,38 @@ const ActiveOutlet = () => {
               </div>
               <div className="">
                 {queueItems.map((item) => {
-                  if (item.active === false) {
+                  if (item.active === false && item.quit === false) {
                     return (
                       <div className="" key={item.id}>
                         <div className="flex-row w-full  my-3 rounded-2xl p-2 shadow-2xl bg-stone-300 ">
+                          <div className="grid grid-cols-2">
+                            <div className="flex items-center p-1 ">
+                              <div className={activeTableHeader + ""}>
+                                Customer Number
+                              </div>
+                              <div className={activeTableAnswer + ""}>
+                                {item.position}
+                              </div>
+                            </div>
+                            <div className="flex items-center p-1 ">
+                              <div className={activeTableHeader}>Name</div>
+                              <div className={activeTableAnswer}>
+                                {item.customer.name}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                })}
+              </div>
+              <div className="">
+                {queueItems.map((item) => {
+                  if (item.active === false && item.quit === true) {
+                    return (
+                      <div className="" key={item.id}>
+                        <div className="flex-row w-full  my-3 rounded-2xl p-2 shadow-2xl bg-red-950 text-white ">
                           <div className="grid grid-cols-2">
                             <div className="flex items-center p-1 ">
                               <div className={activeTableHeader + ""}>
@@ -388,7 +416,7 @@ const ActiveOutlet = () => {
                 }
               })}
               {queueItems.map((item) => {
-                if (item.active === false) {
+                if (item.active === false && item.quit === false) {
                   return (
                     <div className="grid grid-cols-13 px-2 pb-1 shadow-2xl bg-primary-cream text-center">
                       <div
@@ -434,6 +462,90 @@ const ActiveOutlet = () => {
                         }
                       >
                         <form className=" flex justify-center items-center mt-1 gap-1 bg-stone-300">
+                          <div className={"flex items-center "}>
+                            <input
+                              type="checkbox"
+                              id="called"
+                              className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
+                              onChange={(e) => handleCalled(e, item.id)}
+                              checked={item.called}
+                            />
+                            <label
+                              htmlFor="called"
+                              className={" ml-2 mr-2 text-xs "}
+                            >
+                              Called
+                            </label>
+                          </div>
+                          <div className={"flex items-center"}>
+                            <input
+                              type="checkbox"
+                              id="seated"
+                              className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
+                              onChange={(e) => handleSeated(e, item.id)}
+                              checked={item.seated}
+                            />
+                            <label htmlFor="seated" className={"text-xs ml-2"}>
+                              Seated
+                            </label>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  );
+                }
+              })}
+              {queueItems.map((item) => {
+                if (item.active === false && item.quit === true) {
+                  return (
+                    <div className="grid grid-cols-13 px-2 pb-1 shadow-2xl bg-primary-cream text-center">
+                      <div
+                        className={
+                          landscapeHeaderClass +
+                          " col-span-2 border-l-10 rounded-l-xl p-1 bg-red-950 text-white"
+                        }
+                      >
+                        {item.position}
+                      </div>
+                      <div
+                        className={
+                          landscapeHeaderClass +
+                          " col-span-2 bg-red-950 text-white"
+                        }
+                      >
+                        {convertedTime(item.createdAt)}
+                      </div>
+                      <div
+                        className={
+                          landscapeHeaderClass +
+                          " col-span-1 bg-red-950 text-white"
+                        }
+                      >
+                        {item.pax}
+                      </div>
+                      <div
+                        className={
+                          landscapeHeaderClass +
+                          " col-span-2 bg-red-950 text-white"
+                        }
+                      >
+                        {item.customer.name}
+                      </div>
+                      <div
+                        className={
+                          landscapeHeaderClass +
+                          " col-span-3 bg-red-950 text-white"
+                        }
+                      >
+                        {item.customer.number}
+                      </div>
+                      <div
+                        className={
+                          landscapeHeaderClass +
+                          " col-span-3 rounded-r-xl bg-red-950 text-white"
+                        }
+                      >
+                        <form className=" flex justify-center items-center mt-1 gap-1 bg-red-950 text-white">
                           <div className={"flex items-center "}>
                             <input
                               type="checkbox"

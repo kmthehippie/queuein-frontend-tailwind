@@ -51,8 +51,6 @@ const AuthorizedUser = ({
       } else {
         onFailure();
       }
-      // If res successful, we allow user to proceed next()
-      // Is it possible to
       console.log(res);
     } catch (error) {
       console.error(error);
@@ -84,6 +82,7 @@ const AuthorizedUser = ({
             }}
             autoComplete="name"
           />
+          <small>Capitalization Matters!</small>
         </div>
         <div>
           <label htmlFor="password" className={labelClass}>
