@@ -2,11 +2,9 @@ import { interceptedApiPrivate } from "../api/axios";
 import useAuth from "../hooks/useAuth";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import useRefreshToken from "../hooks/useRefreshToken";
 
 const useApiPrivate = () => {
-  const { accessToken, logout } = useAuth();
-  const refresh = useRefreshToken();
+  const { accessToken, logout, refresh } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,15 +24,17 @@ const useApiPrivate = () => {
       },
       async (error) => {
         const previousRequest = error?.config;
-
         if (
           (error?.response?.status === 401 ||
-            error?.response?.status === 403) &&
-          previousRequest._sent === undefined
+            error?.response?.status === 403 ||
+            error.status === 401 ||
+            error.status === 403) &&
+          (previousRequest._sent === undefined || !previousRequest._sent)
         ) {
           previousRequest._sent = true;
           try {
             const newAccessToken = await refresh();
+            console.log("Trying to refresh in response interceptor");
             if (newAccessToken) {
               previousRequest.headers[
                 "Authorization"
@@ -43,7 +43,6 @@ const useApiPrivate = () => {
               return interceptedApiPrivate(previousRequest);
             }
           } catch (err) {
-            // Empty out everything
             logout();
             navigate("/db/login", { replace: true });
             return Promise.reject(err);
@@ -57,7 +56,7 @@ const useApiPrivate = () => {
       interceptedApiPrivate.interceptors.request.eject(requestInterceptor);
       interceptedApiPrivate.interceptors.response.eject(responseInterceptor);
     };
-  }, [accessToken, refresh, logout, navigate]);
+  }, [accessToken, refresh, logout]);
 
   return interceptedApiPrivate;
 };

@@ -112,7 +112,7 @@ const router = createBrowserRouter([
             path: ":accountId",
             element: (
               <ProtectedRoutes>
-                <div className="h-full w-full lg:grid lg:grid-cols-5">
+                <div className="h-full w-full lg:grid lg:grid-cols-5 relative">
                   <Sidenav />
                   <div className="lg:col-span-4 ">
                     <Outlet />

@@ -1,20 +1,21 @@
 import React, { useState } from "react";
 import { minsToMs } from "../utils/timeConverter";
 import { useNavigate, useParams } from "react-router-dom";
-import { apiPrivate } from "../api/axios";
+import useApiPrivate from "../hooks/useApiPrivate";
 
 const NewOutlet = () => {
   const { accountId } = useParams();
   const navigate = useNavigate();
+  const apiPrivate = useApiPrivate();
   //DATA TO SET
   const [name, setName] = useState(""); // Initialize with empty string
-  const [location, setLocation] = useState(null);
-  const [googleMaps, setGoogleMaps] = useState(null);
-  const [wazeMaps, setWazeMaps] = useState(null);
+  const [location, setLocation] = useState("");
+  const [googleMaps, setGoogleMaps] = useState("");
+  const [wazeMaps, setWazeMaps] = useState("");
   const [defaultEstWaitTime, setDefaultEstWaitTime] = useState("");
-  const [imgUrl, setImgUrl] = useState(null);
-  const [phone, setPhone] = useState(null);
-  const [hours, setHours] = useState(null);
+  const [imgUrl, setImgUrl] = useState("");
+  const [phone, setPhone] = useState("");
+  const [hours, setHours] = useState("");
 
   //Errors
   const [errors, setErrors] = useState({});
@@ -299,7 +300,7 @@ const NewOutlet = () => {
                   " bg-primary-green hover:bg-primary-dark-green mr-3"
                 }
               >
-                Submit Update
+                Submit New Outlet
               </button>
             </div>
           </form>

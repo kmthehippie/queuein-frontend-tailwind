@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { apiPrivate } from "../api/axios";
 import moment from "moment";
-import AuthorizedUser from "./AuthorizedUser";
+import AuthorisedUser from "./AuthorisedUser";
+import useApiPrivate from "../hooks/useApiPrivate";
 
 const InactiveOutlet = () => {
   const params = useParams();
   const navigate = useNavigate();
   const [queueName, setQueueName] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const apiPrivate = useApiPrivate();
 
   //TAILWIND CLASSES
   const buttonClass = `mt-3 transition ease-in text-white font-light py-2 px-4 rounded-2xl cursor-pointer focus:outline-none focus:shadow-outline min-w-20`;
@@ -88,7 +89,7 @@ const InactiveOutlet = () => {
             >
               &times;
             </button>
-            <AuthorizedUser
+            <AuthorisedUser
               onSuccess={startQueueAllowed}
               onFailure={handleAuthModalClose}
               actionPurpose="Start New Queue"

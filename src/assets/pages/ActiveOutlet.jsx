@@ -1,19 +1,25 @@
 import React, { useEffect, useState, useCallback, useContext } from "react";
-import { apiPrivate } from "../api/axios";
 import { useParams } from "react-router-dom";
 import CreateCustomer from "../components/CreateCustomer";
 import moment from "moment";
 import SocketContext from "../context/SocketContext";
+import useApiPrivate from "../hooks/useApiPrivate";
+import useAuth from "../hooks/useAuth";
+import AuthorisedUser from "./AuthorisedUser";
 
 const ActiveOutlet = () => {
   const { socket, isConnected, reconnect } = useContext(SocketContext);
-
+  const { isAuthenticated } = useAuth();
   const params = useParams();
+  const apiPrivate = useApiPrivate();
   const [queueItems, setQueueItems] = useState([]);
   const [lg, setLg] = useState(false);
   const [createCustomerModal, setCreateCustomerModal] = useState(false);
   const [notification, setNotification] = useState(false);
   const [notice, setNotice] = useState({});
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [errors, setErrors] = useState("");
+  const errorClass = `text-red-600 text-center`;
 
   //HELPER FUNCTION
   const convertedTime = (date) => moment(date).fromNow();
@@ -26,6 +32,7 @@ const ActiveOutlet = () => {
 
   //INITIALIZE DATA
   useEffect(() => {
+    if (!isAuthenticated) return;
     const activeQueueItems = async () => {
       console.log(
         "Trying to fetch active queue items",
@@ -62,6 +69,7 @@ const ActiveOutlet = () => {
       socket.emit("join_queue", `queue_${params.queueId}`);
     }
   }, []);
+
   //HANDLES
   const handleAddCustomer = useCallback((e) => {
     console.log("Add customer");
@@ -99,13 +107,54 @@ const ActiveOutlet = () => {
       console.error(error);
     }
   }, []);
+  const handleAuthModalClose = () => {
+    setErrors({ general: "Forbidden" });
+    setShowAuthModal(false);
+    //Navigate -1 ?
+  };
   const handleEndQueue = useCallback(() => {
     console.log("End Queue");
+    //need to leave socket if socket exist
+    //check if there are still customers not seated or still in q. if yes, then cannot end queue. return error with can't end queue with customers in it.
+    // call authorised user and check if user is host and above before ending queue
+    setErrors("");
+    setShowAuthModal(true);
   }, []);
+
+  const endQueueAllowed = () => {
+    try {
+      //end the queue here by calling to endQueue/accountId/outletId/queueId
+      //if end queue successful, then we need to navigate to db/accountId/outlet/:outletId/inactive
+      //if there are still customers, cannot end queue
+    } catch (err) {
+      console.error(err);
+      setErrors({ general: `Error ending queue {queueId}` });
+    } finally {
+      setShowAuthModal(false);
+    }
+  };
   return (
-    <div className="relative">
+    <div className="">
       {notification && (
         <p className="text-primary-green light text-xs">{notice}</p>
+      )}
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
+            <button
+              onClick={handleAuthModalClose}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
+            >
+              &times;
+            </button>
+            <AuthorisedUser
+              onSuccess={endQueueAllowed}
+              onFailure={handleAuthModalClose}
+              actionPurpose="Delete Outlet"
+              minimumRole="MANAGER"
+            />
+          </div>
+        </div>
       )}
       {!createCustomerModal && (
         <button
@@ -120,11 +169,21 @@ const ActiveOutlet = () => {
         </button>
       )}
       {createCustomerModal && (
-        <CreateCustomer
-          setModal={setCreateCustomerModal}
-          setNotice={setNotice}
-          setNotification={setNotification}
-        />
+        <div className="">
+          <p
+            className="absolute top-0 right-0 text-red-700 pr-5 pt-2 hover:text-red-950 transition ease-in active:text-red-950 font-bold cursor-pointer"
+            onClick={() => {
+              setCreateCustomerModal(false);
+            }}
+          >
+            X
+          </p>
+          <CreateCustomer
+            setModal={setCreateCustomerModal}
+            setNotice={setNotice}
+            setNotification={setNotification}
+          />
+        </div>
       )}
 
       {!createCustomerModal && (
@@ -134,6 +193,7 @@ const ActiveOutlet = () => {
               There are no customers in queue yet...
             </div>
           )}
+          {errors && <p className={errorClass}>{errors.general}</p>}
           <button
             className={
               buttonClass +

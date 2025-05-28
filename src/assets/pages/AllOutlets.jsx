@@ -1,16 +1,29 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { apiPrivate } from "../api/axios";
 import { msToMins } from "../utils/timeConverter";
-import UpdateOutletModal from "../components/UpdateOutletModal"; // Import the new modal component
+import UpdateOutletModal from "../components/UpdateOutletModal";
+import useApiPrivate from "../hooks/useApiPrivate";
+import AuthorisedUser from "./AuthorisedUser";
+import useAuth from "../hooks/useAuth";
 
 const AllOutlets = () => {
   // Functional States
-  const [outlets, setOutlets] = useState([]);
   const params = useParams();
+  const { isAuthenticated } = useAuth();
+  const apiPrivate = useApiPrivate();
+
+  const [outlets, setOutlets] = useState([]);
+  const [outletId, setOutletId] = useState("");
+
   const [showModal, setShowModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [acctName, setAcctName] = useState("");
-  const [selectedOutletData, setSelectedOutletData] = useState(null); // Store the full outlet object
+  const [selectedOutletData, setSelectedOutletData] = useState(null);
+
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
+
+  const [errors, setErrors] = useState("");
+  const errorClass = `text-red-600 text-center`;
 
   // Helper function to open modal and set data
   const toggleEdit = (outletId) => {
@@ -27,22 +40,49 @@ const AllOutlets = () => {
 
   // Callback to update the outlets list after a successful edit
   const handleUpdateSuccess = (updatedOutlet) => {
-    setOutlets((prevOutlets) =>
-      prevOutlets.map((o) =>
-        o.id === updatedOutlet.id ? { ...o, ...updatedOutlet } : o
-      )
-    );
+    // setOutlets((prevOutlets) =>
+    //   prevOutlets.map((o) =>
+    //     o.id === updatedOutlet.id ? { ...o, ...updatedOutlet } : o
+    //   )
+    // );
+    setRefreshTrigger((prev) => !prev);
   };
 
-  //TODO: CHECK HOW TO HANDLE DELETE OF THE OUTLET. IF YES -> DELETE THE OUTLET
-  //TODO: IF NO -> CLOSE THE MODAL
+  const handleAuthModalClose = () => {
+    setErrors({ general: "Forbidden" });
+    setShowAuthModal(false);
+    //Navigate -1 ?
+  };
+
   const handleDelete = async (outlet) => {
-    console.log("Handle delete of this outlet ", outlet);
-    //are you sure you want to delete? yes -> delete no-> close modal
+    console.log("Handle delete of this outlet ", outlet.id);
+    setErrors("");
+    setOutletId(outlet.id);
+    //Must be authorized to perform this action.
+    setShowAuthModal(true);
+  };
+  const deleteOutletAllowed = async () => {
+    //
+    console.log(outletId, " is the outlet we are deleting");
+    try {
+      const res = await apiPrivate.delete(
+        `/delOutlet/${params.accountId}/${outletId}`
+      );
+      if (res.status === 201) {
+        //trigger refresh by calling handleDeleteSuccess(outletId)
+        setRefreshTrigger((prev) => !prev);
+        setShowAuthModal(false);
+      }
+    } catch (error) {
+      console.error(error);
+      setErrors({ general: `Error deleting outlet ${outletId}` });
+      setShowAuthModal(false);
+    }
   };
 
   useEffect(() => {
     console.log("Use effect in ALL outlets", params);
+    if (!isAuthenticated) return;
     const fetchOutlets = async () => {
       try {
         const res = await apiPrivate.get(`/allOutlets/${params.accountId}`);
@@ -57,17 +97,36 @@ const AllOutlets = () => {
       }
     };
     fetchOutlets();
-  }, [params.accountId]); // Depend on accountId if it can change
+  }, [params.accountId, refreshTrigger]); // Depend on accountId if it can change
 
   return (
-    <div className="">
+    <div className="pt-15 md:pt-3">
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
+            <button
+              onClick={handleAuthModalClose}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
+            >
+              &times;
+            </button>
+            <AuthorisedUser
+              onSuccess={deleteOutletAllowed}
+              onFailure={handleAuthModalClose}
+              actionPurpose="Delete Outlet"
+              minimumRole="MANAGER"
+            />
+          </div>
+        </div>
+      )}
       <div className="md:mt-5">
-        <h1 className="ml-5 font-semibold">Welcome back, {acctName}</h1>
+        <h1 className="ml-5 font-semibold mt">Welcome back, {acctName}</h1>
         <small className="ml-5 text-sm font-light italic text-stone-500">
           Organizing your queues for your business
         </small>
       </div>
-      <div className="rounded-2xl p-3 relative m-1 text-center bg-primary-cream/50 shadow-lg border-1 border-transparent hover:border-white hover:shadow-white/90 cursor-pointer hover:text-primary-dark-green transition ease-in-out my-3 max-w-sm mx-auto md:hidden">
+
+      <div className="rounded-2xl p-3 relative m-1 text-center bg-primary-cream/60 shadow-lg border-1 border-transparent hover:border-white hover:shadow-white/90 cursor-pointer hover:text-primary-dark-green transition ease-in-out my-3 max-w-sm mx-auto md:hidden">
         <Link
           to={`/db/${params.accountId}/outlets/new`}
           className="font-extralight text-3xl"
@@ -79,10 +138,11 @@ const AllOutlets = () => {
       <h1 className="ml-5 text-sm font-light italic text-stone-500 mb-5">
         Manage your existing outlets...
       </h1>
+      {errors && <p className={errorClass}>{errors.general}</p>}
       <div className="grid grid-cols-2 mb-10">
         {outlets.map((outlet) => (
           <div
-            className=" rounded-2xl p-3 relative m-1 text-center bg-primary-cream/50 shadow-lg"
+            className=" rounded-2xl p-3 relative m-1 text-center bg-primary-cream/70 shadow-lg"
             key={outlet.id}
           >
             <Link to={`/db/${params.accountId}/outlet/${outlet.id}`}>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { apiPrivate } from "../api/axios";
 import { useParams } from "react-router-dom";
+import useApiPrivate from "../hooks/useApiPrivate";
 
 const AuthorizedUser = ({
   onSuccess,
@@ -14,6 +14,7 @@ const AuthorizedUser = ({
   const [passwordError, setPasswordError] = useState("");
   const [errors, setErrors] = useState("");
   const params = useParams();
+  const apiPrivate = useApiPrivate();
 
   const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800`;
   const inputClass = (hasError) =>

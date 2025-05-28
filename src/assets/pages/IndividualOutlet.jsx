@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
-import ActiveOutlet from "./ActiveOutlet";
-import InactiveOutlet from "./InactiveOutlet";
-import { apiPrivate } from "../api/axios";
+import useApiPrivate from "../hooks/useApiPrivate";
 
 const IndividualOutlet = () => {
   const params = useParams();
   const navigate = useNavigate();
+  const apiPrivate = useApiPrivate();
   const [loading, setLoading] = useState(false);
   const [outletName, setOutletName] = useState(null);
+
   //* FIND IF OUTLET IS ACTIVE OR NOT?
   useEffect(() => {
     const checkQueueAndRedirect = async () => {
@@ -270,7 +270,7 @@ const IndividualOutlet = () => {
 
   //* REDO INDIVIDUAL OUTLET. WE HAVE A PAGE THAT OUTLET TO TWO PAGES. ACTIVEOUTLET AND INACTIVEOUTLET
   return (
-    <div className="flex items-center justify-center md:w-full md:h-full">
+    <div className="flex items-center justify-center md:w-full md:h-full pt-12">
       <div className="w-[90%] h-[90%] rounded-2xl p-5 m-1 bg-primary-cream/50 shadow-lg text-left relative">
         <h1 className="font-semibold text-2xl pb-2">{outletName}</h1>
         <Outlet />

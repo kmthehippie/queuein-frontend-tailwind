@@ -1,12 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
-import { apiPrivate } from "../api/axios";
 import { useParams, Link } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
+import useApiPrivate from "../hooks/useApiPrivate";
 
 const Sidenav = () => {
   const [outlets, setOutlets] = useState([]);
   const [showSideNav, setShowSideNav] = useState(false);
   const sideNavRef = useRef(null);
   const params = useParams();
+  const { isAuthenticated } = useAuth();
+  const apiPrivate = useApiPrivate();
 
   //Tailwind classes
   const sideNavButtonClass = ` pl-5 pt-3 m-1 pb-3 cursor-pointer transition ease-in rounded-xl leading-4
@@ -31,6 +34,7 @@ const Sidenav = () => {
 
   useEffect(() => {
     console.log("Use effect in sidenav ", params);
+    if (!isAuthenticated) return;
     const fetchOutlets = async () => {
       try {
         const response = await apiPrivate.get(`/sidenav/${params.accountId}`);
@@ -45,12 +49,12 @@ const Sidenav = () => {
       }
     };
     fetchOutlets();
-  }, [params]);
+  }, [params, isAuthenticated]);
 
   return (
     <div className="" ref={sideNavRef}>
       <p
-        className="p-5 cursor-pointer hover:text-primary-dark-green ease-in lg:hidden max-w-20"
+        className="p-5 cursor-pointer hover:text-primary-dark-green ease-in lg:hidden max-w-20 fixed"
         onClick={toggleSideNav}
       >
         <i className="fa-solid fa-bars"></i>
@@ -65,7 +69,7 @@ const Sidenav = () => {
         `}
       >
         <p
-          className="pl-5 pt-2 cursor-pointer hover:text-primary-dark-green ease-in lg:hidden"
+          className="pl-5 pt-2 cursor-pointer hover:text-primary-dark-green ease-in lg:hidden "
           onClick={toggleSideNav}
         >
           <i className="fa-solid fa-bars"></i>

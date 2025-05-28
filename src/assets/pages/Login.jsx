@@ -24,7 +24,7 @@ const Login = () => {
   const errorClass = `text-red-600 text-center`;
   const checkBoxClass = `w-6 h-6 rounded-lg accent-primary-green hover:accent-primary-light-green text-primary-green focus:ring-2 ring-primary-light-green border-primary-dark-green`;
   const buttonClass = `bg-primary-green mt-3 hover:bg-primary-dark-green w-full transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline`;
-  const linkClass = `stext-primary-green hover:text-primary-dark-green transition ease-in`;
+  const linkClass = `text-primary-green hover:text-primary-dark-green transition ease-in`;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
