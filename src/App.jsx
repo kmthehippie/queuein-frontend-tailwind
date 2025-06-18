@@ -3,34 +3,48 @@ import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import { AuthProvider } from "./assets/context/AuthContext.jsx";
 import { SocketProvider } from "./assets/context/SocketContext.jsx";
+import { LocalStorageProvider } from "./assets/context/LocalStorageContext.jsx";
 
 //Import Pages
 const Layout = lazy(() => import("./assets/pages/Layout"));
 const Error = lazy(() => import("./assets/pages/Error"));
 const ErrorDB = lazy(() => import("./assets/pages/ErrorDB"));
-const Login = lazy(() => import("./assets/pages/Login"));
-const Register = lazy(() => import("./assets/pages/Register"));
-const Settings = lazy(() => import("./assets/pages/Settings"));
-const AccountLanding = lazy(() => import("./assets/pages/AccountLanding"));
-const OutletLanding = lazy(() => import("./assets/pages/OutletLanding"));
-const JoinQueue = lazy(() => import("./assets/pages/JoinQueue"));
-const Waiting = lazy(() => import("./assets/pages/Waiting"));
 const Home = lazy(() => import("./assets/pages/Home"));
-const AllOutlets = lazy(() => import("./assets/pages/AllOutlets.jsx"));
-const NewOutlet = lazy(() => import("./assets/pages/NewOutlet.jsx"));
 const LeaveQueue = lazy(() => import("./assets/pages/LeaveQueue.jsx"));
-const InactiveOutlet = lazy(() => import("./assets/pages/InactiveOutlet.jsx"));
-const ActiveOutlet = lazy(() => import("./assets/pages/ActiveOutlet.jsx"));
+const Register = lazy(() => import("./assets/pages/Register"));
+
+//Import Pages From Account
+const Login = lazy(() => import("./assets/pages/account/Login.jsx"));
+const Settings = lazy(() => import("./assets/pages/account/Settings.jsx"));
+const AllOutlets = lazy(() => import("./assets/pages/account/AllOutlets.jsx"));
+const NewOutlet = lazy(() => import("./assets/pages/account/NewOutlet.jsx"));
+const InactiveOutlet = lazy(() =>
+  import("./assets/pages/account/InactiveOutlet.jsx")
+);
+const ActiveOutlet = lazy(() =>
+  import("./assets/pages/account/ActiveOutlet.jsx")
+);
 const IndividualOutlet = lazy(() =>
-  import("./assets/pages/IndividualOutlet.jsx")
+  import("./assets/pages/account/IndividualOutlet.jsx")
 );
 const StaffManagement = lazy(() =>
-  import("./assets/pages/StaffManagement.jsx")
+  import("./assets/pages/account/StaffManagement.jsx")
 );
+
+//Import Pages From Customer
+const AccountLanding = lazy(() =>
+  import("./assets/pages/customer/AccountLanding")
+);
+const OutletLanding = lazy(() =>
+  import("./assets/pages/customer/OutletLanding.jsx")
+);
+const JoinQueue = lazy(() => import("./assets/pages/customer/JoinQueue.jsx"));
+const Waiting = lazy(() => import("./assets/pages/customer/Waiting.jsx"));
 
 //Import Components
 import ProtectedRoutes from "./assets/components/ProtectedRoutes";
 import Sidenav from "./assets/components/Sidenav.jsx";
+import LocalStorageCheck from "./assets/components/LocalStorageCheck.jsx";
 
 const router = createBrowserRouter([
   {
@@ -52,11 +66,20 @@ const router = createBrowserRouter([
       {
         path: ":acctSlug",
         element: (
-          <Suspense fallback={<div>Loading...</div>}>
-            <AccountLanding />
-          </Suspense>
+          <LocalStorageProvider>
+            <LocalStorageCheck />
+            <Outlet />
+          </LocalStorageProvider>
         ),
         children: [
+          {
+            index: true,
+            element: (
+              <Suspense fallback={<div>Loading...</div>}>
+                <AccountLanding />
+              </Suspense>
+            ),
+          },
           {
             path: "outlet/:outletId",
             element: (

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import CreateCustomer from "../components/CreateCustomer";
 import moment from "moment";
 import SocketContext from "../context/SocketContext";
@@ -11,7 +11,10 @@ const ActiveOutlet = () => {
   const { socket, isConnected, reconnect } = useContext(SocketContext);
   const { isAuthenticated } = useAuth();
   const params = useParams();
+  const location = useLocation();
   const apiPrivate = useApiPrivate();
+  const staffInfo = location.state?.info;
+  const [activeQueue, setActiveQueue] = useState(true);
   const [queueItems, setQueueItems] = useState([]);
   const [lg, setLg] = useState(false);
   const [createCustomerModal, setCreateCustomerModal] = useState(false);
@@ -19,7 +22,6 @@ const ActiveOutlet = () => {
   const [notice, setNotice] = useState({});
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [errors, setErrors] = useState("");
-  const errorClass = `text-red-600 text-center`;
 
   //HELPER FUNCTION
   const convertedTime = (date) => moment(date).fromNow();
@@ -29,10 +31,12 @@ const ActiveOutlet = () => {
   const activeTableHeader = `text-xs text-primary-dark-green mr-5 ml-2`;
   const activeTableAnswer = `flex items-center justify-center text-sm `;
   const landscapeHeaderClass = `border-l-1 border-t-1 border-b-1 border-r-1 border-primary-green p-1`;
+  const errorClass = `text-red-600 text-center`;
 
   //INITIALIZE DATA
   useEffect(() => {
     if (!isAuthenticated) return;
+
     const activeQueueItems = async () => {
       console.log(
         "Trying to fetch active queue items",
@@ -41,8 +45,8 @@ const ActiveOutlet = () => {
       try {
         const res = await apiPrivate.get(`activeQueue/${params.queueId}`);
         if (res?.data) {
-          console.log("Queue Items?", res.data[0].queueItems);
-          setQueueItems(res.data[0].queueItems);
+          console.log("Queue Items?", res.data?.queueItems);
+          setQueueItems(res.data?.queueItems);
         }
       } catch (error) {
         console.error(error);
@@ -50,29 +54,53 @@ const ActiveOutlet = () => {
       }
     };
     activeQueueItems();
-  }, []);
+  }, [isAuthenticated, params.queueId, apiPrivate]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
     const handleMediaQueryChange = (e) => setLg(e.matches);
     setLg(mediaQuery.matches);
     mediaQuery.addEventListener("change", handleMediaQueryChange);
-    console.log(mediaQuery);
     return () =>
       mediaQuery.removeEventListener("change", handleMediaQueryChange);
   }, []);
 
   //SOCKET HERE
   useEffect(() => {
+    console.log("We are in socket trying to set staff info: ", staffInfo);
     if (socket && isConnected) {
-      console.log("Socket is connected ");
       socket.emit("join_queue", `queue_${params.queueId}`);
+      const infoForSocket = {
+        staffId: staffInfo.staffId,
+        staffRole: staffInfo.staffRole,
+        staffName: staffInfo.staffName,
+        outletId: params.outletId,
+        accountId: params.accountId,
+        queueId: params.queueId,
+      };
+      console.log("Info for the staff info socket ", infoForSocket);
+      socket.emit("set_staff_info", infoForSocket);
+      socket.on("host_queue_update", (data) => {
+        console.log("Host-queue_update is emitting.");
+        console.log("Data from BACKEND from host_queue_update: ", data);
+
+        setQueueItems(data[0].queueItems);
+      });
+      return () => {
+        //add socket.off("whatever_function") that needs to be cleaned up
+      };
     }
-  }, []);
+  }, [
+    socket,
+    isConnected,
+    staffInfo,
+    params.outletId,
+    params.accountId,
+    params.queueId,
+  ]);
 
   //HANDLES
   const handleAddCustomer = useCallback((e) => {
-    console.log("Add customer");
     e.preventDefault();
     setCreateCustomerModal(true);
   }, []);
@@ -83,6 +111,7 @@ const ActiveOutlet = () => {
         const res = await apiPrivate.patch(`/seatQueueItem/${id}`, seated);
         if (res?.status === 201) {
           console.log("response", res);
+          handleRefresh();
         }
       };
 
@@ -99,6 +128,7 @@ const ActiveOutlet = () => {
         const res = await apiPrivate.patch(`/callQueueItem/${id}`, called);
         if (res?.status === 201) {
           console.log("response", res);
+          handleRefresh();
         }
       };
 
@@ -114,24 +144,31 @@ const ActiveOutlet = () => {
   };
   const handleEndQueue = useCallback(() => {
     console.log("End Queue");
-    //need to leave socket if socket exist
-    //check if there are still customers not seated or still in q. if yes, then cannot end queue. return error with can't end queue with customers in it.
-    // call authorised user and check if user is host and above before ending queue
     setErrors("");
     setShowAuthModal(true);
   }, []);
-
-  const endQueueAllowed = () => {
+  const endQueueAllowed = async () => {
     try {
-      //end the queue here by calling to endQueue/accountId/outletId/queueId
-      //if end queue successful, then we need to navigate to db/accountId/outlet/:outletId/inactive
-      //if there are still customers, cannot end queue
+      const res = await apiPrivate.post(
+        `/endQueue/${params.accountId}/${params.outletId}/${params.queueId}`
+      );
+      if (res.status === 201) {
+        console.log("Success on ending queue");
+        setActiveQueue(false);
+      } else {
+        setErrors({ general: `Error ending queue ${params.queueId}` });
+      }
     } catch (err) {
       console.error(err);
-      setErrors({ general: `Error ending queue {queueId}` });
+      setErrors({ general: `Error ending queue ${params.queueId}` });
     } finally {
       setShowAuthModal(false);
     }
+  };
+
+  const handleRefresh = () => {
+    console.log(params.queueId);
+    socket.emit("queue_update", params.queueId);
   };
   return (
     <div className="">
@@ -156,7 +193,7 @@ const ActiveOutlet = () => {
           </div>
         </div>
       )}
-      {!createCustomerModal && (
+      {!createCustomerModal && !activeQueue && (
         <button
           className={
             buttonClass +
@@ -179,13 +216,13 @@ const ActiveOutlet = () => {
             X
           </p>
           <CreateCustomer
+            onSuccess={handleRefresh}
             setModal={setCreateCustomerModal}
             setNotice={setNotice}
             setNotification={setNotification}
           />
         </div>
       )}
-
       {!createCustomerModal && (
         <div className="">
           {queueItems.length === 0 && (
@@ -266,13 +303,13 @@ const ActiveOutlet = () => {
                               >
                                 <input
                                   type="checkbox"
-                                  id="called"
+                                  id={`called-${item.id}`}
                                   className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
                                   onChange={(e) => handleCalled(e, item.id)}
                                   checked={item.called}
                                 />
                                 <label
-                                  htmlFor="called"
+                                  htmlFor={`called-${item.id}`}
                                   className={activeTableAnswer + " ml-2 mr-5"}
                                 >
                                   Called
@@ -285,13 +322,13 @@ const ActiveOutlet = () => {
                               >
                                 <input
                                   type="checkbox"
-                                  id="seated"
+                                  id={`seated-${item.id}`}
                                   className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
                                   onChange={(e) => handleSeated(e, item.id)}
                                   checked={item.seated}
                                 />
                                 <label
-                                  htmlFor="seated"
+                                  htmlFor={`seated-${item.id}`}
                                   className={activeTableAnswer + " ml-2"}
                                 >
                                   Seated

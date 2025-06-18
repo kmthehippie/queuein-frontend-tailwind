@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
-import useApiPrivate from "../hooks/useApiPrivate";
+import useApiPrivate from "../../hooks/useApiPrivate";
 
 const AuthorizedUser = ({
   onSuccess,
@@ -48,7 +48,13 @@ const AuthorizedUser = ({
         data
       );
       if (res.status === 200) {
-        onSuccess();
+        console.log("Info for res: ", res.data);
+        const info = {
+          staffId: res.data.staffId,
+          staffRole: res.data.staffRole,
+          staffName: res.data.staffName,
+        };
+        onSuccess(info);
       } else {
         onFailure();
       }

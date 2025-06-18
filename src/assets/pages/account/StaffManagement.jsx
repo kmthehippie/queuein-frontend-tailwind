@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import AuthorisedUser from "./AuthorisedUser";
-import useApiPrivate from "../hooks/useApiPrivate";
-import useAuth from "../hooks/useAuth";
+import useApiPrivate from "../../hooks/useApiPrivate";
+import useAuth from "../../hooks/useAuth";
 
 const StaffManagement = () => {
   const [viewModal, setViewModal] = useState(false);

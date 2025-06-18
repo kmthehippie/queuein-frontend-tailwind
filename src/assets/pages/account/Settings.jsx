@@ -1,5 +1,5 @@
 import React from "react";
-import useApiPrivate from "../hooks/useApiPrivate";
+import useApiPrivate from "../../hooks/useApiPrivate";
 
 const Settings = () => {
   const interceptedApiPrivate = useApiPrivate();

@@ -33,19 +33,15 @@ const Sidenav = () => {
   }, []);
 
   useEffect(() => {
-    console.log("Use effect in sidenav ", params);
     if (!isAuthenticated) return;
     const fetchOutlets = async () => {
       try {
         const response = await apiPrivate.get(`/sidenav/${params.accountId}`);
         if (response?.data) {
-          console.log("Response from /sidenav");
-          console.log(response.data);
           setOutlets(response.data);
         }
       } catch (error) {
         console.error(error);
-        console.log("Error trying to fetch data for all outlets");
       }
     };
     fetchOutlets();

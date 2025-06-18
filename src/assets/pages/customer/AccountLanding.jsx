@@ -1,13 +1,7 @@
 import { useState, useEffect } from "react";
-import api from "../api/axios";
-import {
-  Link,
-  Outlet,
-  useMatch,
-  useParams,
-  useResolvedPath,
-} from "react-router";
-import Error from "./Error";
+import api from "../../api/axios";
+import { Link, useParams } from "react-router-dom";
+import Error from "../Error";
 
 const AccountLanding = () => {
   const [companyName, setCompanyName] = useState("");
@@ -17,9 +11,6 @@ const AccountLanding = () => {
   const [outlets, setOutlets] = useState([]);
 
   const { acctSlug } = useParams();
-  const resolvedPath = useResolvedPath(`/${acctSlug}`);
-  const acctPageMatch = useMatch(resolvedPath.pathname);
-  const isAccountPage = acctPageMatch !== null;
 
   useEffect(() => {
     const fetchLandingPageData = async () => {
@@ -44,10 +35,8 @@ const AccountLanding = () => {
         });
       }
     };
-    if (isAccountPage) {
-      fetchLandingPageData();
-    }
-  }, [acctSlug, isAccountPage]);
+    fetchLandingPageData();
+  }, [acctSlug]);
 
   if (loading) {
     return <div>Loading Information...</div>;
@@ -55,14 +44,15 @@ const AccountLanding = () => {
   if (errors) {
     return <Error error={errors} />;
   }
-  if (!isAccountPage) {
-    return <Outlet />;
-  }
 
   return (
     <div className="flex-row items-center justify-center p-0 sm:p-3 md:p-15">
       <div className="flex items-center w-full">
-        <img src={logoUrl} alt={companyName + " logo"} className="w-30" />
+        <img
+          src={logoUrl || null}
+          alt={companyName + " logo"}
+          className="w-30"
+        />
         <h1 className="text-2xl font-bold tracking-wide sm:text-3xl md:text-4xl lg:text-5xl">
           {companyName.toUpperCase()}
         </h1>
@@ -80,9 +70,9 @@ const AccountLanding = () => {
             >
               {outlet.imgUrl && (
                 <div className="min-w-xs">
-                  <Link to={`${outlet.id}`}>
+                  <Link to={`outlet/${outlet.id}`}>
                     <img
-                      src={outlet.imgUrl}
+                      src={outlet.imgUrl || null}
                       alt={outlet.name + " image"}
                       className=""
                     />
@@ -150,7 +140,6 @@ const AccountLanding = () => {
                       {outlet.queues.length > 0 ? (
                         <Link to={`join/${outlet.queues[0].id}`}>
                           {/* IMPORTANT: // Find out the queueItems. If they exist, then  depending on the count, Busy, Not Busy, Very Busy...etc for now placeholder just the queue id will do*/}
-
                           {outlet.queues[0].queueLength > 5 ? (
                             <span className="text-red-700 hover:text-primary-dark-green transition ease-in">
                               Very Busy

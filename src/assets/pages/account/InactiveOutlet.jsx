@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import moment from "moment";
 import AuthorisedUser from "./AuthorisedUser";
-import useApiPrivate from "../hooks/useApiPrivate";
+import useApiPrivate from "../../hooks/useApiPrivate";
 
 const InactiveOutlet = () => {
   const params = useParams();

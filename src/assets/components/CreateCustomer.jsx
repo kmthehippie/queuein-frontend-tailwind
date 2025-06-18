@@ -2,7 +2,12 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { apiPrivate } from "../api/axios";
 
-const CreateCustomer = ({ setModal, setNotice, setNotification }) => {
+const CreateCustomer = ({
+  onSuccess,
+  setModal,
+  setNotice,
+  setNotification,
+}) => {
   const params = useParams();
   const [customerName, setCustomerName] = useState("");
   const [number, setNumber] = useState("");
@@ -74,6 +79,7 @@ const CreateCustomer = ({ setModal, setNotice, setNotification }) => {
         );
         if (res?.status === 201) {
           console.log("Success! New Customer created: ", res?.data);
+          onSuccess();
           setNotice(res?.data.message);
           setNotification(true);
           setModal(false);

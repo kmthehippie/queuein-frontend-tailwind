@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import api from "../api/axios";
-import Error from "./Error";
+import api from "../../api/axios";
+import Error from "../Error";
+import { getWithExpiry, setWithExpiry } from "../../utils/localStorage";
 
 //! +Customer must be on mobile.
 const JoinQueue = () => {
@@ -26,6 +27,9 @@ const JoinQueue = () => {
   const [localStorageInfo, setLocalStorageInfo] = useState(null);
   const [shouldPost, setShouldPost] = useState(false);
 
+  //VERIFICATION STATES
+  const [notifPerms, setNotifPerms] = useState(Notification.permission);
+
   const { acctSlug, outletId, queueId } = useParams();
   const navigate = useNavigate();
 
@@ -43,7 +47,6 @@ const JoinQueue = () => {
     setWarning(false);
   };
 
-
   //Tailwind
   const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800 `;
   const inputClass = (hasError) =>
@@ -57,10 +60,8 @@ const JoinQueue = () => {
     setLoading(true);
     setErrors("");
     try {
-      console.log(`/customerForm/${acctSlug}/${outletId}/${queueId}`);
-      const res = await api.get(
-        `/customerForm/${acctSlug}/${outletId}/${queueId}`
-      );
+      console.log(`/customerForm/${acctSlug}/${queueId}`);
+      const res = await api.get(`/customerForm/${acctSlug}/${queueId}`);
       console.log("Fetching form data from back end", res);
       if (res?.data) {
         setAccountInfo(res.data.accountInfo);
@@ -85,16 +86,19 @@ const JoinQueue = () => {
     setNumberError(false);
     setCustomerPaxError(false);
     setShouldPost(false);
-
     let isValid = true;
 
+    //Find if user has localStorage containing queueItemId
+    const localStorage = getWithExpiry("queueItemLS");
+    console.log(localStorage);
+    //? Actually really weird. We want to check the expiry of the queueItemLS on page load when they enter queue?
     //Validation
     if (customerName.length === 0) {
       setCustomerNameErr(true);
       isValid = false;
       setValidationError({ general: "Please enter a name" });
+      return;
     }
-
     const validNumber = validMalaysianNumber(number);
     if (validNumber) {
       const extractedNumber = extractNumerals(number);
@@ -106,6 +110,7 @@ const JoinQueue = () => {
       setValidationError({
         general: "Please enter a valid Malaysian Phone Number",
       });
+      return;
     }
     if (customerPax === 0 || customerPax === null) {
       setCustomerPaxError(true);
@@ -114,6 +119,7 @@ const JoinQueue = () => {
         general:
           "Please enter a valid number of people who will be joining us today.",
       });
+      return;
     }
     if (customerPax > 12) {
       setWarning(true);
@@ -121,26 +127,31 @@ const JoinQueue = () => {
       setValidationError({
         general: "For bigger groups, please meet with our host.",
       });
+      return;
     }
     if (!customerName || !number || !customerPax) {
       isValid = false;
       setValidationError({ general: "Please fill out the fields" });
+      return;
     }
-    //Find if user has localStorage containing queueItemId
-    const storedAtLocalStorage = localStorage.getItem("queueItemLS");
-    let localStorageInfo = null;
-    if (storedAtLocalStorage) {
-      try {
-        const parsedInfo = JSON.parse(storedAtLocalStorage);
-        localStorageInfo = parsedInfo;
-        setLocalStorageInfo(localStorageInfo);
-        console.log("Retrieved from Local Storage: ", localStorageInfo);
-      } catch (err) {
-        console.error("Error passing storedAtLocalStorage ", err);
-        localStorage.removeItem("queueItemLS");
-      }
-    } else {
-      console.log("Nothing stored at local storage");
+
+    //! Set notification  -- remove the following. We need a way to trigger the notifications so that we get the perms on join queue.!
+    if (!("Notification" in window)) {
+      alert(
+        "This browser does not support notifications. We will not be able to notify you when it is your turn."
+      );
+    } else if (Notification.permission === "granted") {
+      const notification = new Notification(
+        "We will notify you when it is your turn! :)"
+      );
+    } else if (Notification.permission === "denied") {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          const notification = new Notification(
+            "We will notify you when it is your turn! :)"
+          );
+        }
+      });
     }
 
     if (isValid) {
@@ -176,15 +187,14 @@ const JoinQueue = () => {
           const data = { ...res.data, accountInfo, outlet };
           const queueItem = res.data.queueItem;
           //Before navigate, set the localStorage first to contain queueItemId
+
           const storeToLocalStorage = {
             queueItemId: queueItem.id,
             queueId: queueItem.queueId,
             acctSlug: acctSlug,
           };
-          localStorage.setItem(
-            "queueItemLS",
-            JSON.stringify(storeToLocalStorage)
-          );
+          setWithExpiry("queueItemLS", storeToLocalStorage, 6 * 60 * 60 * 1000);
+
           navigate(`/${acctSlug}/queueItem/${queueItem.id}`, {
             state: { data: data },
           });

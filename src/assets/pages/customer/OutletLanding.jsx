@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import api from "../api/axios";
-import Error from "./Error";
+import api from "../../api/axios";
+import Error from "../Error";
 import moment from "moment";
 
 const OutletLanding = () => {
@@ -137,6 +137,7 @@ const OutletLanding = () => {
           </div>
         )}
       </div>
+
       <div className="flex items-center justify-center space-x-4 mb-4 text-sm text-stone-500">
         {outlet.hours && (
           <p className="">
@@ -156,76 +157,82 @@ const OutletLanding = () => {
           </p>
         )}
       </div>
-      {/* Queue Information Grid */}
-      <div className="grid grid-cols-2 w-full max-w-md bg-primary-cream rounded-lg shadow justify-self-center">
-        <div className="p-4 text-center border-r-1 border-b-1 border-stone-300 grid grid-rows-2">
-          <div className="text-sm text-stone-600 font-semibold">
-            Current Customers in Queue
-          </div>
-          <div className="text-5xl font-bold text-primary-light-green">
-            {queueItemsLength}
-          </div>
-        </div>
-        <div className="p-4 text-center border-b-1 border-stone-300 grid grid-rows-2">
-          <div className="text-sm text-stone-600 font-semibold">
-            Queue Status
-          </div>
-          <div className={statusClass}>{status}</div>
-        </div>
-        <div className="p-4 text-center border-r-1 border-b-1 border-stone-300 grid grid-rows-3">
-          <div className="text-sm text-stone-600 font-semibold">
-            Estimated Wait Time
-          </div>
-          <div className="text-2xl font-semibold">17 minutes</div>
-          <div className="text-xs text-stone-400">Maybe inaccurate*</div>
-        </div>
-        <div className="p-4 text-center border-b-1 border-stone-300 grid grid-rows-3">
-          <div className="text-sm text-stone-600 font-semibold">
-            Last Updated Time
-          </div>
-          <div className="text-xl font-semibold px-1  row-span-2 ">
-            <div className="flex">
-              <button
-                onClick={fetchOutletLandingPageData}
-                className="cursor-pointer text-primary-light-green hover:text-primary-green active:text-primary-dark-green transition ease-in"
-              >
-                <i className="fa-solid fa-arrow-rotate-right"></i>
-              </button>
-              <span className="pl-2 text-md self-center">
-                {formatLastUpdated(lastUpdated)}
-              </span>
+      {queue.active && (
+        <div className="grid grid-cols-2 w-full max-w-md bg-primary-cream rounded-lg shadow justify-self-center">
+          <div className="p-4 text-center border-r-1 border-b-1 border-stone-300 grid grid-rows-2">
+            <div className="text-sm text-stone-600 font-semibold">
+              Current Customers in Queue
             </div>
-            <div className="text-xs font-light text-stone-400">
-              Press <i className="fa-solid fa-arrow-rotate-right"></i> to
-              refresh
+            <div className="text-5xl font-bold text-primary-light-green">
+              {queueItemsLength}
             </div>
           </div>
-        </div>
-        {queue && (
-          <div className="p-4 text-center col-span-2">
-            <div className="font-bold text-xl mb-3">
-              <h1>Save your spot! </h1>
+          <div className="p-4 text-center border-b-1 border-stone-300 grid grid-rows-2">
+            <div className="text-sm text-stone-600 font-semibold">
+              Queue Status
             </div>
-            <Link to={`/${acctSlug}/join/${queue.id}`}>
-              <div className="mb-3">
-                <button className="px-5 py-2 bg-primary-light-green rounded-full text-primary-cream font-light hover:bg-primary-green cursor-pointer transition ease-in">
-                  Join Queue{" "}
-                  <i className="fa-solid fa-arrow-right-to-bracket"></i>
+            <div className={statusClass}>{status}</div>
+          </div>
+          <div className="p-4 text-center border-r-1 border-b-1 border-stone-300 grid grid-rows-3">
+            <div className="text-sm text-stone-600 font-semibold">
+              Estimated Wait Time
+            </div>
+            <div className="text-2xl font-semibold">17 minutes</div>
+            <div className="text-xs text-stone-400">Maybe inaccurate*</div>
+          </div>
+          <div className="p-4 text-center border-b-1 border-stone-300 grid grid-rows-3">
+            <div className="text-sm text-stone-600 font-semibold">
+              Last Updated Time
+            </div>
+            <div className="text-xl font-semibold px-1  row-span-2 ">
+              <div className="flex">
+                <button
+                  onClick={fetchOutletLandingPageData}
+                  className="cursor-pointer text-primary-light-green hover:text-primary-green active:text-primary-dark-green transition ease-in"
+                >
+                  <i className="fa-solid fa-arrow-rotate-right"></i>
                 </button>
+                <span className="pl-2 text-md self-center">
+                  {formatLastUpdated(lastUpdated)}
+                </span>
               </div>
-            </Link>
-            <div className="text-stone-400 text-xs italic ">
-              Please meet with our host. Join the queue via QR or ask the host
-              to add you to Queue.
+              <div className="text-xs font-light text-stone-400">
+                Press <i className="fa-solid fa-arrow-rotate-right"></i> to
+                refresh
+              </div>
             </div>
           </div>
-        )}
-      </div>
-      {queue && (
-        <p className="mt-2 text-xs text-center text-stone-600 max-w-md justify-self-center">
-          *This outlet's Estimated Wait Time maybe inaccurate due to it being
-          new to our system.*
-        </p>
+          {queue && (
+            <div className="p-4 text-center col-span-2">
+              <div className="font-bold text-xl mb-3">
+                <h1>Save your spot! </h1>
+              </div>
+              <Link to={`/${acctSlug}/join/${queue.id}`}>
+                <div className="mb-3">
+                  <button className="px-5 py-2 bg-primary-light-green rounded-full text-primary-cream font-light hover:bg-primary-green cursor-pointer transition ease-in">
+                    Join Queue{" "}
+                    <i className="fa-solid fa-arrow-right-to-bracket"></i>
+                  </button>
+                </div>
+              </Link>
+              <div className="text-stone-400 text-xs italic ">
+                Please meet with our host. Join the queue via QR or ask the host
+                to add you to Queue.
+              </div>
+            </div>
+          )}
+          <div className="mt-2 text-xs text-center col-span-2 text-stone-600 px-5">
+            <p className="">
+              *This outlet's Estimated Wait Time maybe inaccurate due to it
+              being new to our system.*
+            </p>
+          </div>
+        </div>
+      )}
+      {!queue.active && (
+        <div className="">
+          <img src={outlet.imgUrl} alt={`${outlet.name} store front`} />
+        </div>
       )}
     </div>
   );

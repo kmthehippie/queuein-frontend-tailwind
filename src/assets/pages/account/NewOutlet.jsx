@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { minsToMs } from "../utils/timeConverter";
+import { minsToMs } from "../../utils/timeConverter";
 import { useNavigate, useParams } from "react-router-dom";
-import useApiPrivate from "../hooks/useApiPrivate";
+import useApiPrivate from "../../hooks/useApiPrivate";
 
 const NewOutlet = () => {
   const { accountId } = useParams();

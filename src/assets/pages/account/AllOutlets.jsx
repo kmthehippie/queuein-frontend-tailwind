@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { msToMins } from "../utils/timeConverter";
-import UpdateOutletModal from "../components/UpdateOutletModal";
-import useApiPrivate from "../hooks/useApiPrivate";
+import { msToMins } from "../../utils/timeConverter";
+import UpdateOutletModal from "../../components/UpdateOutletModal";
+import useApiPrivate from "../../hooks/useApiPrivate";
 import AuthorisedUser from "./AuthorisedUser";
-import useAuth from "../hooks/useAuth";
+import useAuth from "../../hooks/useAuth";
 
 const AllOutlets = () => {
   // Functional States
@@ -25,26 +25,17 @@ const AllOutlets = () => {
   const [errors, setErrors] = useState("");
   const errorClass = `text-red-600 text-center`;
 
-  // Helper function to open modal and set data
   const toggleEdit = (outletId) => {
     if (outletId) {
-      // Only set data if an ID is provided (opening for edit)
       const outletToEdit = outlets.find((outlet) => outlet.id === outletId);
       setSelectedOutletData(outletToEdit);
     } else {
-      // If no ID, it's likely closing the modal
       setSelectedOutletData(null);
     }
     setShowModal(!showModal);
   };
 
-  // Callback to update the outlets list after a successful edit
   const handleUpdateSuccess = (updatedOutlet) => {
-    // setOutlets((prevOutlets) =>
-    //   prevOutlets.map((o) =>
-    //     o.id === updatedOutlet.id ? { ...o, ...updatedOutlet } : o
-    //   )
-    // );
     setRefreshTrigger((prev) => !prev);
   };
 
@@ -58,18 +49,15 @@ const AllOutlets = () => {
     console.log("Handle delete of this outlet ", outlet.id);
     setErrors("");
     setOutletId(outlet.id);
-    //Must be authorized to perform this action.
     setShowAuthModal(true);
   };
   const deleteOutletAllowed = async () => {
-    //
     console.log(outletId, " is the outlet we are deleting");
     try {
       const res = await apiPrivate.delete(
         `/delOutlet/${params.accountId}/${outletId}`
       );
       if (res.status === 201) {
-        //trigger refresh by calling handleDeleteSuccess(outletId)
         setRefreshTrigger((prev) => !prev);
         setShowAuthModal(false);
       }
@@ -97,7 +85,7 @@ const AllOutlets = () => {
       }
     };
     fetchOutlets();
-  }, [params.accountId, refreshTrigger]); // Depend on accountId if it can change
+  }, [params.accountId, refreshTrigger]);
 
   return (
     <div className="pt-15 md:pt-3">
