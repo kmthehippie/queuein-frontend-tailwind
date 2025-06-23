@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useCallback, useContext } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import CreateCustomer from "../components/CreateCustomer";
+import CreateCustomer from "../../components/CreateCustomer";
 import moment from "moment";
-import SocketContext from "../context/SocketContext";
-import useApiPrivate from "../hooks/useApiPrivate";
-import useAuth from "../hooks/useAuth";
+import SocketContext from "../../context/SocketContext";
+import useApiPrivate from "../../hooks/useApiPrivate";
+import useAuth from "../../hooks/useAuth";
 import AuthorisedUser from "./AuthorisedUser";
 
 const ActiveOutlet = () => {
@@ -22,6 +22,7 @@ const ActiveOutlet = () => {
   const [notice, setNotice] = useState({});
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [errors, setErrors] = useState("");
+  const [currentTime, setCurrentTime] = useState(moment());
 
   //HELPER FUNCTION
   const convertedTime = (date) => moment(date).fromNow();
@@ -32,6 +33,43 @@ const ActiveOutlet = () => {
   const activeTableAnswer = `flex items-center justify-center text-sm `;
   const landscapeHeaderClass = `border-l-1 border-t-1 border-b-1 border-r-1 border-primary-green p-1`;
   const errorClass = `text-red-600 text-center`;
+  const getWaitingTimeClass = useCallback(
+    (date) => {
+      const createdAt = moment(date);
+      const minutesWaited = currentTime.diff(createdAt, "minutes");
+      if (minutesWaited >= 20) {
+        return " text-red-500";
+      } else if (minutesWaited >= 10) {
+        return " text-orange-500";
+      }
+    },
+    [currentTime]
+  );
+  const getCalledTimeClass = useCallback(
+    (date) => {
+      if (date === null) {
+        return "";
+      } else {
+        const calledAt = moment(date);
+        const minutesCalled = currentTime.diff(calledAt, "minutes");
+        if (minutesCalled >= 10) {
+          return " text-red-500";
+        } else if (minutesCalled >= 5) {
+          return " text-orange-500";
+        }
+      }
+    },
+    [currentTime]
+  );
+
+  //SETTING TIMER FOR UPDATING THE WAITING TIME
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentTime(moment());
+    }, 60 * 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   //INITIALIZE DATA
   useEffect(() => {
@@ -80,14 +118,23 @@ const ActiveOutlet = () => {
       };
       console.log("Info for the staff info socket ", infoForSocket);
       socket.emit("set_staff_info", infoForSocket);
-      socket.on("host_queue_update", (data) => {
+
+      // Listener for queue updates from the backend via socket
+      const handleHostQueueUpdate = (data) => {
         console.log("Host-queue_update is emitting.");
         console.log("Data from BACKEND from host_queue_update: ", data);
+        if (data && data[0] && data[0].queueItems) {
+          setQueueItems(data[0].queueItems);
+        }
+      };
 
-        setQueueItems(data[0].queueItems);
-      });
+      socket.on("host_queue_update", handleHostQueueUpdate);
+
       return () => {
-        //add socket.off("whatever_function") that needs to be cleaned up
+        // Clean up: remove the event listener when the component unmounts
+        socket.off("host_queue_update", handleHostQueueUpdate);
+        // You might also want to leave the queue room here if necessary
+        // socket.emit("leave_queue", `queue_${params.queueId}`);
       };
     }
   }, [
@@ -104,39 +151,89 @@ const ActiveOutlet = () => {
     e.preventDefault();
     setCreateCustomerModal(true);
   }, []);
-  const handleSeated = useCallback((e, id) => {
-    const seated = { seat: e.target.checked };
-    try {
-      const seat = async (id) => {
-        const res = await apiPrivate.patch(`/seatQueueItem/${id}`, seated);
-        if (res?.status === 201) {
-          console.log("response", res);
-          handleRefresh();
-        }
-      };
 
-      seat(id);
-    } catch (error) {
-      console.error(error);
-    }
-  }, []);
-  const handleCalled = useCallback((e, id) => {
-    const called = { call: e.target.checked };
-    try {
-      const call = async (id) => {
-        console.log(called, id);
-        const res = await apiPrivate.patch(`/callQueueItem/${id}`, called);
-        if (res?.status === 201) {
-          console.log("response", res);
-          handleRefresh();
-        }
-      };
+  //? This handle called looks pretty good. Need to handle seated next
+  const handleCalled = useCallback(
+    async (e, id) => {
+      const newCalledStatus = e.target.checked;
+      setQueueItems((prevItems) =>
+        prevItems.map((item) => {
+          return item.id === id ? { ...item, called: newCalledStatus } : item;
+        })
+      );
 
-      call(id);
-    } catch (error) {
-      console.error(error);
-    }
-  }, []);
+      try {
+        const res = await apiPrivate.patch(`/callQueueItem/${id}`, {
+          called: newCalledStatus,
+        });
+
+        // The patch here also calls the emit from the backend, we don't need to do socket emit from the front end.
+
+        if (res?.status === 201) {
+          console.log("Call status updated on backend.");
+        } else {
+          setQueueItems((prevItems) =>
+            prevItems.map((item) => {
+              return item.id === id
+                ? { ...item, called: !newCalledStatus }
+                : item;
+            })
+          );
+          console.error("Failed to update call status on backend.");
+        }
+      } catch (error) {
+        console.error(error);
+        setQueueItems((prevItems) =>
+          prevItems.map((item) => {
+            return item.id === id
+              ? { ...item, called: !newCalledStatus }
+              : item;
+          })
+        );
+        console.error("Error updating call status.");
+      }
+    },
+    [apiPrivate, socket, params.queueId]
+  );
+
+  const handleSeated = useCallback(
+    async (e, id) => {
+      const newSeatedStatus = e.target.checked;
+      setQueueItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === id ? { ...item, seated: newSeatedStatus } : item
+        )
+      );
+
+      try {
+        const res = await apiPrivate.patch(`/seatQueueItem/${id}`, {
+          seat: newSeatedStatus,
+        });
+        //! ADD THE SOCKET EMIT IN THE BACKEND AT PATCH DB CONTROLLER
+        if (res?.status === 201) {
+          console.log("Seated status updated on backend.");
+        } else {
+          setQueueItems((prevItems) =>
+            prevItems.map((item) =>
+              item.id === id ? { ...item, seated: !newSeatedStatus } : item
+            )
+          );
+          console.error("Failed to update seated status on backend.");
+        }
+      } catch (error) {
+        console.error(error);
+        // Revert optimistic change on network error
+        setQueueItems((prevItems) =>
+          prevItems.map((item) =>
+            item.id === id ? { ...item, seated: !newSeatedStatus } : item
+          )
+        );
+        console.error("Error updating seated status.");
+      }
+    },
+    [apiPrivate, socket, params.queueId]
+  );
+
   const handleAuthModalClose = () => {
     setErrors({ general: "Forbidden" });
     setShowAuthModal(false);
@@ -155,6 +252,8 @@ const ActiveOutlet = () => {
       if (res.status === 201) {
         console.log("Success on ending queue");
         setActiveQueue(false);
+        //? Also, emit a socket event to inform others that the queue has ended. Do we want to do queue ended here, or should we do queue ended from the backend?
+        socket.emit("queue_ended", params.queueId);
       } else {
         setErrors({ general: `Error ending queue ${params.queueId}` });
       }
@@ -187,17 +286,18 @@ const ActiveOutlet = () => {
             <AuthorisedUser
               onSuccess={endQueueAllowed}
               onFailure={handleAuthModalClose}
-              actionPurpose="Delete Outlet"
+              actionPurpose="End Queue" // Changed actionPurpose for clarity
               minimumRole="MANAGER"
             />
           </div>
         </div>
       )}
-      {!createCustomerModal && !activeQueue && (
+      {/* Conditionally render End Queue button: show only if queue is active */}
+      {activeQueue && ( // Only show if queue is active
         <button
           className={
             buttonClass +
-            "  bg-red-700 border-1 border-red-500 hover:bg-red-900 fixed top-0 right-0 lg:absolute mr-3"
+            " bg-red-700 border-1 border-red-500 hover:bg-red-900 fixed top-0 right-0 lg:absolute mr-3"
           }
           onClick={handleEndQueue}
         >
@@ -248,6 +348,7 @@ const ActiveOutlet = () => {
             <div className="">
               <div className="">
                 {queueItems.map((item) => {
+                  // Only render active items in the first block
                   if (item.active === true) {
                     return (
                       <div className="" key={item.id}>
@@ -279,7 +380,13 @@ const ActiveOutlet = () => {
                               <div className={activeTableHeader}>
                                 <i className="fa-solid fa-clock"></i> Waited
                               </div>
-                              <div className={activeTableAnswer + " text-xs"}>
+                              <div
+                                className={
+                                  activeTableAnswer +
+                                  " text-xs" +
+                                  getWaitingTimeClass(item.createdAt)
+                                }
+                              >
                                 {convertedTime(item.createdAt)}
                               </div>
                             </div>
@@ -303,29 +410,33 @@ const ActiveOutlet = () => {
                               >
                                 <input
                                   type="checkbox"
-                                  id={`called-${item.id}`}
+                                  id={`called-${item.id}`} // Ensure unique IDs for labels
                                   className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
                                   onChange={(e) => handleCalled(e, item.id)}
-                                  checked={item.called}
+                                  checked={item.called || false} // Provide a default if undefined
                                 />
                                 <label
                                   htmlFor={`called-${item.id}`}
-                                  className={activeTableAnswer + " ml-2 mr-5"}
+                                  className={
+                                    activeTableAnswer +
+                                    " ml-2 mr-5 " +
+                                    getCalledTimeClass(item.calledAt)
+                                  }
                                 >
                                   Called
                                 </label>
                               </div>
                               <div
                                 className={
-                                  activeTableAnswer + "flex items-center"
+                                  activeTableAnswer + " flex items-center" // Corrected flex class
                                 }
                               >
                                 <input
                                   type="checkbox"
-                                  id={`seated-${item.id}`}
+                                  id={`seated-${item.id}`} // Ensure unique IDs for labels
                                   className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
                                   onChange={(e) => handleSeated(e, item.id)}
-                                  checked={item.seated}
+                                  checked={item.seated || false} // Provide a default if undefined
                                 />
                                 <label
                                   htmlFor={`seated-${item.id}`}
@@ -340,8 +451,10 @@ const ActiveOutlet = () => {
                       </div>
                     );
                   }
+                  return null; // Don't render if not active
                 })}
               </div>
+              {/* Separate sections for active, inactive, and quit for clarity in JSX */}
               <div className="">
                 {queueItems.map((item) => {
                   if (item.active === false && item.quit === false) {
@@ -368,6 +481,7 @@ const ActiveOutlet = () => {
                       </div>
                     );
                   }
+                  return null;
                 })}
               </div>
               <div className="">
@@ -396,6 +510,7 @@ const ActiveOutlet = () => {
                       </div>
                     );
                   }
+                  return null;
                 })}
               </div>
             </div>
@@ -452,7 +567,10 @@ const ActiveOutlet = () => {
               {queueItems.map((item) => {
                 if (item.active === true) {
                   return (
-                    <div className="grid grid-cols-13 px-2 pb-1 shadow-2xl bg-primary-cream text-center">
+                    <div
+                      className="grid grid-cols-13 px-2 pb-1 shadow-2xl bg-primary-cream text-center"
+                      key={item.id}
+                    >
                       <div
                         className={
                           landscapeHeaderClass +
@@ -461,7 +579,13 @@ const ActiveOutlet = () => {
                       >
                         {item.position}
                       </div>
-                      <div className={landscapeHeaderClass + " col-span-2"}>
+                      <div
+                        className={
+                          landscapeHeaderClass +
+                          " col-span-2" +
+                          getWaitingTimeClass(item.createdAt)
+                        }
+                      >
                         {convertedTime(item.createdAt)}
                       </div>
                       <div className={landscapeHeaderClass + " col-span-1"}>
@@ -482,14 +606,17 @@ const ActiveOutlet = () => {
                           <div className={"flex items-center "}>
                             <input
                               type="checkbox"
-                              id="called"
+                              id={`called-landscape-${item.id}`} // Unique ID
                               className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
                               onChange={(e) => handleCalled(e, item.id)}
-                              checked={item.called}
+                              checked={item.called || false}
                             />
                             <label
-                              htmlFor="called"
-                              className={" ml-2 mr-2 text-xs "}
+                              htmlFor={`called-landscape-${item.id}`}
+                              className={
+                                " ml-2 mr-2 text-xs " +
+                                getCalledTimeClass(item.calledAt)
+                              }
                             >
                               Called
                             </label>
@@ -497,12 +624,15 @@ const ActiveOutlet = () => {
                           <div className={"flex items-center"}>
                             <input
                               type="checkbox"
-                              id="seated"
+                              id={`seated-landscape-${item.id}`} // Unique ID
                               className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
                               onChange={(e) => handleSeated(e, item.id)}
-                              checked={item.seated}
+                              checked={item.seated || false}
                             />
-                            <label htmlFor="seated" className={"text-xs ml-2"}>
+                            <label
+                              htmlFor={`seated-landscape-${item.id}`}
+                              className={"text-xs ml-2"}
+                            >
                               Seated
                             </label>
                           </div>
@@ -511,11 +641,15 @@ const ActiveOutlet = () => {
                     </div>
                   );
                 }
+                return null;
               })}
               {queueItems.map((item) => {
                 if (item.active === false && item.quit === false) {
                   return (
-                    <div className="grid grid-cols-13 px-2 pb-1 shadow-2xl bg-primary-cream text-center">
+                    <div
+                      className="grid grid-cols-13 px-2 pb-1 shadow-2xl bg-primary-cream text-center"
+                      key={item.id}
+                    >
                       <div
                         className={
                           landscapeHeaderClass +
@@ -562,14 +696,17 @@ const ActiveOutlet = () => {
                           <div className={"flex items-center "}>
                             <input
                               type="checkbox"
-                              id="called"
+                              id={`called-inactive-${item.id}`} // Unique ID
                               className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
                               onChange={(e) => handleCalled(e, item.id)}
-                              checked={item.called}
+                              checked={item.called || false}
                             />
                             <label
-                              htmlFor="called"
-                              className={" ml-2 mr-2 text-xs "}
+                              htmlFor={`called-inactive-${item.id}`}
+                              className={
+                                " ml-2 mr-2 text-xs " +
+                                getCalledTimeClass(item.calledAt)
+                              }
                             >
                               Called
                             </label>
@@ -577,12 +714,15 @@ const ActiveOutlet = () => {
                           <div className={"flex items-center"}>
                             <input
                               type="checkbox"
-                              id="seated"
+                              id={`seated-inactive-${item.id}`} // Unique ID
                               className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
                               onChange={(e) => handleSeated(e, item.id)}
-                              checked={item.seated}
+                              checked={item.seated || false}
                             />
-                            <label htmlFor="seated" className={"text-xs ml-2"}>
+                            <label
+                              htmlFor={`seated-inactive-${item.id}`}
+                              className={"text-xs ml-2"}
+                            >
                               Seated
                             </label>
                           </div>
@@ -591,11 +731,15 @@ const ActiveOutlet = () => {
                     </div>
                   );
                 }
+                return null;
               })}
               {queueItems.map((item) => {
                 if (item.active === false && item.quit === true) {
                   return (
-                    <div className="grid grid-cols-13 px-2 pb-1 shadow-2xl bg-primary-cream text-center">
+                    <div
+                      className="grid grid-cols-13 px-2 pb-1 shadow-2xl bg-primary-cream text-center"
+                      key={item.id}
+                    >
                       <div
                         className={
                           landscapeHeaderClass +
@@ -646,14 +790,17 @@ const ActiveOutlet = () => {
                           <div className={"flex items-center "}>
                             <input
                               type="checkbox"
-                              id="called"
+                              id={`called-quit-${item.id}`} // Unique ID
                               className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
                               onChange={(e) => handleCalled(e, item.id)}
-                              checked={item.called}
+                              checked={item.called || false}
                             />
                             <label
-                              htmlFor="called"
-                              className={" ml-2 mr-2 text-xs "}
+                              htmlFor={`called-quit-${item.id}`}
+                              className={
+                                " ml-2 mr-2 text-xs " +
+                                getCalledTimeClass(item.calledAt)
+                              }
                             >
                               Called
                             </label>
@@ -661,12 +808,15 @@ const ActiveOutlet = () => {
                           <div className={"flex items-center"}>
                             <input
                               type="checkbox"
-                              id="seated"
+                              id={`seated-quit-${item.id}`} // Unique ID
                               className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
                               onChange={(e) => handleSeated(e, item.id)}
-                              checked={item.seated}
+                              checked={item.seated || false}
                             />
-                            <label htmlFor="seated" className={"text-xs ml-2"}>
+                            <label
+                              htmlFor={`seated-quit-${item.id}`}
+                              className={"text-xs ml-2"}
+                            >
                               Seated
                             </label>
                           </div>
@@ -675,6 +825,7 @@ const ActiveOutlet = () => {
                     </div>
                   );
                 }
+                return null;
               })}
             </div>
           )}

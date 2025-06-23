@@ -22,6 +22,8 @@ const Waiting = () => {
   const [customerPosition, setCustomerPosition] = useState("");
   const [calledTimeElapsed, setCalledTimeElapsed] = useState("");
 
+  const [userInteracted, setUserInteracted] = useState(false);
+
   const [connection, setConnection] = useState(true);
   //ewt = estimated wait time
   const [ewt, setEwt] = useState("");
@@ -29,6 +31,7 @@ const Waiting = () => {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [modalUpdate, setModalUpdate] = useState(false);
   const [modalLeave, setModalLeave] = useState(false);
+  const [modalCalled, setModalCalled] = useState(false);
   const [barType, setBarType] = useState("");
   const [progressBar, setProgressBar] = useState("");
   const [partiesAhead, setPartiesAhead] = useState("");
@@ -80,10 +83,15 @@ const Waiting = () => {
         "Data for instantiation from running useQueueSession:",
         queueData
       );
+      console.log("Checking for queueData:", queueData.queueItem);
+
       setAccountInfo(queueData.accountInfo);
       setOutlet(queueData.outlet);
       setQueueItem(queueData.queueItem);
       setCustomer(queueData.customer);
+      if (queueData.queueItem.called) {
+        setModalCalled(true);
+      }
       setMessage(queueData.message);
       setCustomerPosition(queueData.position);
       setLastUpdated(new Date());
@@ -93,13 +101,44 @@ const Waiting = () => {
     }
   }, [queueData, isLoadingSession]);
 
+  //* HANDLE INTERACTION
   useEffect(() => {
-    //POP UP MODAL TO ENABLE NOTIFICATION
-    console.log(
-      "Notification status: ",
-      "Notification" in window,
-      notificationPermission
-    );
+    const handleUserInteraction = () => {
+      if (!userInteracted) {
+        const silentAudio = new Audio("/AlertSound.mp3");
+        silentAudio.volume = 0;
+        silentAudio
+          .play()
+          .catch((e) => console.error("Audio playback failed: ", e));
+        setUserInteracted(true);
+      }
+    };
+
+    document.addEventListener("click", handleUserInteraction, { once: true });
+    document.addEventListener("touchstart", handleUserInteraction, {
+      once: true,
+    });
+    document.addEventListener("keydown", handleUserInteraction, { once: true });
+    document.addEventListener("scroll", handleUserInteraction, { once: true });
+
+    return () => {
+      document.removeEventListener("click", handleUserInteraction, {
+        once: true,
+      });
+      document.removeEventListener("touchstart", handleUserInteraction, {
+        once: true,
+      });
+      document.removeEventListener("keydown", handleUserInteraction, {
+        once: true,
+      });
+      document.removeEventListener("scroll", handleUserInteraction, {
+        once: true,
+      });
+    };
+  }, [userInteracted]);
+
+  //* NOTIFICATION
+  useEffect(() => {
     if (!("Notification" in window)) {
       toast.open(
         "Your browser does not support notifications. We will not be able to notify you.",
@@ -133,12 +172,9 @@ const Waiting = () => {
   //* SOCKET HERE
   useEffect(() => {
     if (socket && isConnected && queueItem?.queueId && queueItem?.customerId) {
-      console.log(
-        "Socket connected and queueItem available in Waiting. Setting up listeners and emitting initial events."
-      );
       socket.emit("join_queue", `queue_${queueItem.queueId}`);
-      console.log("Customer ID:", queueItem.customerId);
       socket.emit("set_customer_id", queueItem.customerId);
+      socket.emit("join_queue_item_id", `queueitem_${queueItem.id}`);
       socket.emit("cust_req_queue_refresh", queueItem.queueId);
       setConnection(true); // Update local connection state
     } else if (socket && !isConnected) {
@@ -152,34 +188,22 @@ const Waiting = () => {
 
   useEffect(() => {
     if (dataLoaded && queueItem !== null && !!socket && isConnected) {
-      console.log(
-        "Data is loaded and queueItem exist",
-        !!dataLoaded,
-        !!queueItem,
-        socket
-      );
-
       const handleQueueUpdateForNotif = (data) => {
-        console.log("This is the data from sockets from back end: ", data);
+        //? Should we check if the data queueItemId to be same as the current page's queue item id?
         if ("Notification" in window && Notification.permission === "granted") {
-          if (customerPosition === currentlyServing) {
-            console.log("It's your turn. Show notification!");
-            new Notification("It's Your Turn!", {
-              body: "Please proceed to the counter",
-              vibrate: [200, 100, 200, 100, 200],
-            });
-            const audio = new Audio("./AlertSound.mp3");
-            audio
-              .play()
-              .catch((e) => console.error("Audio playback failed: ", e));
-            // You might also play an audio alert here if you've handled the gesture.
-            // const audio = new Audio('/path/to/your/alert_sound.mp3');
-            // audio.play().catch(e => console.error("Audio playback failed:", e));
-            // https://taketones.com/usage-types/website
-            // add this handleQueueUpdateForNotif on the queue_update
-          }
+          const audio = new Audio("/AlertSound.mp3");
+          audio
+            .play()
+            .catch((e) => console.error("Audio playback failed: ", e));
+          new Notification("It's Your Turn!", {
+            body: "Please proceed to the counter",
+            vibrate: [200, 100, 200, 100, 200],
+          });
+          setModalCalled(true);
         }
       };
+
+      socket.on("host_called_cust", (data) => handleQueueUpdateForNotif(data));
 
       socket.on("queue_update", (data) => {
         console.log("Queue update receiving data from Sockets", data);
@@ -320,7 +344,7 @@ const Waiting = () => {
   };
 
   return (
-    <div className="flex-row items-center justify-center p-3 sm:p-5 md:pt-8 relative ">
+    <div className="flex-row items-center justify-center p-3 sm:p-5 md:pt-8 relative h-full">
       {modalLeave && (
         <div className="bg-primary-ultra-dark-green/85 min-w-full min-h-full absolute top-0 left-0 z-5">
           <div className="bg-primary-cream z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/2 left-1/2 -translate-1/2 p-10 md:min-w-md">
@@ -358,6 +382,22 @@ const Waiting = () => {
             >
               No
             </button>
+          </div>
+        </div>
+      )}
+      {modalCalled && (
+        <div className="bg-primary-ultra-dark-green/85 min-w-full min-h-full absolute top-0 left-0 z-5">
+          <div className="bg-primary-cream z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/2 left-1/2 -translate-1/2 p-10 md:min-w-md">
+            <h1 className="text-primary-light-green font-semibold text-4xl">
+              It is your turn!
+            </h1>
+            <br />
+            <p className="text-2xl">
+              {customer.name}: {queueItem.pax} pax
+            </p>
+            <br />
+            <p>Please head over to the host immediately.</p>
+            <br />
           </div>
         </div>
       )}

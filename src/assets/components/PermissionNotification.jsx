@@ -6,6 +6,7 @@ const PermissionNotification = ({ close }) => {
   const toast = useToast();
   const [localNotificationPermission, setLocalNotificationPermission] =
     useState(Notification.permission);
+  // const [showModal, setShowModal] = useState(false);
 
   const handleNotification = useCallback(async () => {
     try {
@@ -17,7 +18,7 @@ const PermissionNotification = ({ close }) => {
         close();
       } else if (permission === "denied") {
         toast.open(
-          "Permission denied again. Please enable manually in browser settings.",
+          "Permission to notify was denied. Please remain on this page to check if your turn is being called. If you would like to change the permission, you will need to go to settings of your browser and manually reset the site permissions.",
           "error",
           { duration: 5000 }
         );
@@ -30,14 +31,16 @@ const PermissionNotification = ({ close }) => {
       );
     }
   }, [close, toast]);
-
+  // const handleToggleModal = () => {
+  //   setShowModal(!showModal);
+  // };
   useEffect(() => {
     if (localNotificationPermission === "granted") {
       close();
     }
   }, [localNotificationPermission, close]);
 
-  const showUpdateButton = localNotificationPermission === "denied";
+  const showUpdateButton = localNotificationPermission === "default";
 
   return (
     <div className="text-center">
@@ -46,22 +49,34 @@ const PermissionNotification = ({ close }) => {
         We will <span className="font-semibold">NOT</span> be able to properly
         notify you of your turn.
       </p>
+
       <p className="text-sm">
-        Please either remain on this page, or{" "}
+        Please remain on this page <br />
         {showUpdateButton && (
-          <button
-            className="mt-3 px-4 py-2 bg-white text-primary-green rounded-full font-semibold hover:bg-gray-100 transition ease-in-out duration-200"
-            onClick={handleNotification}
-          >
-            Enable Notifications Now
-          </button>
+          <span>
+            {" "}
+            or{" "}
+            <button
+              className="mt-3 px-4 py-2 bg-white text-primary-green rounded-full font-semibold hover:bg-gray-100 transition ease-in-out duration-200"
+              onClick={handleNotification}
+            >
+              Enable Notifications Now
+            </button>
+          </span>
         )}
         {!showUpdateButton && (
           <span className="mt-3 text-sm italic text-gray-300">
-            (Permission already granted or not applicable)
+            (Permission has already been denied.)
+            {/* <br />
+            <br />
+            <button
+              className=" text-primary-cream hover:text-primary-dark-green transition ease-in-out duration-200 cursor-pointer"
+              onClick={handleToggleModal}
+            >
+              For more information to enable notifications:
+            </button> */}
           </span>
         )}
-        settings.
       </p>
     </div>
   );

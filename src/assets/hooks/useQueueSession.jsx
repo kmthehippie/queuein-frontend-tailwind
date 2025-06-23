@@ -12,19 +12,18 @@ const useQueueSession = (initialReceivedData) => {
     async (storedSession) => {
       setIsLoadingSession(true);
       try {
-        console.log("Stored session in use queue session: ", storedSession);
         const response = await api.post(
           `/customerWaitingPage/${storedSession.acctSlug}/${storedSession.queueId}/${storedSession.queueItemId}`
         );
         if (response.status === 200 && response.data.queueItem.active) {
           console.log(
-            "This is the response data from use queue session: ",
+            "Response from use queue session at customer waiting page: ",
             response.data
           );
           setQueueData(response.data);
-        } else {
+        } else if (response.status === 400 || response.status === 404) {
           console.log(
-            "Queue session no longer active or valid. (We deleted the LS)"
+            "Response is 404 or 400 in use queue session causing remove local storage item"
           );
           removeLocalStorageItem("queueItemLS");
           navigate(`/${storedSession.accountSlug}`);

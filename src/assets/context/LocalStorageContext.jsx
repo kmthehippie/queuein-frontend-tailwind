@@ -26,15 +26,17 @@ export const LocalStorageProvider = ({ children }) => {
           setIsLoading(false);
           return;
         } else {
-          console.log("No res");
+          console.log("No res from customer verify local storage");
           removeLocalStorageItem("queueItemLS");
           setActiveQueueSession(false);
           setIsLoading(false);
-
           return;
         }
       } catch (error) {
-        console.error(error);
+        console.error(
+          "Stored session customer verify local storage error",
+          error
+        );
         removeLocalStorageItem("queueItemLS");
         setActiveQueueSession(false);
         setIsLoading(false);

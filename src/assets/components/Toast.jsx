@@ -15,13 +15,13 @@ const Toast = ({ id, content, type, duration, sticky, close }) => {
 
   //Temporary Type Classes
   const typeClasses = {
-    info: "bg-blue-500 border-blue-600",
+    info: "bg-primary-green/90",
     success: "bg-green-500 border-green-600",
     error: "bg-red-600 border-red-700",
     warning: "bg-yellow-500 border-yellow-600 text-gray-800",
   };
   const baseClasses = `
-  p-4 rounded-lg shadow-xl border-t-4 // Added shadow and top border for distinction
+  p-4 rounded-lg // Added shadow and top border for distinction
   text-white font-medium
   flex items-start justify-between gap-4 // Use items-start for better alignment with longer content
   transition-all duration-300 ease-out // For smooth entry/exit
@@ -36,6 +36,7 @@ const Toast = ({ id, content, type, duration, sticky, close }) => {
       className={`${baseClasses} ${
         typeClasses[type] || typeClasses.info
       } ${animationClasses}`}
+      key={id}
     >
       {typeof content === "string" ? (
         <p className="flex-grow">{content}</p>

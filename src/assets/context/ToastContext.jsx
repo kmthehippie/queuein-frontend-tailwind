@@ -1,4 +1,10 @@
-import React, { useState, createContext, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  createContext,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import Toast from "../components/Toast";
 
 const ToastContext = createContext(null);
@@ -7,11 +13,10 @@ const MAX_TOASTS = 5;
 
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
-  let toastIdCounter = 0;
+  const toastIdCounter = useRef(0);
 
-  //toast has id, content -- react element or component, OPTIONS:  {type -- success,error,warning, info. , duration -- how long before it timeout. sticky -- if true, toast does not close}.
   const openToast = useCallback((content, options = {}) => {
-    const id = Date.now() + toastIdCounter++;
+    const id = Date.now() + toastIdCounter.current++;
     const newToast = {
       id,
       content,
@@ -20,14 +25,13 @@ export const ToastProvider = ({ children }) => {
       sticky: options.sticky || false,
       ...options,
     };
-    setToasts((prevToast) => {
-      let updatedToasts = [];
-      if (prevToast === undefined || prevToast.length === 0) {
-        updatedToasts.push(newToast);
-      } else {
-        updatedToasts = [newToast, ...prevToast];
-      }
 
+    setToasts((prevToast) => {
+      if (prevToast.some((toast) => toast.id === newToast.id)) {
+        console.warn(`Toast with ID ${newToast.id} already exist.`);
+        return prevToast;
+      }
+      let updatedToasts = [newToast, ...prevToast];
       if (updatedToasts.length > MAX_TOASTS) {
         const firstNonStickyIndex = updatedToasts.findIndex((t) => !t.sticky);
         if (firstNonStickyIndex !== -1) {
@@ -35,10 +39,10 @@ export const ToastProvider = ({ children }) => {
         } else {
           if (updatedToasts.length > MAX_TOASTS) {
             updatedToasts.shift();
-            //updatedToasts has now removed the first item in the array
           }
         }
       }
+      return updatedToasts;
     });
   }, []);
 
