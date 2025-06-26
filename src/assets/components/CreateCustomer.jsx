@@ -16,9 +16,6 @@ const CreateCustomer = ({
   const [vip, setVIP] = useState(true);
   const [validationError, setValidationError] = useState("");
 
-  const [warningDiffQueue, setWarningDiffQueue] = useState(false);
-  const [warningDiffQueueInfo, setWarningDiffQueueInfo] = useState("");
-
   const errorClass = `text-red-600 text-center`;
   const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800 `;
   const inputClass = `border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 text-xs leading-tight focus:outline-none focus:border-black peer active:border-black
@@ -70,6 +67,7 @@ const CreateCustomer = ({
       VIP: vip,
       pax: parseInt(customerPax),
     };
+
     console.log("Create a customer with this data: ", data);
     const createNewCustomer = async () => {
       try {
@@ -83,10 +81,6 @@ const CreateCustomer = ({
           setNotice(res?.data.message);
           setNotification(true);
           setModal(false);
-        } else if (res?.status === 406) {
-          console.log("Customer exist in a queue of a different location");
-          setWarningDiffQueue(true);
-          setWarningDiffQueueInfo(res?.data);
         }
       } catch (error) {
         console.error(error);
@@ -95,47 +89,8 @@ const CreateCustomer = ({
     createNewCustomer();
   };
 
-  //2. handle customer already in a diff queue
-  const handleSubmitYes = async (e) => {
-    e.preventDefault();
-    const yesData = {
-      pax: customerPax,
-      remainInPreviousQueue: true,
-      prevData: warningDiffQueueInfo,
-    };
-    console.log("Yes, ", yesData);
-    console.log("prev data have outlet and account info? ", yesData.prevData);
-    try {
-      const res = await apiPrivate.post(
-        `/customerRepost/${params.queueId}`,
-        yesData
-      );
-      console.log("This is res", res);
-
-      if (res?.status === 201) {
-        //set data from repost
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleSubmitNo = async (e) => {
-    e.preventDefault();
-    setCustomerName("");
-    setNumber("");
-    setCustomerPax(null);
-    setVIP(false);
-    setValidationError("");
-    setWarningDiffQueue(false);
-    setWarningDiffQueueInfo("");
-    setModal(false);
-  };
   return (
     <div>
-      {warningDiffQueue && (
-        <div className="bg-primary-ultra-dark-green/85 min-w-full min-h-full absolute top-0 left-0 z-5"></div>
-      )}
       <p
         className="absolute top-0 right-0 text-red-700 pr-5 pt-2 hover:text-red-950 transition ease-in active:text-red-950 font-bold cursor-pointer"
         onClick={() => {
@@ -144,29 +99,7 @@ const CreateCustomer = ({
       >
         X
       </p>
-      {warningDiffQueue && (
-        <div className="bg-primary-cream z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/3 left-1/2 -translate-1/2 p-10 md:min-w-md">
-          <h1 className="text-red-900">Alert:</h1>
-          <p className="text-sm">{warningDiffQueueInfo.message}</p>
-          <br />
-          <p>Does customer wish to remain in the previous queue?</p>
 
-          <div className="flex gap-5 justify-center">
-            <button
-              className="bg-primary-green mt-3 hover:bg-primary-dark-green w-35 transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              onClick={handleSubmitYes}
-            >
-              Yes
-            </button>
-            <button
-              className="bg-primary-green mt-3 hover:bg-primary-dark-green w-35  transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              onClick={handleSubmitNo}
-            >
-              No
-            </button>
-          </div>
-        </div>
-      )}
       <form>
         <div className="">
           <label htmlFor="customer-name" className={labelClass}>

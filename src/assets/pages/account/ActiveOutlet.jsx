@@ -41,6 +41,8 @@ const ActiveOutlet = () => {
         return " text-red-500";
       } else if (minutesWaited >= 10) {
         return " text-orange-500";
+      } else {
+        return " ";
       }
     },
     [currentTime]
@@ -56,6 +58,8 @@ const ActiveOutlet = () => {
           return " text-red-500";
         } else if (minutesCalled >= 5) {
           return " text-orange-500";
+        } else {
+          return " ";
         }
       }
     },
@@ -119,7 +123,6 @@ const ActiveOutlet = () => {
       console.log("Info for the staff info socket ", infoForSocket);
       socket.emit("set_staff_info", infoForSocket);
 
-      // Listener for queue updates from the backend via socket
       const handleHostQueueUpdate = (data) => {
         console.log("Host-queue_update is emitting.");
         console.log("Data from BACKEND from host_queue_update: ", data);
@@ -131,10 +134,7 @@ const ActiveOutlet = () => {
       socket.on("host_queue_update", handleHostQueueUpdate);
 
       return () => {
-        // Clean up: remove the event listener when the component unmounts
         socket.off("host_queue_update", handleHostQueueUpdate);
-        // You might also want to leave the queue room here if necessary
-        // socket.emit("leave_queue", `queue_${params.queueId}`);
       };
     }
   }, [
@@ -152,7 +152,6 @@ const ActiveOutlet = () => {
     setCreateCustomerModal(true);
   }, []);
 
-  //? This handle called looks pretty good. Need to handle seated next
   const handleCalled = useCallback(
     async (e, id) => {
       const newCalledStatus = e.target.checked;
@@ -195,21 +194,22 @@ const ActiveOutlet = () => {
     },
     [apiPrivate, socket, params.queueId]
   );
-
   const handleSeated = useCallback(
     async (e, id) => {
       const newSeatedStatus = e.target.checked;
       setQueueItems((prevItems) =>
         prevItems.map((item) =>
-          item.id === id ? { ...item, seated: newSeatedStatus } : item
+          item.id === id
+            ? { ...item, seated: newSeatedStatus, active: !newSeatedStatus }
+            : item
         )
       );
 
       try {
         const res = await apiPrivate.patch(`/seatQueueItem/${id}`, {
-          seat: newSeatedStatus,
+          seated: !!newSeatedStatus,
         });
-        //! ADD THE SOCKET EMIT IN THE BACKEND AT PATCH DB CONTROLLER
+
         if (res?.status === 201) {
           console.log("Seated status updated on backend.");
         } else {
@@ -233,7 +233,6 @@ const ActiveOutlet = () => {
     },
     [apiPrivate, socket, params.queueId]
   );
-
   const handleAuthModalClose = () => {
     setErrors({ general: "Forbidden" });
     setShowAuthModal(false);
@@ -264,7 +263,6 @@ const ActiveOutlet = () => {
       setShowAuthModal(false);
     }
   };
-
   const handleRefresh = () => {
     console.log(params.queueId);
     socket.emit("queue_update", params.queueId);
@@ -292,8 +290,7 @@ const ActiveOutlet = () => {
           </div>
         </div>
       )}
-      {/* Conditionally render End Queue button: show only if queue is active */}
-      {activeQueue && ( // Only show if queue is active
+      {activeQueue && (
         <button
           className={
             buttonClass +
@@ -365,7 +362,12 @@ const ActiveOutlet = () => {
                             <div className="flex items-center p-1 ">
                               <div className={activeTableHeader}>Name</div>
                               <div className={activeTableAnswer}>
-                                {item.customer.name}
+                                {item.name || item.customer?.name}
+                                {item?.customer && (
+                                  <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
+                                    VIP
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -397,7 +399,7 @@ const ActiveOutlet = () => {
                               <i className="fa-solid fa-phone"></i> Customer
                             </div>
                             <div className={activeTableAnswer}>
-                              {item.customer.number}
+                              {item.contactNumber || item?.customer?.number}
                             </div>
                           </div>
                           <form className="flex items-center mt-1">
@@ -473,7 +475,13 @@ const ActiveOutlet = () => {
                             <div className="flex items-center p-1 ">
                               <div className={activeTableHeader}>Name</div>
                               <div className={activeTableAnswer}>
-                                {item.customer.name}
+                                {JSON.stringify(item)}
+                                {item?.customer?.name || item.name}
+                                {item?.customer && (
+                                  <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
+                                    VIP
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -502,7 +510,12 @@ const ActiveOutlet = () => {
                             <div className="flex items-center p-1 ">
                               <div className={activeTableHeader}>Name</div>
                               <div className={activeTableAnswer}>
-                                {item.customer.name}
+                                {item?.customer.name || item.name}
+                                {item?.customer && (
+                                  <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
+                                    VIP
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -592,10 +605,15 @@ const ActiveOutlet = () => {
                         {item.pax}
                       </div>
                       <div className={landscapeHeaderClass + " col-span-2"}>
-                        {item.customer.name}
+                        {item?.customer?.name || item?.name}
+                        {item?.customer && (
+                          <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
+                            VIP
+                          </span>
+                        )}
                       </div>
                       <div className={landscapeHeaderClass + " col-span-3"}>
-                        {item.customer.number}
+                        {item.contactNumber || item?.customer?.number}
                       </div>
                       <div
                         className={
@@ -677,14 +695,19 @@ const ActiveOutlet = () => {
                           landscapeHeaderClass + " col-span-2 bg-stone-300"
                         }
                       >
-                        {item.customer.name}
+                        {item?.customer?.name || item.name}
+                        {item?.customer && (
+                          <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
+                            VIP
+                          </span>
+                        )}
                       </div>
                       <div
                         className={
                           landscapeHeaderClass + " col-span-3 bg-stone-300"
                         }
                       >
-                        {item.customer.number}
+                        {item.contactNumber || item?.customer?.number}
                       </div>
                       <div
                         className={
@@ -770,7 +793,12 @@ const ActiveOutlet = () => {
                           " col-span-2 bg-red-950 text-white"
                         }
                       >
-                        {item.customer.name}
+                        {item?.customer.name || item.name}
+                        {item?.customer && (
+                          <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
+                            VIP
+                          </span>
+                        )}
                       </div>
                       <div
                         className={
@@ -778,7 +806,7 @@ const ActiveOutlet = () => {
                           " col-span-3 bg-red-950 text-white"
                         }
                       >
-                        {item.customer.number}
+                        {item.contactNumber || item?.customer?.number}
                       </div>
                       <div
                         className={

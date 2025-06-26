@@ -173,7 +173,8 @@ const Waiting = () => {
   useEffect(() => {
     if (socket && isConnected && queueItem?.queueId && queueItem?.customerId) {
       socket.emit("join_queue", `queue_${queueItem.queueId}`);
-      socket.emit("set_customer_id", queueItem.customerId);
+      // socket.emit("set_customer_id", queueItem.customerId);
+      socket.emit("set_queue_item_id", queueItem.id);
       socket.emit("join_queue_item_id", `queueitem_${queueItem.id}`);
       socket.emit("cust_req_queue_refresh", queueItem.queueId);
       setConnection(true); // Update local connection state
@@ -188,8 +189,7 @@ const Waiting = () => {
 
   useEffect(() => {
     if (dataLoaded && queueItem !== null && !!socket && isConnected) {
-      const handleQueueUpdateForNotif = (data) => {
-        //? Should we check if the data queueItemId to be same as the current page's queue item id?
+      const called = () => {
         if ("Notification" in window && Notification.permission === "granted") {
           const audio = new Audio("/AlertSound.mp3");
           audio
@@ -200,6 +200,12 @@ const Waiting = () => {
             vibrate: [200, 100, 200, 100, 200],
           });
           setModalCalled(true);
+        }
+      };
+      const handleQueueUpdateForNotif = (data) => {
+        console.log("Handling queue update for notifications: ", data);
+        if (data.alert && queueItem.id === data.queueItemId) {
+          called();
         }
       };
 
@@ -217,6 +223,10 @@ const Waiting = () => {
             setNoShow(true);
           }
         }
+
+        if (data.active && data.called) {
+          called();
+        }
         setLastUpdated(new Date());
         setProgressBar(data.queueList.arr);
         setCurrentlyServing(data.currentlyServing);
@@ -224,7 +234,6 @@ const Waiting = () => {
         setBarType(data.queueList.type);
         setPartiesAhead(data.queueList.partiesAhead);
         setPax(data.pax);
-
         handleQueueUpdateForNotif(data);
       });
 
@@ -241,6 +250,9 @@ const Waiting = () => {
             setBarType(data.queueList.type);
             setPartiesAhead(data.queueList.partiesAhead);
             setPax(data.pax);
+            if (data.called) {
+              called();
+            }
             // We need to check if the user has been called.
             console.log("Res queue ", data);
           } catch (error) {
@@ -464,7 +476,6 @@ const Waiting = () => {
           </div>
         </div>
       )}
-      {/* Add function to trigger when customer is in waiting and called is called */}
       <Link
         to={`/${accountInfo.slug}`}
         className="flex items-center pb-3 border-b-2 border-stone-400 "
