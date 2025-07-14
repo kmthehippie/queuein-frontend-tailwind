@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import moment from "moment";
 import AuthorisedUser from "./AuthorisedUser";
 import useApiPrivate from "../../hooks/useApiPrivate";
@@ -10,6 +10,13 @@ const InactiveOutlet = () => {
   const [queueName, setQueueName] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const apiPrivate = useApiPrivate();
+  const location = useLocation();
+  const { outletData } = location.state || {}; // Get basic outlet info from state
+  const [inactiveQueues, setInactiveQueues] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   //TAILWIND CLASSES
   const buttonClass = `mt-3 transition ease-in text-white font-light py-2 px-4 rounded-2xl cursor-pointer focus:outline-none focus:shadow-outline min-w-20`;
@@ -19,6 +26,40 @@ const InactiveOutlet = () => {
     setQueueName(moment().format("llll"));
   }, []);
 
+  useEffect(() => {
+    // Crucial: Handle direct access/refresh where location.state might be null
+    if (!outletData) {
+      // If outletData is missing, you'd likely need to refetch basic outlet info
+      // based on params.outletId or redirect to an error page.
+      console.warn(
+        "Missing outletData on InactiveOutlet, consider fetching or redirecting."
+      );
+      // Example: fetchOutletData(params.outletId);
+    }
+    fetchInactiveQueueStats(currentPage); // Fetch the initial page of stats
+  }, [params.accountId, params.outletId, currentPage, apiPrivate, outletData]); // Add dependencies
+
+  const fetchInactiveQueueStats = async (page) => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Make a new API call to your dedicated inactive queues endpoint
+      const res = await apiPrivate.get(
+        `/inactiveQueues/${params.accountId}/${params.outletId}?page=${page}`
+      );
+      setInactiveQueues(res.data.inactiveQueueStats);
+      setCurrentPage(res.data.currentPage);
+      setTotalPages(res.data.totalPages);
+    } catch (err) {
+      console.error(
+        "Error fetching inactive queue stats:",
+        err.response || err
+      );
+      setError("Failed to load past queue data.");
+    } finally {
+      setLoading(false);
+    }
+  };
   const startQueueAllowed = async () => {
     console.log("Here is to start queue: ");
     if (queueName.length === 0) {
@@ -102,6 +143,50 @@ const InactiveOutlet = () => {
         <p className="text-lg font-light italic text-primary-dark-green">
           Previous Queue Report
         </p>
+        <div>
+          <h1>Inactive Queues for {outletData.name}</h1>
+          {/* <p>Your role: {staffInfo?.staffRole}</p> // If staffInfo is needed and checked */}
+          <h2>Past Queue Statistics</h2>
+          {inactiveQueues.length === 0 ? (
+            <p>No past queues available.</p>
+          ) : (
+            <div>
+              {inactiveQueues.map((queue) => (
+                <div key={queue.id} className="mb-4 p-4 border rounded-lg">
+                  <h3>Name: {queue.name}</h3>
+                  <p>
+                    Start Time: {new Date(queue.startTime).toLocaleString()}
+                  </p>
+                  <p>End Time: {new Date(queue.endTime).toLocaleString()}</p>
+                  <p>Total Items: {queue.totalQueueItems}</p>
+                  <p>Seated: {queue.seatedCount}</p>
+                  <p>Quit: {queue.quitCount}</p>
+                  <p>No Show: {queue.noShowCount}</p>
+                  <p>Active (at end): {queue.activeCount}</p>
+                </div>
+              ))}
+              <div className="flex justify-between mt-4">
+                <button
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
+                  disabled={currentPage <= 1}
+                  className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+                >
+                  Previous
+                </button>
+                <span>
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                  disabled={currentPage >= totalPages}
+                  className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

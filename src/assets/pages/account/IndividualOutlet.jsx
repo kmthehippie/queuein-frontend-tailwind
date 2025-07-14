@@ -10,28 +10,17 @@ const IndividualOutlet = () => {
   const [loading, setLoading] = useState(false);
   const [outletName, setOutletName] = useState(null);
   const [errors, setErrors] = useState("");
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [queueId, setQueueId] = useState("");
+  // showAuthModal will now store an object { onSuccess: Function }
+  const [showAuthModalState, setShowAuthModalState] = useState(null); // Renamed to avoid confusion with the primitive boolean you had before
   const [refresh, setRefresh] = useState(false);
 
   const handleAuthModalClose = () => {
-    setErrors({ general: "Forbidden" });
-    setShowAuthModal(false);
-  };
-
-  const activeQueueAllowed = (info) => {
-    setLoading(false);
-    setShowAuthModal(false);
-    console.log("Active queue allowed: ", info);
-    navigate(
-      `/db/${params.accountId}/outlet/${params.outletId}/active/${queueId}`,
-      { replace: true, state: { info: info } }
-    );
+    setErrors({ general: "Authorization cancelled." });
+    setShowAuthModalState(null); // Set to null to hide modal
   };
 
   const buttonClass = `mt-5 transition ease-in text-white bg-primary-green font-light py-2 px-8 rounded-2xl cursor-pointer focus:outline-none focus:shadow-outline min-w-20 hover:bg-primary-dark-green hover:text-primary-light-green`;
 
-  //* FIND IF OUTLET IS ACTIVE OR NOT?
   useEffect(() => {
     const checkQueueAndRedirect = async () => {
       setLoading(true);
@@ -40,41 +29,88 @@ const IndividualOutlet = () => {
         const res = await apiPrivate.get(
           `queueActivity/${params.accountId}/${params.outletId}`
         );
-        console.log("Here we are trying to set data name", res?.data);
-        if (res?.data) {
+
+        if (res?.data?.outlet) {
           setOutletName(res.data.outlet.name);
-          if (res.status === 200 && res?.data.queue) {
-            setQueueId(res.data.queue.id);
-            setShowAuthModal(true);
+          console.log("API response data:", res.data); // Keep this log for debugging
+
+          const currentOutletData = res.data.outlet; // Capture outlet data
+          const currentQueueData = res.data.queue; // Capture queue data (can be null)
+
+          if (currentQueueData) {
+            // Found an active/relevant queue, prompt for authorization
+            const handleAuthSuccess = (staffInfo) => {
+              setLoading(false);
+              setShowAuthModalState(null); // Hide modal
+
+              console.log("Navigating to ActiveOutlet with:", {
+                staffInfo,
+                outletData: currentOutletData,
+                queueData: currentQueueData,
+              });
+
+              navigate(
+                `/db/${params.accountId}/outlet/${params.outletId}/active/${currentQueueData.id}`,
+                {
+                  replace: true,
+                  state: {
+                    staffInfo: staffInfo, // This is the validated staff info
+                    outletData: currentOutletData, // Pass the outlet data
+                    queueData: currentQueueData, // Pass the queue data
+                  },
+                }
+              );
+            };
+            // Set the success handler for the modal, which will then open the modal
+            setShowAuthModalState({ onSuccess: handleAuthSuccess });
           } else {
-            setErrors({
-              general: "Received empty response for outlet activity.",
-            });
-            navigate(`/db/${params.accountId}/error`, { replace: true });
+            // No active/relevant queue, redirect to inactive page
+            console.log(
+              "No active/relevant queue found. Redirecting to inactive."
+            );
+            navigate(
+              `/db/${params.accountId}/outlet/${params.outletId}/inactive`,
+              {
+                replace: true,
+                state: {
+                  outletData: currentOutletData, // Pass the outlet data
+                },
+              }
+            );
           }
+        } else {
+          // If res.data.outlet is null/undefined, something is wrong
+          setErrors({ general: "Received invalid outlet data from server." });
+          navigate(`/db/${params.accountId}/error`, { replace: true });
         }
       } catch (error) {
-        console.error(error);
-
-        if (
-          error.response.status === 404 &&
-          error.response.data.message ===
-            "No active queues. No active queue items."
-        ) {
-          setOutletName(error.response.data.outlet.name);
-          navigate(
-            `/db/${params.accountId}/outlet/${params.outletId}/inactive`,
-            {
+        console.error(
+          "Error checking queue activity:",
+          error.response || error
+        );
+        if (error.response) {
+          if (
+            error.response.status === 404 &&
+            error.response.data.message === "Error, outlet not found"
+          ) {
+            setErrors({ general: "Error, outlet not found" });
+          } else {
+            setErrors({
+              general: `Error: ${error.response.data.message || error.message}`,
+            });
+            navigate(`/db/${params.accountId}/error`, {
               replace: true,
-            }
-          );
-        } else if (
-          error.response.status === 404 &&
-          error.response.data.message === "Error, outlet not found"
-        ) {
-          setErrors({ general: "Error, outlet not found" });
+              state: {
+                errorMessage: error.response.data.message || error.message,
+              },
+            });
+          }
         } else {
-          setErrors({ general: `Error ${error}` });
+          setErrors({ general: `Network Error: ${error.message}` });
+          navigate(`/db/${params.accountId}/error`, {
+            replace: true,
+            state: { errorMessage: error.message },
+          });
         }
       } finally {
         setLoading(false);
@@ -84,7 +120,7 @@ const IndividualOutlet = () => {
     if (params.outletId) {
       checkQueueAndRedirect();
     }
-  }, [params.outletId, refresh]);
+  }, [params.accountId, params.outletId, refresh, apiPrivate, navigate]);
 
   if (loading) {
     return <div className="">Loading...</div>;
@@ -92,7 +128,7 @@ const IndividualOutlet = () => {
   if (errors) {
     return (
       <div className="flex flex-col items-center justify-center bg-primary-cream/50 p-10 m-10 rounded-3xl border-5 border-red-800">
-        <h1 className="text-3xl text-red-800 font-semibold ">Error </h1>{" "}
+        <h1 className="text-3xl text-red-800 font-semibold ">Error </h1>
         <p className="font-light text-xl mt-5">
           Error Message: {errors.general}
         </p>
@@ -102,7 +138,7 @@ const IndividualOutlet = () => {
       </div>
     );
   }
-  //* REDO INDIVIDUAL OUTLET. WE HAVE A PAGE THAT OUTLET TO TWO PAGES. ACTIVEOUTLET AND INACTIVEOUTLET
+
   return (
     <div className="flex items-center justify-center md:w-full md:h-full pt-12">
       <div className="w-[90%] h-[90%] rounded-2xl p-5 m-1 bg-primary-cream/50 shadow-lg text-left relative">
@@ -110,24 +146,27 @@ const IndividualOutlet = () => {
 
         <Outlet />
 
-        {showAuthModal && (
-          <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
-              <button
-                onClick={handleAuthModalClose}
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
-              >
-                &times;
-              </button>
-              <AuthorisedUser
-                onSuccess={activeQueueAllowed}
-                onFailure={handleAuthModalClose}
-                actionPurpose="Enter active queue"
-                minimumRole="HOST"
-              />
+        {/* Conditionally render the modal only if showAuthModalState is an object with onSuccess */}
+        {showAuthModalState &&
+          typeof showAuthModalState === "object" &&
+          showAuthModalState.onSuccess && (
+            <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+              <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
+                <button
+                  onClick={handleAuthModalClose}
+                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
+                >
+                  &times;
+                </button>
+                <AuthorisedUser
+                  onSuccess={showAuthModalState.onSuccess} // <--- Pass the captured handler here
+                  onFailure={handleAuthModalClose}
+                  actionPurpose="Enter active queue"
+                  minimumRole="HOST"
+                />
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </div>
   );

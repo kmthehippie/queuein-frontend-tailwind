@@ -13,7 +13,8 @@ const ActiveOutlet = () => {
   const params = useParams();
   const location = useLocation();
   const apiPrivate = useApiPrivate();
-  const staffInfo = location.state?.info;
+  const { staffInfo } = location.state || {}; // Ensure it's an object, even if empty
+
   const [activeQueue, setActiveQueue] = useState(true);
   const [queueItems, setQueueItems] = useState([]);
   const [lg, setLg] = useState(false);
@@ -78,12 +79,16 @@ const ActiveOutlet = () => {
   //INITIALIZE DATA
   useEffect(() => {
     if (!isAuthenticated) return;
+    if (staffInfo) {
+      console.log("Staff info has been set: ", staffInfo);
+    }
 
     const activeQueueItems = async () => {
       console.log(
         "Trying to fetch active queue items",
         `activeQueue/${params.accountId}/${params.outletId}/${params.queueId}`
       );
+      console.log("Staff info: ", staffInfo);
       try {
         const res = await apiPrivate.get(`activeQueue/${params.queueId}`);
         if (res?.data) {
@@ -126,8 +131,9 @@ const ActiveOutlet = () => {
       const handleHostQueueUpdate = (data) => {
         console.log("Host-queue_update is emitting.");
         console.log("Data from BACKEND from host_queue_update: ", data);
-        if (data && data[0] && data[0].queueItems) {
-          setQueueItems(data[0].queueItems);
+        if (data) {
+          setQueueItems(data);
+          console.log("Data has been set into the queue items", data);
         }
       };
 
@@ -140,7 +146,7 @@ const ActiveOutlet = () => {
   }, [
     socket,
     isConnected,
-    staffInfo,
+    JSON.stringify(staffInfo),
     params.outletId,
     params.accountId,
     params.queueId,
@@ -197,13 +203,6 @@ const ActiveOutlet = () => {
   const handleSeated = useCallback(
     async (e, id) => {
       const newSeatedStatus = e.target.checked;
-      setQueueItems((prevItems) =>
-        prevItems.map((item) =>
-          item.id === id
-            ? { ...item, seated: newSeatedStatus, active: !newSeatedStatus }
-            : item
-        )
-      );
 
       try {
         const res = await apiPrivate.patch(`/seatQueueItem/${id}`, {
@@ -213,21 +212,10 @@ const ActiveOutlet = () => {
         if (res?.status === 201) {
           console.log("Seated status updated on backend.");
         } else {
-          setQueueItems((prevItems) =>
-            prevItems.map((item) =>
-              item.id === id ? { ...item, seated: !newSeatedStatus } : item
-            )
-          );
           console.error("Failed to update seated status on backend.");
         }
       } catch (error) {
         console.error(error);
-        // Revert optimistic change on network error
-        setQueueItems((prevItems) =>
-          prevItems.map((item) =>
-            item.id === id ? { ...item, seated: !newSeatedStatus } : item
-          )
-        );
         console.error("Error updating seated status.");
       }
     },
@@ -239,7 +227,6 @@ const ActiveOutlet = () => {
     //Navigate -1 ?
   };
   const handleEndQueue = useCallback(() => {
-    console.log("End Queue");
     setErrors("");
     setShowAuthModal(true);
   }, []);
@@ -267,6 +254,28 @@ const ActiveOutlet = () => {
     console.log(params.queueId);
     socket.emit("queue_update", params.queueId);
   };
+  const handleNoShow = useCallback(
+    async (e, id) => {
+      console.log("this is the target checked status: ", e.target.checked);
+      const newNoShowStatus = e.target.checked;
+
+      try {
+        const res = await apiPrivate.patch(`/noShowQueueItem/${id}`, {
+          noShow: !!newNoShowStatus,
+        });
+        if (res?.status === 201) {
+          console.log("no show status updated on backend.");
+        } else {
+          console.error("Failed to update no show status on backend.");
+        }
+      } catch (error) {
+        console.error(error);
+        console.error("Error updating no show status.");
+      }
+    },
+    [apiPrivate, socket, params.queueId]
+  );
+
   return (
     <div className="">
       {notification && (
@@ -362,7 +371,7 @@ const ActiveOutlet = () => {
                             <div className="flex items-center p-1 ">
                               <div className={activeTableHeader}>Name</div>
                               <div className={activeTableAnswer}>
-                                {item.name || item.customer?.name}
+                                {item.name || item?.customer?.name}
                                 {item?.customer && (
                                   <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
                                     VIP
@@ -447,16 +456,34 @@ const ActiveOutlet = () => {
                                   Seated
                                 </label>
                               </div>
+                              <div
+                                className={
+                                  activeTableAnswer + " flex items-center ml-5"
+                                }
+                              >
+                                <input
+                                  type="checkbox"
+                                  id={`noShow-${item.id}`}
+                                  className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
+                                  onChange={(e) => handleNoShow(e, item.id)}
+                                  checked={item.noShow || false}
+                                />
+                                <label
+                                  htmlFor={`noShow-${item.id}`}
+                                  className={activeTableAnswer + " ml-2 mr-5 "}
+                                >
+                                  No Show
+                                </label>
+                              </div>
                             </div>
                           </form>
                         </div>
                       </div>
                     );
                   }
-                  return null; // Don't render if not active
+                  return null;
                 })}
               </div>
-              {/* Separate sections for active, inactive, and quit for clarity in JSX */}
               <div className="">
                 {queueItems.map((item) => {
                   if (item.active === false && item.quit === false) {
@@ -475,7 +502,6 @@ const ActiveOutlet = () => {
                             <div className="flex items-center p-1 ">
                               <div className={activeTableHeader}>Name</div>
                               <div className={activeTableAnswer}>
-                                {JSON.stringify(item)}
                                 {item?.customer?.name || item.name}
                                 {item?.customer && (
                                   <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
@@ -497,7 +523,7 @@ const ActiveOutlet = () => {
                   if (item.active === false && item.quit === true) {
                     return (
                       <div className="" key={item.id}>
-                        <div className="flex-row w-full  my-3 rounded-2xl p-2 shadow-2xl bg-red-950 text-white ">
+                        <div className="flex-row w-full  my-3 rounded-2xl p-2 shadow-2xl bg-red-950/50 text-white ">
                           <div className="grid grid-cols-2">
                             <div className="flex items-center p-1 ">
                               <div className={activeTableHeader + ""}>
@@ -535,10 +561,10 @@ const ActiveOutlet = () => {
                 <div
                   className={
                     landscapeHeaderClass +
-                    " text-primary-dark-green col-span-2 border-l-10 rounded-l-xl"
+                    " text-primary-dark-green col-span-1 border-l-10 rounded-l-xl"
                   }
                 >
-                  Customer Queue Number
+                  Cust Q#
                 </div>
                 <div
                   className={
@@ -556,14 +582,14 @@ const ActiveOutlet = () => {
                 </div>
                 <div
                   className={
-                    landscapeHeaderClass + " text-primary-dark-green col-span-2"
+                    landscapeHeaderClass + " text-primary-dark-green col-span-3"
                   }
                 >
                   Customer Name
                 </div>
                 <div
                   className={
-                    landscapeHeaderClass + " text-primary-dark-green col-span-3"
+                    landscapeHeaderClass + " text-primary-dark-green col-span-2"
                   }
                 >
                   Customer Contact Number
@@ -571,7 +597,7 @@ const ActiveOutlet = () => {
                 <div
                   className={
                     landscapeHeaderClass +
-                    " text-primary-dark-green col-span-3 rounded-r-xl"
+                    " text-primary-dark-green col-span-4 rounded-r-xl"
                   }
                 >
                   Status
@@ -587,7 +613,7 @@ const ActiveOutlet = () => {
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-2 border-l-10 rounded-l-xl p-1"
+                          " col-span-1 border-l-10 rounded-l-xl p-1"
                         }
                       >
                         {item.position}
@@ -604,7 +630,7 @@ const ActiveOutlet = () => {
                       <div className={landscapeHeaderClass + " col-span-1"}>
                         {item.pax}
                       </div>
-                      <div className={landscapeHeaderClass + " col-span-2"}>
+                      <div className={landscapeHeaderClass + " col-span-3"}>
                         {item?.customer?.name || item?.name}
                         {item?.customer && (
                           <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
@@ -612,12 +638,12 @@ const ActiveOutlet = () => {
                           </span>
                         )}
                       </div>
-                      <div className={landscapeHeaderClass + " col-span-3"}>
+                      <div className={landscapeHeaderClass + " col-span-2"}>
                         {item.contactNumber || item?.customer?.number}
                       </div>
                       <div
                         className={
-                          landscapeHeaderClass + " col-span-3 rounded-r-xl"
+                          landscapeHeaderClass + " col-span-4 rounded-r-xl"
                         }
                       >
                         <form className=" flex justify-center items-center mt-1 gap-1 ">
@@ -654,6 +680,21 @@ const ActiveOutlet = () => {
                               Seated
                             </label>
                           </div>
+                          <div className={"flex items-center"}>
+                            <input
+                              type="checkbox"
+                              id={`noShow-landscape-${item.id}`} // Unique ID
+                              className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
+                              onChange={(e) => handleNoShow(e, item.id)}
+                              checked={item.noShow || false}
+                            />
+                            <label
+                              htmlFor={`noShow-landscape-${item.id}`}
+                              className={"text-xs ml-2"}
+                            >
+                              No Show
+                            </label>
+                          </div>
                         </form>
                       </div>
                     </div>
@@ -662,6 +703,7 @@ const ActiveOutlet = () => {
                 return null;
               })}
               {queueItems.map((item) => {
+                // INACTIVE + NEVER QUIT
                 if (item.active === false && item.quit === false) {
                   return (
                     <div
@@ -671,7 +713,7 @@ const ActiveOutlet = () => {
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-2 border-l-10 rounded-l-xl p-1 bg-stone-300"
+                          " col-span-1 border-l-10 rounded-l-xl p-1 bg-stone-300"
                         }
                       >
                         {item.position}
@@ -692,7 +734,7 @@ const ActiveOutlet = () => {
                       </div>
                       <div
                         className={
-                          landscapeHeaderClass + " col-span-2 bg-stone-300"
+                          landscapeHeaderClass + " col-span-3 bg-stone-300"
                         }
                       >
                         {item?.customer?.name || item.name}
@@ -704,7 +746,7 @@ const ActiveOutlet = () => {
                       </div>
                       <div
                         className={
-                          landscapeHeaderClass + " col-span-3 bg-stone-300"
+                          landscapeHeaderClass + " col-span-2 bg-stone-300"
                         }
                       >
                         {item.contactNumber || item?.customer?.number}
@@ -712,7 +754,7 @@ const ActiveOutlet = () => {
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-3 rounded-r-xl bg-stone-300"
+                          " col-span-4 rounded-r-xl bg-stone-300"
                         }
                       >
                         <form className=" flex justify-center items-center mt-1 gap-1 bg-stone-300">
@@ -749,6 +791,21 @@ const ActiveOutlet = () => {
                               Seated
                             </label>
                           </div>
+                          <div className={"flex items-center"}>
+                            <input
+                              type="checkbox"
+                              id={`noShow-inactive-${item.id}`} // Unique ID
+                              className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
+                              onChange={(e) => handleNoShow(e, item.id)}
+                              checked={item.noShow || false}
+                            />
+                            <label
+                              htmlFor={`noShow-inactive-${item.id}`}
+                              className={"text-xs ml-2"}
+                            >
+                              No Show {JSON.stringify(item.noShow)}
+                            </label>
+                          </div>
                         </form>
                       </div>
                     </div>
@@ -766,7 +823,7 @@ const ActiveOutlet = () => {
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-2 border-l-10 rounded-l-xl p-1 bg-red-950 text-white"
+                          " col-span-1 border-l-10 rounded-l-xl p-1 bg-red-950/50 text-white"
                         }
                       >
                         {item.position}
@@ -774,7 +831,7 @@ const ActiveOutlet = () => {
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-2 bg-red-950 text-white"
+                          " col-span-2 bg-red-950/50 text-white"
                         }
                       >
                         {convertedTime(item.createdAt)}
@@ -782,7 +839,7 @@ const ActiveOutlet = () => {
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-1 bg-red-950 text-white"
+                          " col-span-1 bg-red-950/50 text-white"
                         }
                       >
                         {item.pax}
@@ -790,7 +847,7 @@ const ActiveOutlet = () => {
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-2 bg-red-950 text-white"
+                          " col-span-3 bg-red-950/50 text-white"
                         }
                       >
                         {item?.customer.name || item.name}
@@ -803,7 +860,7 @@ const ActiveOutlet = () => {
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-3 bg-red-950 text-white"
+                          " col-span-2 bg-red-950/50 text-white"
                         }
                       >
                         {item.contactNumber || item?.customer?.number}
@@ -811,14 +868,14 @@ const ActiveOutlet = () => {
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-3 rounded-r-xl bg-red-950 text-white"
+                          " col-span-4 rounded-r-xl bg-red-950/50 text-white"
                         }
                       >
-                        <form className=" flex justify-center items-center mt-1 gap-1 bg-red-950 text-white">
+                        <form className=" flex justify-center items-center mt-1 gap-1 text-white">
                           <div className={"flex items-center "}>
                             <input
                               type="checkbox"
-                              id={`called-quit-${item.id}`} // Unique ID
+                              id={`called-quit-${item.id}`}
                               className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
                               onChange={(e) => handleCalled(e, item.id)}
                               checked={item.called || false}
@@ -836,7 +893,7 @@ const ActiveOutlet = () => {
                           <div className={"flex items-center"}>
                             <input
                               type="checkbox"
-                              id={`seated-quit-${item.id}`} // Unique ID
+                              id={`seated-quit-${item.id}`}
                               className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
                               onChange={(e) => handleSeated(e, item.id)}
                               checked={item.seated || false}
@@ -846,6 +903,21 @@ const ActiveOutlet = () => {
                               className={"text-xs ml-2"}
                             >
                               Seated
+                            </label>
+                          </div>
+                          <div className={"flex items-center"}>
+                            <input
+                              type="checkbox"
+                              id={`noShow-quit-${item.id}`}
+                              className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
+                              onChange={(e) => handleNoShow(e, item.id)}
+                              checked={item.noShow || false}
+                            />
+                            <label
+                              htmlFor={`noShow-quit-${item.id}`}
+                              className={"text-xs ml-2"}
+                            >
+                              No Show
                             </label>
                           </div>
                         </form>

@@ -16,7 +16,6 @@ export const AuthProvider = ({ children }) => {
   const [account, setAccount] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const navigate = useNavigate();
-  apiPrivate;
 
   const refresh = useCallback(async () => {
     try {
@@ -45,6 +44,11 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = useCallback((newAccessToken, accountId) => {
+    console.log(
+      "Logging in in auth context: setting accesstoken & acct id ",
+      newAccessToken,
+      accountId
+    );
     setAccessToken(newAccessToken);
     setAccount({ id: accountId });
     setIsAuthenticated(true);

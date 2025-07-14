@@ -56,6 +56,7 @@ const OutletLanding = () => {
         setAccountInfo(res?.data?.accountInfo);
         setOutlet(res?.data?.outlet);
         if (res?.data?.queue) {
+          console.log("Data from outlet landing page: ", res.data);
           setQueue(res?.data?.queue[0]);
           setQueueItemsLength(res?.data?.queueItemsLength || "0");
         }

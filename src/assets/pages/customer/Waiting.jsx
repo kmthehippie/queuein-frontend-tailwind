@@ -91,6 +91,10 @@ const Waiting = () => {
       setCustomer(queueData.customer);
       if (queueData.queueItem.called) {
         setModalCalled(true);
+        const calledAt = moment(queueData.queueItem.calledAt).format(
+          "dddd, MMMM Do YYYY, h:mm:ss a"
+        );
+        setCalledTimeElapsed(calledAt);
       }
       setMessage(queueData.message);
       setCustomerPosition(queueData.position);
@@ -173,9 +177,9 @@ const Waiting = () => {
   useEffect(() => {
     if (socket && isConnected && queueItem?.queueId && queueItem?.customerId) {
       socket.emit("join_queue", `queue_${queueItem.queueId}`);
-      // socket.emit("set_customer_id", queueItem.customerId);
       socket.emit("set_queue_item_id", queueItem.id);
       socket.emit("join_queue_item_id", `queueitem_${queueItem.id}`);
+      socket.emit("cust_update_host", queueItem.queueId);
       socket.emit("cust_req_queue_refresh", queueItem.queueId);
       setConnection(true); // Update local connection state
     } else if (socket && !isConnected) {
@@ -202,15 +206,57 @@ const Waiting = () => {
           setModalCalled(true);
         }
       };
-      const handleQueueUpdateForNotif = (data) => {
-        console.log("Handling queue update for notifications: ", data);
-        if (data.alert && queueItem.id === data.queueItemId) {
+
+      const handleCalledUpdate = (data) => {
+        if (
+          data.alert &&
+          queueItem.id === data.queueItemId &&
+          data.action === "called"
+        ) {
+          console.log("THis is handle called update: ", data);
+          const calledAt = moment(data.calledAt).format(
+            "dddd, MMMM Do YYYY, h:mm:ss a"
+          );
+          setCalledTimeElapsed(calledAt);
           called();
+        } else if (data.alert === false && data.action === "called") {
+          setModalCalled(false);
         }
       };
 
-      socket.on("host_called_cust", (data) => handleQueueUpdateForNotif(data));
+      const handleSeatedUpdate = (data) => {
+        console.log("Handling seated", data);
+        if (
+          data.alert &&
+          queueItem.id === data.queueItemId &&
+          data.action === "seated"
+        ) {
+          setSeated(true);
+          setInactive(true);
+        } else if (data.alert === false && data.action === "seated") {
+          setSeated(false);
+          setInactive(false);
+        }
+      };
 
+      const handleNoShowUpdate = (data) => {
+        if (
+          data.alert &&
+          queueItem.id === data.queueItemId &&
+          data.action === "noShow"
+        ) {
+          console.log("No Show triggered!");
+          setNoShow(true);
+          setInactive(true);
+        } else if (data.alert === false && data.action === "noShow") {
+          setSeated(false);
+          setInactive(false);
+        }
+      };
+
+      socket.on("host_called_cust", handleCalledUpdate);
+      socket.on("host_seated_cust", handleSeatedUpdate);
+      socket.on("host_noShow_cust", handleNoShowUpdate);
       socket.on("queue_update", (data) => {
         console.log("Queue update receiving data from Sockets", data);
         if (data.inactive) {
@@ -234,13 +280,16 @@ const Waiting = () => {
         setBarType(data.queueList.type);
         setPartiesAhead(data.queueList.partiesAhead);
         setPax(data.pax);
-        handleQueueUpdateForNotif(data);
+        handleCalledUpdate(data);
       });
 
       socket.on("res_queue_refresh", (data) => {
         console.log("Res queue refresh receiving data from Sockets", data);
         if (data.inactive) {
-          setInactive(true);
+          setInactive(data.inactive);
+          setSeated(data.seated);
+          setQuit(data.quit);
+          setNoShow(data.noShow);
         } else if (!inactive) {
           try {
             setLastUpdated(new Date());
@@ -262,6 +311,8 @@ const Waiting = () => {
           console.log(data);
         }
       });
+
+      //need to trigger update of host page when leave queue and join queue happens
 
       return () => {
         socket.off("connect");
@@ -334,6 +385,7 @@ const Waiting = () => {
       if (res?.data) {
         if (socket && socket.connected && queueItem?.queueId) {
           socket.emit("cust_req_queue_refresh", queueItem.queueId);
+          socket.emit("cust_update_host", queueItem.queueId);
           //should socket.emit("update_to_host", queueItem.queueId)
         }
       }
@@ -407,6 +459,7 @@ const Waiting = () => {
             <p className="text-2xl">
               {customer.name}: {queueItem.pax} pax
             </p>
+            <p>Called since: {calledTimeElapsed}</p>
             <br />
             <p>Please head over to the host immediately.</p>
             <br />
@@ -490,19 +543,59 @@ const Waiting = () => {
           {accountInfo.companyName || null}
         </h1>
       </Link>
-      {inactive && seated && <div>Enjoy your meal! </div>}
+      {inactive && seated && (
+        <div className="bg-primary-ultra-dark-green/35 min-w-full min-h-full absolute top-0 left-0 z-5">
+          <div className="bg-primary-cream z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/2 left-1/2 -translate-1/2 p-10 md:min-w-md">
+            <h1 className="text-primary-light-green font-semibold text-4xl">
+              Enjoy your meal!
+            </h1>
+            <br />
+            <p className="text-2xl">
+              {queueItem.name || customer.name}: {queueItem.pax} pax
+            </p>
+            <br />
+            <p>{`You have been seated at ${outlet.name}`} </p>
+            <br />
+          </div>
+        </div>
+      )}
       {inactive && quit && (
-        <div>
-          We are <span className="font-semibold">sorry</span> for the long wait.
-          We hope to see you next time!{" "}
+        <div className="text-center">
+          <h1 className="text-3xl font-light pt-3 text-stone-600">
+            {outlet.name}
+          </h1>
+          <br />
+          <div className="bg-primary-ultra-dark-green/80 p-5 rounded-2xl m-3">
+            <h4 className=" font-lg font-semibold py-3 text-primary-light-green">
+              {`You have left the queue, ${queueItem.name || customer.name}.`}
+            </h4>
+            <div className="text-primary-cream">
+              We are <span className="font-semibold">sorry</span> for the long
+              wait. We hope to see you next time!{" "}
+            </div>
+          </div>
         </div>
       )}
       {inactive && noShow && (
-        <div>
-          {" "}
-          We could not reach you for {calledTimeElapsed}. We had to give up your
-          spot for another waiting customer. Please rejoin the queue if you are
-          still hungry!{" "}
+        <div className="bg-primary-ultra-dark-green/35 min-w-full min-h-full absolute top-0 left-0 z-5">
+          <div className="bg-primary-cream z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/2 left-1/2 -translate-1/2 p-10 md:min-w-md">
+            <h1 className="text-primary-light-green font-semibold text-4xl">
+              {`Unfortunately, ${queueItem.name || customer.name}`}
+            </h1>
+            <br />
+            <p className="text-2xl">
+              {queueItem.name || customer.name}: {queueItem.pax} pax
+            </p>
+            <br />
+            <p>{`You have been removed from the queue at ${outlet.name}`} </p>
+            <br />
+            <p className="italic text-stone-400">
+              {JSON.stringify(calledTimeElapsed)}
+              We could not reach you for {calledTimeElapsed}. We had to give up
+              your spot for another waiting customer. Please rejoin the queue if
+              you are still hungry!
+            </p>
+          </div>
         </div>
       )}
       {!inactive && (

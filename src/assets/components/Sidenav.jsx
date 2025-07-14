@@ -50,7 +50,7 @@ const Sidenav = () => {
   return (
     <div className="" ref={sideNavRef}>
       <p
-        className="p-5 cursor-pointer hover:text-primary-dark-green ease-in lg:hidden max-w-20 fixed"
+        className="p-5 cursor-pointer z-8 bg-white rounded-3xl flex justify-center items-center hover:text-primary-dark-green ease-in lg:hidden max-w-20 w-10 h-10 m-3 fixed"
         onClick={toggleSideNav}
       >
         <i className="fa-solid fa-bars"></i>

@@ -26,6 +26,14 @@ const LocalStorageCheck = () => {
     }
   }, [location.pathname]);
 
+  // return (
+  //   <div>
+  //     <p>"This is the local storage check:</p>
+  //     <p>active queue session: {JSON.stringify(activeQueueSession)} </p>
+  //     <p> waiting page: {JSON.stringify(isWaitingPage)}"</p>
+  //   </div>
+  // );
+
   if (isQueueSessionLoading) {
     return <div>Checking for active queue session...</div>;
   }

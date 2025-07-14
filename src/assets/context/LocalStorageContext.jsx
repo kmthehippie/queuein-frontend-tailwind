@@ -20,6 +20,11 @@ export const LocalStorageProvider = ({ children }) => {
     if (storedSession) {
       try {
         const res = await api.post("customerVerifyLS", storedSession);
+
+        console.log(
+          "Inside local storage context, checking customer verify ls: ",
+          res
+        );
         if (res.status === 200) {
           setQueueItemId(res.data.queueItemId);
           setActiveQueueSession(true);
