@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../../api/axios";
 import Error from "../Error";
 import { setWithExpiry } from "../../utils/localStorage";
+import useLSContext from "../../hooks/useLSContext";
 
 //! +Customer must be on mobile.
 const JoinQueue = () => {
@@ -26,7 +27,8 @@ const JoinQueue = () => {
 
   const { acctSlug, queueId } = useParams();
   const navigate = useNavigate();
-
+  const { checkSession } = useLSContext();
+  const localStorageExpiry = parseInt(import.meta.env.VITE_QUEUEITEMLS_EXPIRY);
   //Helper function
   const extractNumerals = (numberString) => {
     return numberString.replace(/\D/g, "");
@@ -153,15 +155,13 @@ const JoinQueue = () => {
           console.log("Status is 201", queueItemId);
           const data = { ...res.data, accountInfo, outlet };
           const queueItem = res.data.queueItem;
-          //Before navigate, set the localStorage first to contain queueItemId
-
           const storeToLocalStorage = {
             queueItemId: queueItem.id,
             queueId: queueItem.queueId,
             acctSlug: acctSlug,
           };
-          setWithExpiry("queueItemLS", storeToLocalStorage, 6 * 60 * 60 * 1000);
-
+          setWithExpiry("queueItemLS", storeToLocalStorage, localStorageExpiry);
+          checkSession();
           navigate(`/${acctSlug}/queueItem/${queueItem.id}`, {
             state: { data: data },
           });

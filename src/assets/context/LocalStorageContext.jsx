@@ -1,4 +1,10 @@
-import React, { createContext, useMemo, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useMemo,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { getWithExpiry, removeLocalStorageItem } from "../utils/localStorage";
 import api from "../api/axios";
 
@@ -9,7 +15,7 @@ export const LocalStorageProvider = ({ children }) => {
   const [queueItemId, setQueueItemId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const checkSession = async () => {
+  const checkSession = useCallback(async () => {
     setIsLoading(true);
     const storedSession = getWithExpiry("queueItemLS");
     if (storedSession === null) {
@@ -49,19 +55,20 @@ export const LocalStorageProvider = ({ children }) => {
         return;
       }
     }
-  };
+  }, []);
 
   useEffect(() => {
     checkSession();
-  }, []);
+  }, [checkSession]);
 
   const contextValue = useMemo(() => {
     return {
       activeQueueSession,
       queueItemId,
       isLoading,
+      checkSession,
     };
-  }, [activeQueueSession, queueItemId, isLoading]);
+  }, [activeQueueSession, queueItemId, isLoading, checkSession]);
 
   return (
     <LocalStorageContext.Provider value={contextValue}>

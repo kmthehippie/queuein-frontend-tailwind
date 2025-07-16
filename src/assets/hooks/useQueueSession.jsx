@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getWithExpiry, removeLocalStorageItem } from "../utils/localStorage";
 import api from "../api/axios";
 
@@ -7,6 +7,7 @@ const useQueueSession = (initialReceivedData) => {
   const [queueData, setQueueData] = useState(null);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
   const navigate = useNavigate();
+  const { acctSlug } = useParams();
 
   const fetchQueueData = useCallback(
     async (storedSession) => {
@@ -56,7 +57,7 @@ const useQueueSession = (initialReceivedData) => {
         // No valid session in localStorage
         console.log("No active queue session found in localStorage.");
         setIsLoadingSession(false);
-        // navigate("/"); // Redirect to homepage or join queue page
+        navigate(`/${acctSlug}`);
       }
     }
   }, [initialReceivedData, fetchQueueData]);

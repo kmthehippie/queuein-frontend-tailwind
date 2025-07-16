@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, Link, useNavigate } from "react-router-dom";
+import { useLocation, Link, useNavigate, useParams } from "react-router-dom";
 import moment from "moment";
 import api from "../../api/axios";
 import useSocket from "../../hooks/useSocket";
@@ -203,8 +203,8 @@ const Waiting = () => {
             body: "Please proceed to the counter",
             vibrate: [200, 100, 200, 100, 200],
           });
-          setModalCalled(true);
         }
+        setModalCalled(true);
       };
 
       const handleCalledUpdate = (data) => {
@@ -213,7 +213,7 @@ const Waiting = () => {
           queueItem.id === data.queueItemId &&
           data.action === "called"
         ) {
-          console.log("THis is handle called update: ", data);
+          console.log("This is handle called update: ", data);
           const calledAt = moment(data.calledAt).format(
             "dddd, MMMM Do YYYY, h:mm:ss a"
           );
@@ -273,6 +273,7 @@ const Waiting = () => {
         if (data.active && data.called) {
           called();
         }
+
         setLastUpdated(new Date());
         setProgressBar(data.queueList.arr);
         setCurrentlyServing(data.currentlyServing);
@@ -353,6 +354,7 @@ const Waiting = () => {
 
         socket.emit("queue_update", queueId);
         const navStateData = { ...res?.data };
+        localStorage.removeItem("queueItemLS");
         setTimeout(() => {
           navigate(`/${acctSlug}/leftQueue/${queueItemId}`, navStateData);
         }, 100);
