@@ -49,7 +49,7 @@ const Login = () => {
 
     try {
       const res = await apiPrivate.post("/login", {
-        credentials,
+        ...credentials,
       });
       console.log("Response after post to login: ", res?.data);
 

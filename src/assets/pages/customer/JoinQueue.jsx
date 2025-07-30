@@ -24,7 +24,6 @@ const JoinQueue = () => {
   const [validationError, setValidationError] = useState("");
 
   const [shouldPost, setShouldPost] = useState(false);
-
   const { acctSlug, queueId } = useParams();
   const navigate = useNavigate();
   const { checkSession } = useLSContext();
@@ -56,9 +55,7 @@ const JoinQueue = () => {
     setLoading(true);
     setErrors("");
     try {
-      console.log(`/customerForm/${acctSlug}/${queueId}`);
       const res = await api.get(`/customerForm/${acctSlug}/${queueId}`);
-      console.log("Fetching form data from back end", res);
       if (res?.data) {
         setAccountInfo(res.data.accountInfo);
         setOutlet(res.data.queue.outlet);
@@ -126,7 +123,6 @@ const JoinQueue = () => {
       setValidationError({ general: "Please fill out the fields" });
       return;
     }
-
     if (isValid) {
       console.log("Setting should post to true");
       setShouldPost(true);
@@ -203,7 +199,6 @@ const JoinQueue = () => {
   if (loading) {
     return <div>Loading Information...</div>;
   }
-
   return (
     <div className="p-3 md:p-5">
       {warning && (

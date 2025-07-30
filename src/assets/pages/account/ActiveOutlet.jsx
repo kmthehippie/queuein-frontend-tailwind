@@ -827,7 +827,7 @@ const ActiveOutlet = () => {
                           " col-span-1 border-l-10 rounded-l-xl p-1 bg-red-950/50 text-white"
                         }
                       >
-                        {item.position}
+                        {item.position || "N/A"}
                       </div>
                       <div
                         className={
@@ -851,7 +851,7 @@ const ActiveOutlet = () => {
                           " col-span-3 bg-red-950/50 text-white"
                         }
                       >
-                        {item?.customer.name || item.name}
+                        {item.name || "N/A"}
                         {item?.customer && (
                           <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
                             VIP

@@ -8,7 +8,7 @@ const Sidenav = () => {
   const [showSideNav, setShowSideNav] = useState(false);
   const sideNavRef = useRef(null);
   const params = useParams();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, accountId } = useAuth();
   const apiPrivate = useApiPrivate();
 
   //Tailwind classes
@@ -36,7 +36,7 @@ const Sidenav = () => {
     if (!isAuthenticated) return;
     const fetchOutlets = async () => {
       try {
-        const response = await apiPrivate.get(`/sidenav/${params.accountId}`);
+        const response = await apiPrivate.get(`/sidenav/${accountId}`);
         if (response?.data) {
           setOutlets(response.data);
         }
@@ -45,7 +45,7 @@ const Sidenav = () => {
       }
     };
     fetchOutlets();
-  }, [params, isAuthenticated]);
+  }, [accountId]);
 
   return (
     <div className="" ref={sideNavRef}>

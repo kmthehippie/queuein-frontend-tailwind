@@ -61,15 +61,24 @@ export const AuthProvider = ({ children }) => {
     );
     setAccessToken(newAccessToken);
     setAccount({ id: accountId });
+    setAccountId(accountId);
     setIsAuthenticated(true);
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     console.log("Logging out!");
-    //empty out the accesstoken
-    setIsAuthenticated(false);
-    setAccessToken(null);
-    setAccount(null);
+    try {
+      const response = await apiPrivate.post("/logout");
+      if (response.status === 200) {
+        setIsAuthenticated(false);
+        setAccessToken(null);
+        setAccount(null);
+        navigate("/db/login");
+      }
+    } catch (error) {
+      console.error("Error logging out: ", error);
+    }
+    //empty out the accesstoken in cookies
   }, []);
 
   useEffect(() => {
