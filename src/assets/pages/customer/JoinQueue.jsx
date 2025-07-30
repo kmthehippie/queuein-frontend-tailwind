@@ -151,8 +151,8 @@ const JoinQueue = () => {
         );
         console.log("Response from posting form: ", res);
         let queueItemId = res?.data?.queueItem;
-        if (res.status === 201) {
-          console.log("Status is 201", queueItemId);
+        if (res.status === 201 || res.status === 200) {
+          console.log("Status is 201 or 200", queueItemId);
           const data = { ...res.data, accountInfo, outlet };
           const queueItem = res.data.queueItem;
           const storeToLocalStorage = {

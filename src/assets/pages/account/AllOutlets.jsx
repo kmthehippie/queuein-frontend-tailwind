@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { msToMins } from "../../utils/timeConverter";
 import UpdateOutletModal from "../../components/UpdateOutletModal";
 import useApiPrivate from "../../hooks/useApiPrivate";
@@ -8,8 +8,7 @@ import useAuth from "../../hooks/useAuth";
 
 const AllOutlets = () => {
   // Functional States
-  const params = useParams();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, accountId } = useAuth();
   const apiPrivate = useApiPrivate();
 
   const [outlets, setOutlets] = useState([]);
@@ -55,7 +54,7 @@ const AllOutlets = () => {
     console.log(outletId, " is the outlet we are deleting");
     try {
       const res = await apiPrivate.delete(
-        `/delOutlet/${params.accountId}/${outletId}`
+        `/delOutlet/${accountId}/${outletId}`
       );
       if (res.status === 201) {
         setRefreshTrigger((prev) => !prev);
@@ -69,11 +68,14 @@ const AllOutlets = () => {
   };
 
   useEffect(() => {
-    console.log("Use effect in ALL outlets", params);
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !accountId) {
+      console.log("Account id is not defined ", accountId);
+      return;
+    }
     const fetchOutlets = async () => {
       try {
-        const res = await apiPrivate.get(`/allOutlets/${params.accountId}`);
+        console.log("url account id: ", JSON.stringify(accountId));
+        const res = await apiPrivate.get(`/allOutlets/${accountId}`);
         console.log("Res for all outlets ", res.data);
         if (res?.data) {
           setOutlets(res.data);
@@ -84,8 +86,10 @@ const AllOutlets = () => {
         console.log("Error fetching data in ALL outlets");
       }
     };
+
+    console.log("Account id right before I fetch outlets: ", accountId);
     fetchOutlets();
-  }, [params.accountId, refreshTrigger]);
+  }, [accountId, refreshTrigger, isAuthenticated]);
 
   return (
     <div className="pt-15 md:pt-3">
@@ -116,7 +120,7 @@ const AllOutlets = () => {
 
       <div className="rounded-2xl p-3 relative m-1 text-center bg-primary-cream/60 shadow-lg border-1 border-transparent hover:border-white hover:shadow-white/90 cursor-pointer hover:text-primary-dark-green transition ease-in-out my-3 max-w-sm mx-auto md:hidden">
         <Link
-          to={`/db/${params.accountId}/outlets/new`}
+          to={`/db/${accountId}/outlets/new`}
           className="font-extralight text-3xl"
         >
           Create New Outlet +
@@ -133,7 +137,7 @@ const AllOutlets = () => {
             className=" rounded-2xl p-3 relative m-1 text-center bg-primary-cream/70 shadow-lg"
             key={outlet.id}
           >
-            <Link to={`/db/${params.accountId}/outlet/${outlet.id}`}>
+            <Link to={`/db/${accountId}/outlet/${outlet.id}`}>
               <img
                 src={`${outlet.imgUrl}`}
                 alt=""
@@ -208,7 +212,7 @@ const AllOutlets = () => {
         show={showModal}
         onClose={toggleEdit} // Pass toggleEdit as the close handler
         outletData={selectedOutletData} // Pass the full outlet object
-        accountId={params.accountId}
+        accountId={accountId}
         onUpdateSuccess={handleUpdateSuccess}
       />
     </div>

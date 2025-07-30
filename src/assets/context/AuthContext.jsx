@@ -14,23 +14,33 @@ export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [account, setAccount] = useState(null);
+  const [accountId, setAccountId] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const navigate = useNavigate();
 
   const refresh = useCallback(async () => {
+    console.log("Trying to refresh within auth context: ");
     try {
       const response = await apiPrivate.post("/refresh");
-      console.log("This is the response for refresh: ", response);
+
       if (response.data?.accessToken) {
         setAccessToken(response.data.accessToken);
+        setAccount(response.data.accountId);
         setIsAuthenticated(true);
         console.log(
           "Refresh token successfully updated access token: ",
           response.data.accessToken
         );
+        console.log(
+          "AuthContext -> refresh -> account id? ",
+          response.data.accountId
+        );
+        setAccountId(response.data.accountId);
         return response.data.accessToken;
       } else {
-        console.log("Positive response of data but no accesstoken, so logout ");
+        console.log(
+          "Positive response of data but no access token, so logout "
+        );
         logout();
         navigate("/db/login", { replace: true });
         return null;
@@ -56,6 +66,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(() => {
     console.log("Logging out!");
+    //empty out the accesstoken
     setIsAuthenticated(false);
     setAccessToken(null);
     setAccount(null);
@@ -83,11 +94,12 @@ export const AuthProvider = ({ children }) => {
       refresh,
       isAuthenticated,
       account,
+      accountId,
       updateAccessToken: setAccessToken,
       updateIsAuthenticated: setIsAuthenticated,
       updateAccount: setAccount,
     }),
-    [accessToken, isAuthenticated, account, login, logout]
+    [accessToken, isAuthenticated, account, login, logout, accountId]
   );
   if (authLoading) {
     return <div>Loading Application...</div>; // Or a more sophisticated spinner

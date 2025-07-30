@@ -6,9 +6,11 @@ import useSocket from "../../hooks/useSocket";
 import useToast from "../../hooks/useToast";
 import useQueueSession from "../../hooks/useQueueSession";
 import PermissionNotification from "../../components/PermissionNotification";
+import useLSContext from "../../hooks/useLSContext";
 
 const Waiting = () => {
   const { socket, isConnected, reconnect } = useSocket();
+  const { setActiveQueueSession } = useLSContext();
   const toast = useToast();
 
   const [accountInfo, setAccountInfo] = useState("");
@@ -83,8 +85,6 @@ const Waiting = () => {
         "Data for instantiation from running useQueueSession:",
         queueData
       );
-      console.log("Checking for queueData:", queueData.queueItem);
-
       setAccountInfo(queueData.accountInfo);
       setOutlet(queueData.outlet);
       setQueueItem(queueData.queueItem);
@@ -97,7 +97,7 @@ const Waiting = () => {
         setCalledTimeElapsed(calledAt);
       }
       setMessage(queueData.message);
-      setCustomerPosition(queueData.position);
+      setCustomerPosition(queueData.queueItem.position);
       setLastUpdated(new Date());
       setPax(queueData.queueItem.pax);
       setEwt(queueData.outlet.defaultEstWaitTime);
@@ -175,12 +175,15 @@ const Waiting = () => {
 
   //* SOCKET HERE
   useEffect(() => {
-    if (socket && isConnected && queueItem?.queueId && queueItem?.customerId) {
+    console.log("Does isConnected exist in socket?", isConnected, queueItem);
+    if (socket && isConnected && queueItem) {
       socket.emit("join_queue", `queue_${queueItem.queueId}`);
       socket.emit("set_queue_item_id", queueItem.id);
       socket.emit("join_queue_item_id", `queueitem_${queueItem.id}`);
-      socket.emit("cust_update_host", queueItem.queueId);
       socket.emit("cust_req_queue_refresh", queueItem.queueId);
+      console.log("Trying to update host: ", queueItem.queueId);
+      socket.emit("cust_update_host", queueItem.queueId);
+
       setConnection(true); // Update local connection state
     } else if (socket && !isConnected) {
       console.log(
@@ -274,6 +277,7 @@ const Waiting = () => {
           called();
         }
 
+        console.log("Inside socket queue_Update data: ", data);
         setLastUpdated(new Date());
         setProgressBar(data.queueList.arr);
         setCurrentlyServing(data.currentlyServing);
@@ -351,7 +355,8 @@ const Waiting = () => {
       if (res?.status === 201) {
         console.log("201 status for leaving queue: ", res.data);
         console.log("This is the queueId before quit: ", queueId);
-
+        //need to add setActiveQueueSession to false
+        setActiveQueueSession(false);
         socket.emit("queue_update", queueId);
         const navStateData = { ...res?.data };
         localStorage.removeItem("queueItemLS");
@@ -386,6 +391,7 @@ const Waiting = () => {
 
       if (res?.data) {
         if (socket && socket.connected && queueItem?.queueId) {
+          console.log("Sending an emit from socket from waiting page");
           socket.emit("cust_req_queue_refresh", queueItem.queueId);
           socket.emit("cust_update_host", queueItem.queueId);
           //should socket.emit("update_to_host", queueItem.queueId)
@@ -459,7 +465,7 @@ const Waiting = () => {
             </h1>
             <br />
             <p className="text-2xl">
-              {customer.name}: {queueItem.pax} pax
+              {queueItem.name || customer.name || "N/A"}: {queueItem.pax} pax
             </p>
             <p>Called since: {calledTimeElapsed}</p>
             <br />
@@ -605,24 +611,19 @@ const Waiting = () => {
           <h1 className="text-3xl font-light pt-3 text-stone-600">
             {outlet.name}
           </h1>
-
           <h4 className=" font-lg font-semibold py-3 text-primary-dark-green">
-            {message || `Welcome back, ${customer.name}.`}
+            {message ||
+              `Welcome back, ${customer?.name || queueItem?.name || "N/A"}.`}
           </h4>
-
           <h2 className="text-xs font-light italic text-stone-600 w-full md:w-md justify-self-center mb-1">
             Please keep this page open for us to notify you when it is your
             turn. This page will refresh every 30 seconds automatically.
           </h2>
-
           {/* GRID FOR QUEUE INFO */}
-
           {!dataLoaded && <div>Loading...</div>}
-
           <div className="grid grid-cols-2 w-full max-w-md bg-primary-cream rounded-lg shadow justify-self-center ">
             <div className="p-4 grid grid-rows-3 text-center border-b-1 border-r-1 border-stone-300 ">
               <div className="text-sm text-stone-600 ">Currently Serving</div>
-
               <div className="text-5xl row-span-2 font-bold">
                 {currentlyServing || "N/A"}
               </div>
@@ -709,7 +710,6 @@ const Waiting = () => {
               </div>
             </div>
           </div>
-
           {barType === "large-bar" && (
             <div className="grid grid-cols-6 w-full max-w-md justify-self-center mt-2">
               <div className="col-span-4 bg-primary-green text-white text-xs py-1 px-2 rounded-l text-start border-r-1 border-stone-100">
@@ -731,7 +731,6 @@ const Waiting = () => {
               </div>
             </div>
           )}
-
           {barType === "short-bar" && (
             <div className="grid grid-cols-8 mt-3 h-7 justify-self-center w-full md:w-md">
               {progressBar.map((party, index) => (
@@ -763,7 +762,6 @@ const Waiting = () => {
               </div>
             </div>
           )}
-
           {barType === "serving-you-bar" && (
             <div className={progBarClass}>
               <div className={youClass}>
@@ -783,7 +781,6 @@ const Waiting = () => {
               </div>
             </div>
           )}
-
           <div className="p-4 text-center col-span-2">
             <div className="mb-3">
               <button

@@ -78,7 +78,10 @@ const Sidenav = () => {
           </span>
         </div>
 
-        <Link to={`/db/${params.accountId}/outlets/all`}>
+        <Link
+          to={`/db/${params.accountId}/outlets/all`}
+          onClick={toggleSideNav}
+        >
           <div className="pl-3 pt-5 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer">
             <i className="fa-solid fa-house pr-1"></i> Outlets
           </div>
@@ -120,6 +123,14 @@ const Sidenav = () => {
             onClick={toggleSideNav}
           >
             <i className="fa-solid fa-users"></i> Staff
+          </div>
+        </Link>
+        <Link to={`/db/${params.accountId}/quit`}>
+          <div
+            className="pl-3 pt-3 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer"
+            onClick={toggleSideNav}
+          >
+            <i className="fa-solid fa-right-from-bracket"></i> Quit
           </div>
         </Link>
         <div className="cursor-pointer absolute bottom-5 left-5 w-full lg:hidden ">

@@ -26,14 +26,6 @@ const LocalStorageCheck = () => {
     }
   }, [location.pathname]);
 
-  // return (
-  //   <div>
-  //     <p>"This is the local storage check:</p>
-  //     <p>active queue session: {JSON.stringify(activeQueueSession)} </p>
-  //     <p> waiting page: {JSON.stringify(isWaitingPage)}"</p>
-  //   </div>
-  // );
-
   if (isQueueSessionLoading) {
     return <div>Checking for active queue session...</div>;
   }
@@ -41,6 +33,7 @@ const LocalStorageCheck = () => {
   if (activeQueueSession && !isWaitingPage) {
     return (
       <div className="fixed top-20 right-5 z-50">
+        {JSON.stringify(activeQueueSession)}
         <button
           onClick={handleGoToWaitingPage}
           className="bg-primary-cream hover:bg-primary-dark-green text-primary-green hover:text-white ease-in pointer-cursor transition font-bold py-2 px-4 rounded-full shadow-lg"

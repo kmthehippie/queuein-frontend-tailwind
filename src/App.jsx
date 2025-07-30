@@ -15,6 +15,7 @@ const Register = lazy(() => import("./assets/pages/Register"));
 
 //Import Pages From Account
 const Login = lazy(() => import("./assets/pages/account/Login.jsx"));
+const Logout = lazy(() => import("./assets/pages/account/Logout.jsx"));
 const Settings = lazy(() => import("./assets/pages/account/Settings.jsx"));
 const AllOutlets = lazy(() => import("./assets/pages/account/AllOutlets.jsx"));
 const NewOutlet = lazy(() => import("./assets/pages/account/NewOutlet.jsx"));
@@ -45,6 +46,7 @@ const Waiting = lazy(() => import("./assets/pages/customer/Waiting.jsx"));
 import ProtectedRoutes from "./assets/components/ProtectedRoutes";
 import Sidenav from "./assets/components/Sidenav.jsx";
 import LocalStorageCheck from "./assets/components/LocalStorageCheck.jsx";
+import AuthCheck from "./assets/components/AuthCheck.jsx";
 
 const router = createBrowserRouter([
   {
@@ -128,8 +130,23 @@ const router = createBrowserRouter([
           </AuthProvider>
         ),
         children: [
-          { path: "login", element: <Login /> },
-          { path: "register", element: <Register /> },
+          {
+            path: "login",
+            element: (
+              <AuthCheck>
+                <Login />
+              </AuthCheck>
+            ),
+          },
+          {
+            path: "register",
+            element: (
+              <AuthCheck>
+                <Register />
+              </AuthCheck>
+            ),
+          },
+
           //TODO: forgotpassword,
           {
             path: ":accountId",
@@ -158,6 +175,10 @@ const router = createBrowserRouter([
                     element: <AllOutlets />,
                   },
                 ],
+              },
+              {
+                path: "quit",
+                element: <Logout />,
               },
               {
                 //* SETTINGS PAGE

@@ -63,6 +63,7 @@ export const LocalStorageProvider = ({ children }) => {
 
   const contextValue = useMemo(() => {
     return {
+      setActiveQueueSession,
       activeQueueSession,
       queueItemId,
       isLoading,

@@ -8,7 +8,7 @@ import useAuth from "../../hooks/useAuth";
 import AuthorisedUser from "./AuthorisedUser";
 
 const ActiveOutlet = () => {
-  const { socket, isConnected, reconnect } = useContext(SocketContext);
+  const { socket, isConnected } = useContext(SocketContext);
   const { isAuthenticated } = useAuth();
   const params = useParams();
   const location = useLocation();
@@ -129,8 +129,6 @@ const ActiveOutlet = () => {
       socket.emit("set_staff_info", infoForSocket);
 
       const handleHostQueueUpdate = (data) => {
-        console.log("Host-queue_update is emitting.");
-        console.log("Data from BACKEND from host_queue_update: ", data);
         if (data) {
           setQueueItems(data);
           console.log("Data has been set into the queue items", data);
@@ -150,6 +148,7 @@ const ActiveOutlet = () => {
     params.outletId,
     params.accountId,
     params.queueId,
+    setQueueItems,
   ]);
 
   //HANDLES
@@ -371,7 +370,7 @@ const ActiveOutlet = () => {
                             <div className="flex items-center p-1 ">
                               <div className={activeTableHeader}>Name</div>
                               <div className={activeTableAnswer}>
-                                {item.name || item?.customer?.name}
+                                {item.name || item?.customer?.name || "N/A"}
                                 {item?.customer && (
                                   <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
                                     VIP
@@ -384,7 +383,7 @@ const ActiveOutlet = () => {
                             <div className="col-span-1 flex items-center p-1 border-r-1">
                               <div className={activeTableHeader}>PAX</div>
                               <div className={activeTableAnswer}>
-                                {item.pax}
+                                {item.pax || "N/A"}
                               </div>
                             </div>
                             <div className="col-span-2 flex items-center p-1 ">
@@ -408,7 +407,9 @@ const ActiveOutlet = () => {
                               <i className="fa-solid fa-phone"></i> Customer
                             </div>
                             <div className={activeTableAnswer}>
-                              {item.contactNumber || item?.customer?.number}
+                              {item.contactNumber ||
+                                item?.customer?.number ||
+                                "N/A"}
                             </div>
                           </div>
                           <form className="flex items-center mt-1">
@@ -502,7 +503,7 @@ const ActiveOutlet = () => {
                             <div className="flex items-center p-1 ">
                               <div className={activeTableHeader}>Name</div>
                               <div className={activeTableAnswer}>
-                                {item?.customer?.name || item.name}
+                                {item?.customer?.name || item.name || "N/A"}
                                 {item?.customer && (
                                   <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
                                     VIP
@@ -520,9 +521,9 @@ const ActiveOutlet = () => {
               </div>
               <div className="">
                 {queueItems.map((item) => {
-                  if (item.active === false && item.quit === true) {
+                  if (item?.active === false && item?.quit === true) {
                     return (
-                      <div className="" key={item.id}>
+                      <div className="" key={item?.id}>
                         <div className="flex-row w-full  my-3 rounded-2xl p-2 shadow-2xl bg-red-950/50 text-white ">
                           <div className="grid grid-cols-2">
                             <div className="flex items-center p-1 ">
@@ -536,7 +537,7 @@ const ActiveOutlet = () => {
                             <div className="flex items-center p-1 ">
                               <div className={activeTableHeader}>Name</div>
                               <div className={activeTableAnswer}>
-                                {item?.customer.name || item.name}
+                                {item?.customer?.name || item?.name || "N/A"}
                                 {item?.customer && (
                                   <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
                                     VIP
