@@ -48,7 +48,10 @@ const Sidenav = () => {
   }, [accountId]);
 
   return (
-    <div className="" ref={sideNavRef}>
+    <div
+      className="lg:relative absolute top-0 left-0 h-full lg:col-span-1"
+      ref={sideNavRef}
+    >
       <p
         className="p-5 cursor-pointer z-8 bg-white rounded-3xl flex justify-center items-center hover:text-primary-dark-green ease-in lg:hidden max-w-20 w-10 h-10 m-3 fixed"
         onClick={toggleSideNav}
@@ -113,7 +116,7 @@ const Sidenav = () => {
           className="pl-3 pt-3 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer"
           onClick={toggleSideNav}
         >
-          <Link to={``}>
+          <Link to={`/db/${params.accountId}/settings`}>
             <i className="fa-solid fa-gear pr-1"></i> Settings
           </Link>
         </div>

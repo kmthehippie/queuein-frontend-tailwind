@@ -34,8 +34,7 @@ const StaffManagement = () => {
     `border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 text-xs leading-tight focus:outline-none focus:border-black peer active:border-black
   ${hasError ? "border-red-500" : ""}`;
   const errorClass = `text-red-600 text-center`;
-  const buttonClass = ` mt-3 hover:bg-primary-dark-green hover:text-primary-cream transition ease-in font-light py-2 px-8 rounded-xl focus:outline-none focus:shadow-outline hover:border-transparent border-primary-dark-green border-1`;
-  const tableClass = `border-l-1 border-t-1 border-b-1 border-r-1 border-primary-green text-sm`;
+  const buttonClass = ` hover:bg-primary-dark-green hover:text-primary-cream transition ease-in font-light py-2 px-8 rounded-xl focus:outline-none focus:shadow-outline hover:border-transparent border-primary-dark-green border-1`;
 
   const toggleModal = (toggle) => {
     if (toggle === true) {
@@ -308,10 +307,7 @@ const StaffManagement = () => {
   };
 
   return (
-    <div className=" flex flex-col items-center justify-center rounded-3xl md:mt-2 md:p-5 bg-primary-cream ">
-      <div className="mt-8">
-        <h1 className="text-2xl font-semibold">Staff Onboard</h1>
-      </div>
+    <div className="flex flex-col items-center justify-center rounded-3xl lg:m-10 md:mt-2 md:p-5 pt-15 lg:pt-5 mx-3">
       {updateViewModal && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
           <div className="bg-primary-cream p-5 rounded-2xl m-2 w-md relative">
@@ -451,7 +447,7 @@ const StaffManagement = () => {
         </div>
       )}
       {viewModal && (
-        <div className="bg-primary-cream p-5 rounded-2xl m-2 w-md relative">
+        <div className="bg-primary-cream p-5 rounded-2xl m-2 w-md relative ">
           <h3 className="text-xl pb-2 text-center">Create a new staff</h3>
 
           <p
@@ -574,8 +570,14 @@ const StaffManagement = () => {
         </div>
       )}
       {!viewModal && (
-        <div className="p-5 w-full">
-          <div className="my-3 ">
+        <div className="lg:p-5 p-2 w-full border-2 border-primary-green rounded-3xl  bg-primary-cream/80 lg:mt-10  ">
+          <div className="lg:my-3 mt-4 mb-3">
+            <h1 className="text-3xl lg:text-4xl font-bold text-center">
+              Staff Onboard
+            </h1>
+          </div>
+
+          <div className="flex justify-center">
             <button
               className={
                 buttonClass +
@@ -586,56 +588,79 @@ const StaffManagement = () => {
               Create New Staff +
             </button>
           </div>
-          {staffList.length > 0 && (
-            <div className="grid grid-cols-8 w-full text-primary-dark-green font-semibold">
-              <div className={tableClass + " col-span-2 rounded-l-lg p-5 "}>
-                Name
-              </div>
-              <div className={tableClass + " col-span-2 p-5 "}>Role</div>
-              <div className={tableClass + " col-span-3 p-5"}>Email</div>
-              <div
-                className={
-                  tableClass +
-                  " col-span-1 rounded-r-lg flex items-center justify-center  "
-                }
-              >
-                <i className="fa-solid fa-trash"></i>
-              </div>
-            </div>
-          )}
-          {staffList.length > 0 &&
-            staffList.map((staff) => (
-              <div
-                className="grid grid-cols-8 w-full font-light"
-                key={staff.id}
-              >
+          <div className="bg-primary-cream mx-3">
+            {staffList.length > 0 && (
+              <div className="grid grid-cols-8 w-full text-primary-dark-green font-semibold">
                 <div
                   className={
-                    tableClass +
-                    " col-span-2 rounded-l-lg p-2 cursor-pointer hover:text-primary-light-green transition ease-in-out"
+                    "border-l-5 border-t-1 border-b-1 border-r-1 border-primary-green text-sm col-span-3 rounded-tl-lg p-5 lg:col-span-2"
                   }
-                  onClick={() => handleUpdateStaffModal(staff.id)}
                 >
-                  <i className="fa-solid fa-pen pr-2"></i>
-                  {staff.name}
-                </div>
-                <div className={tableClass + " col-span-2 p-2 "}>
-                  {staff.role.replace(/_/g, " ")}
-                </div>
-                <div className={tableClass + " col-span-3 p-2"}>
-                  {staff.email}
+                  Name
                 </div>
                 <div
                   className={
-                    tableClass +
-                    " col-span-1 rounded-r-lg p-2 flex items-center justify-center cursor-pointer"
+                    " border-t-1 border-b-1 border-r-1 border-primary-green text-sm  col-span-2 p-5 "
                   }
-                  onClick={() => handleDeleteStaff(staff.id)}
+                >
+                  Role
+                </div>
+                <div
+                  className={
+                    "border-t-1 border-b-1 border-r-1 border-primary-green text-sm col-span-2 lg:col-span-3 p-5"
+                  }
+                >
+                  Email
+                </div>
+                <div
+                  className={
+                    "border-t-1 border-b-1 border-r-1 border-primary-green text-sm col-span-1 rounded-tr-lg flex items-center justify-center  "
+                  }
                 >
                   <i className="fa-solid fa-trash"></i>
                 </div>
               </div>
-            ))}
+            )}
+            {staffList.length > 0 &&
+              staffList.map((staff) => (
+                <div
+                  className="grid grid-cols-8 w-full font-light"
+                  key={staff.id}
+                >
+                  <div
+                    className={
+                      "border-l-5 border-b-1 border-r-1 border-primary-green text-sm  col-span-3 lg:col-span-2 p-2 cursor-pointer hover:text-primary-light-green transition ease-in-out"
+                    }
+                    onClick={() => handleUpdateStaffModal(staff.id)}
+                  >
+                    <i className="fa-solid fa-pen pr-2"></i>
+                    {staff.name}
+                  </div>
+                  <div
+                    className={
+                      "border-b-1 border-r-1 border-primary-green text-sm  col-span-2 p-2 "
+                    }
+                  >
+                    {staff.role.replace(/_/g, " ")}
+                  </div>
+                  <div
+                    className={
+                      "border-b-1 border-r-1 border-primary-green text-sm lg:col-span-3 col-span-2 p-2 truncate"
+                    }
+                  >
+                    {staff.email}
+                  </div>
+                  <div
+                    className={
+                      "border-b-1 border-r-1 border-primary-green text-sm col-span-1  p-2 flex items-center justify-center cursor-pointer"
+                    }
+                    onClick={() => handleDeleteStaff(staff.id)}
+                  >
+                    <i className="fa-solid fa-trash"></i>
+                  </div>
+                </div>
+              ))}
+          </div>
         </div>
       )}
       {showAuthModal && (

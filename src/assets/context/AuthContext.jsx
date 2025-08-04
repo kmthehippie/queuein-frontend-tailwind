@@ -69,32 +69,35 @@ export const AuthProvider = ({ children }) => {
     console.log("Logging out!");
     try {
       const response = await apiPrivate.post("/logout");
-      if (response.status === 200) {
-        setIsAuthenticated(false);
-        setAccessToken(null);
-        setAccount(null);
-        navigate("/db/login");
+      if (response.status === 200 || response.status === 204) {
+        console.log("Logout successfully.");
       }
     } catch (error) {
       console.error("Error logging out: ", error);
+    } finally {
+      setIsAuthenticated(false);
+      setAccessToken(null);
+      setAccount(null);
+      setAccountId(null);
+      navigate("/db/login");
     }
-    //empty out the accesstoken in cookies
-  }, []);
+    //empty out the accesstoken and refreshtoken in cookies (Done in backend)
+  }, [navigate]);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         await refresh();
       } catch (error) {
-        console.log("Init of auth check failed", error);
+        console.log("Initial auth check failed", error);
+        setIsAuthenticated(false);
+        setAccessToken(null);
       } finally {
         setAuthLoading(false);
       }
     };
-    if (authLoading) {
-      checkAuth();
-    }
-  }, [authLoading, refresh]);
+    checkAuth();
+  }, [refresh]);
   const contextValue = useMemo(
     () => ({
       accessToken,

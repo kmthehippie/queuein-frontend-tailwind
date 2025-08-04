@@ -6,6 +6,7 @@ export const msToMins = (milliseconds) => {
   if (milliseconds < 0) {
     return 0; // Or throw new RangeError("Input must be a non-negative number");
   }
+  console.log(milliseconds / (1000 * 60));
   return milliseconds / (1000 * 60);
 };
 
