@@ -214,6 +214,7 @@ const AllOutlets = () => {
         outletData={selectedOutletData} // Pass the full outlet object
         accountId={accountId}
         onUpdateSuccess={handleUpdateSuccess}
+        view={"modal"}
       />
     </div>
   );
