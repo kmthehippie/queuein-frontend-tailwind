@@ -5,6 +5,7 @@ import UpdateOutletModal from "../../components/UpdateOutletModal";
 import useApiPrivate from "../../hooks/useApiPrivate";
 import AuthorisedUser from "./AuthorisedUser";
 import useAuth from "../../hooks/useAuth";
+import QRCode from "../../components/QRCodeButton";
 
 const AllOutlets = () => {
   // Functional States
@@ -131,24 +132,32 @@ const AllOutlets = () => {
         Manage your existing outlets...
       </h1>
       {errors && <p className={errorClass}>{errors.general}</p>}
-      <div className="grid grid-cols-2 mb-10">
+      <div className="grid lg:grid-cols-2 grid-cols-1 mb-10">
         {outlets.map((outlet) => (
           <div
-            className=" rounded-2xl p-3 relative m-1 text-center bg-primary-cream/70 shadow-lg"
+            className=" rounded-2xl p-3 relative m-1 text-center bg-primary-cream/70 shadow-lg "
             key={outlet.id}
           >
             <Link to={`/db/${accountId}/outlet/${outlet.id}`}>
               <img
                 src={`${outlet.imgUrl}`}
                 alt=""
-                className="rounded-xl"
+                className="rounded-xl w-full"
                 onError={(e) =>
                   (e.target.src =
                     "https://placehold.co/150x100/eeeeee/333333?text=Image+Error")
                 }
               />
             </Link>
-            <h1 className="z-10 text-xl font-semibold pt-2 text-primary-dark-green ">
+
+            <div className="z-10 text-xl font-semibold pt-2 text-primary-dark-green flex justify-center">
+              <QRCode
+                value={outlet.id}
+                text={""}
+                cssSpan={
+                  "hover:text-primary-green transition ease-in cursor-pointer"
+                }
+              />
               {outlet.name}{" "}
               <span
                 className="hover:text-primary-green transition ease-in cursor-pointer"
@@ -157,9 +166,9 @@ const AllOutlets = () => {
                   toggleEdit(outlet.id); // Pass the ID to toggleEdit
                 }}
               >
-                <i className="fa-solid fa-pen-to-square"></i>
+                <i className="fa-solid fa-pen-to-square pl-1"></i>
               </span>
-            </h1>
+            </div>
             {outlet.location !== null && (
               <div className="z-10 pt-1 border-1 border-transparent">
                 <p className="text-xs font-semibold">Location </p>

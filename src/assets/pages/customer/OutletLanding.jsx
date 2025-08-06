@@ -158,7 +158,7 @@ const OutletLanding = () => {
           </p>
         )}
       </div>
-      {queue.active && (
+      {queue && (
         <div className="grid grid-cols-2 w-full max-w-md bg-primary-cream rounded-lg shadow justify-self-center">
           <div className="p-4 text-center border-r-1 border-b-1 border-stone-300 grid grid-rows-2">
             <div className="text-sm text-stone-600 font-semibold">
@@ -230,9 +230,13 @@ const OutletLanding = () => {
           </div>
         </div>
       )}
-      {!queue.active && (
-        <div className="">
-          <img src={outlet.imgUrl} alt={`${outlet.name} store front`} />
+      {!queue && (
+        <div className="flex items-center justify-center w-full">
+          <img
+            src={outlet.imgUrl}
+            alt={`${outlet.name} store front`}
+            className="w-180"
+          />
         </div>
       )}
     </div>

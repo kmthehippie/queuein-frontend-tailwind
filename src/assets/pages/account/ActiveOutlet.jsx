@@ -84,15 +84,9 @@ const ActiveOutlet = () => {
     }
 
     const activeQueueItems = async () => {
-      console.log(
-        "Trying to fetch active queue items",
-        `activeQueue/${params.accountId}/${params.outletId}/${params.queueId}`
-      );
-      console.log("Staff info: ", staffInfo);
       try {
         const res = await apiPrivate.get(`activeQueue/${params.queueId}`);
         if (res?.data) {
-          console.log("Queue Items?", res.data?.queueItems);
           setQueueItems(res.data?.queueItems);
         }
       } catch (error) {
@@ -114,7 +108,6 @@ const ActiveOutlet = () => {
 
   //SOCKET HERE
   useEffect(() => {
-    console.log("We are in socket trying to set staff info: ", staffInfo);
     if (socket && isConnected) {
       socket.emit("join_queue", `queue_${params.queueId}`);
       const infoForSocket = {
@@ -125,13 +118,12 @@ const ActiveOutlet = () => {
         accountId: params.accountId,
         queueId: params.queueId,
       };
-      console.log("Info for the staff info socket ", infoForSocket);
+
       socket.emit("set_staff_info", infoForSocket);
 
       const handleHostQueueUpdate = (data) => {
         if (data) {
           setQueueItems(data);
-          console.log("Data has been set into the queue items", data);
         }
       };
 
@@ -235,7 +227,6 @@ const ActiveOutlet = () => {
         `/endQueue/${params.accountId}/${params.outletId}/${params.queueId}`
       );
       if (res.status === 201) {
-        console.log("Success on ending queue");
         setActiveQueue(false);
         //? Also, emit a socket event to inform others that the queue has ended. Do we want to do queue ended here, or should we do queue ended from the backend?
         socket.emit("queue_ended", params.queueId);
@@ -250,12 +241,10 @@ const ActiveOutlet = () => {
     }
   };
   const handleRefresh = () => {
-    console.log(params.queueId);
     socket.emit("queue_update", params.queueId);
   };
   const handleNoShow = useCallback(
     async (e, id) => {
-      console.log("this is the target checked status: ", e.target.checked);
       const newNoShowStatus = e.target.checked;
 
       try {

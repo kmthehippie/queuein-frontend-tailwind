@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [account, setAccount] = useState(null);
   const [accountId, setAccountId] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [triggerReload, setTriggerReload] = useState(false);
   const navigate = useNavigate();
 
   const refresh = useCallback(async () => {
@@ -84,6 +85,11 @@ export const AuthProvider = ({ children }) => {
     //empty out the accesstoken and refreshtoken in cookies (Done in backend)
   }, [navigate]);
 
+  const toTriggerReload = () => {
+    console.log("triggering reload.", triggerReload);
+    setTriggerReload(!triggerReload);
+  };
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -98,6 +104,7 @@ export const AuthProvider = ({ children }) => {
     };
     checkAuth();
   }, [refresh]);
+
   const contextValue = useMemo(
     () => ({
       accessToken,
@@ -110,12 +117,15 @@ export const AuthProvider = ({ children }) => {
       updateAccessToken: setAccessToken,
       updateIsAuthenticated: setIsAuthenticated,
       updateAccount: setAccount,
+      triggerReload,
+      toTriggerReload,
     }),
     [accessToken, isAuthenticated, account, login, logout, accountId]
   );
   if (authLoading) {
     return <div>Loading Application...</div>; // Or a more sophisticated spinner
   }
+
   return (
     <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );

@@ -1,9 +1,13 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Error = ({ error }) => {
   console.log(error);
   const statusCode = error?.status;
   const errorMessage = error?.message;
+  const navigate = useNavigate();
+  const handleNav = () => {
+    navigate(-1);
+  };
 
   return (
     <div className="flex h-full">
@@ -36,7 +40,7 @@ const Error = ({ error }) => {
               </p>
 
               <p className="text-primary-green hover:text-primary-dark-green transition ease-in">
-                <Link to="/">Head back to our home page.</Link>
+                <button onClick={handleNav}>Head back to our home page.</button>
               </p>
             </div>
           </div>

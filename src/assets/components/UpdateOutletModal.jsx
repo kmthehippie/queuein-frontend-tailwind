@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { apiPrivate } from "../api/axios";
 import { msToMins, minsToMs } from "../utils/timeConverter";
 import Loading from "./Loading";
-import QRCode from "./QRCode";
+import QRCode from "./QRCodeButton";
 
 const OutletUpdateModal = ({
   show,
@@ -16,7 +16,7 @@ const OutletUpdateModal = ({
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [googleMaps, setGoogleMaps] = useState("");
-  const [wazeMaps, setWazeMaps] = useState("");
+  const [wazeMaps, setWazeMaps] = useState(null);
   const [defaultEstWaitTimeMS, setDefaultEstWaitTimeMS] = useState(null);
   const [imgFile, setImgFile] = useState(null);
   const [phone, setPhone] = useState("");
@@ -75,29 +75,44 @@ const OutletUpdateModal = ({
 
   const checkChange = () => {
     if (outletData.name !== name) {
+      console.log("Name diff", outletData.name, name);
       return setChangesExist(true);
     }
     if (outletData.location !== location) {
+      console.log("location diff", outletData.location, location);
       return setChangesExist(true);
     }
     if (outletData.googleMaps !== googleMaps) {
+      console.log("google maps diff", outletData.googleMaps, googleMaps);
       return setChangesExist(true);
     }
     if (outletData.wazeMaps !== wazeMaps) {
+      console.log("waze maps diff", outletData.wazeMaps, wazeMaps);
+      if (outletData.wazeMaps === null) {
+        return setChangesExist(false);
+      }
       return setChangesExist(true);
     }
     const parsedDefaultEstWaitTime = parseFloat(defaultEstWaitTime);
-    console.log(parsedDefaultEstWaitTime, outletData.defaultEstWaitTime);
+
     if (msToMins(outletData.defaultEstWaitTime) !== parsedDefaultEstWaitTime) {
+      console.log(
+        "default est wait time diff",
+        outletData.defaultEstWaitTime,
+        parsedDefaultEstWaitTime
+      );
       return setChangesExist(true);
     }
     if (outletData.hours !== hours) {
+      console.log("hours diff", outletData.hours, hours);
       return setChangesExist(true);
     }
     if (outletData.phone !== phone) {
+      console.log("phone diff", outletData.phone, phone);
       return setChangesExist(true);
     }
     if (imgFile !== null) {
+      console.log("imgFile diff", outletData.imgFile, wazeMaps);
       return setChangesExist(true);
     }
     return setChangesExist(false);
@@ -241,6 +256,7 @@ const OutletUpdateModal = ({
         onUpdateSuccess(res.data);
         onClose();
       } else {
+        setIsLoading(false);
         setErrors({ general: "Failed to update outlet. Please try again." });
       }
     } catch (error) {
@@ -522,8 +538,8 @@ const OutletUpdateModal = ({
   if (view === "full" && !isLoading) {
     return (
       <div className="relative">
-        <QRCode />
         <h1 className="text-2xl font-light text-center">{name || "N/A"}</h1>
+
         {changesExist && (
           <div
             className="fixed p-2 bg-primary-cream/90 top-1/4 right-1/10 rounded-xl shadow-red-900 shadow-lg/30 cursor-pointer z-20"
@@ -534,7 +550,17 @@ const OutletUpdateModal = ({
           </div>
         )}
 
-        <form className="mt-5" onSubmit={handleUpdate}>
+        <form className="mt-2" onSubmit={handleUpdate}>
+          <QRCode
+            value={outletData.id}
+            text={"View QR Code"}
+            cssDiv={
+              "p-2 text-sm font-light text-gray-500 border-1 border-primary-cream hover:border-primary-green hover:text-primary-dark-green transition ease-in text-center cursor-pointer bg-primary-cream"
+            }
+            cssSpan={
+              "hover:text-primary-green transition ease-in cursor-pointer"
+            }
+          />
           <div className={inputDivClass}>
             <label htmlFor="name" className={labelClass}>
               Name:*
@@ -593,7 +619,7 @@ const OutletUpdateModal = ({
               id="wazeMaps"
               type="text"
               className={inputClass() + " w-full "}
-              value={wazeMaps}
+              value={wazeMaps || ""}
               onChange={(e) => setWazeMaps(e.target.value)}
             />
             {errors.wazeMaps && <p className={errorClass}>{errors.wazeMaps}</p>}

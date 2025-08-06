@@ -38,6 +38,7 @@ const IndividualOutlet = lazy(() =>
 const StaffManagement = lazy(() =>
   import("./assets/pages/account/StaffManagement.jsx")
 );
+const QRCode = lazy(() => import("./assets/pages/account/QRCode.jsx"));
 
 //Import Pages From Customer
 const AccountLanding = lazy(() =>
@@ -54,7 +55,6 @@ import ProtectedRoutes from "./assets/components/ProtectedRoutes";
 import Sidenav from "./assets/components/Sidenav.jsx";
 import LocalStorageCheck from "./assets/components/LocalStorageCheck.jsx";
 import AuthCheck from "./assets/components/AuthCheck.jsx";
-import QRCode from "./assets/components/QRCode.jsx";
 
 const router = createBrowserRouter([
   {
@@ -172,7 +172,7 @@ const router = createBrowserRouter([
               {
                 //* ALL OUTLETS
                 path: "outlets",
-                element: <Outlet />,
+                // element: <Outlet />,
                 children: [
                   {
                     path: "new",
@@ -181,6 +181,11 @@ const router = createBrowserRouter([
                   {
                     path: "all",
                     element: <AllOutlets />,
+                  },
+
+                  {
+                    path: "qr/:outletId",
+                    element: <QRCode />,
                   },
                 ],
               },
@@ -204,12 +209,6 @@ const router = createBrowserRouter([
                   {
                     path: "outlet",
                     element: <SettingsOutlet />,
-                    children: [
-                      {
-                        path: "qr/:outletId",
-                        element: <QRCode />,
-                      },
-                    ],
                   },
                   {
                     path: "auditlogs",

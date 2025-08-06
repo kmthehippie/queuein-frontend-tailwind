@@ -74,7 +74,7 @@ const AccountLanding = () => {
                     <img
                       src={outlet.imgUrl || null}
                       alt={outlet.name + " image"}
-                      className=""
+                      className="w-full "
                     />
                   </Link>
                 </div>

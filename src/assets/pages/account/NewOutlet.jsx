@@ -2,11 +2,14 @@ import React, { useState } from "react";
 import { minsToMs } from "../../utils/timeConverter";
 import { useNavigate, useParams } from "react-router-dom";
 import useApiPrivate from "../../hooks/useApiPrivate";
+import Loading from "../../components/Loading";
+import useAuth from "../../hooks/useAuth";
 
 const NewOutlet = () => {
   const { accountId } = useParams();
   const navigate = useNavigate();
   const apiPrivate = useApiPrivate();
+  const { toTriggerReload } = useAuth();
   //DATA TO SET
   const [name, setName] = useState(""); // Initialize with empty string
   const [location, setLocation] = useState("");
@@ -14,8 +17,11 @@ const NewOutlet = () => {
   const [wazeMaps, setWazeMaps] = useState("");
   const [defaultEstWaitTime, setDefaultEstWaitTime] = useState("");
   const [imgUrl, setImgUrl] = useState("");
+  const [imgFile, setImgFile] = useState("");
   const [phone, setPhone] = useState("");
   const [hours, setHours] = useState("");
+
+  const [isLoading, setIsLoading] = useState(false);
 
   //Errors
   const [errors, setErrors] = useState({});
@@ -35,6 +41,19 @@ const NewOutlet = () => {
     `border-1 border-gray-400 rounded-lg bg-transparent appearance-none block py-3 px-4 text-gray-700 text-sm leading-tight focus:outline-none focus:border-black peer active:border-black  ${
       hasError ? "border-red-500" : ""
     }`;
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const newUrl = URL.createObjectURL(file);
+      setImgFile(file);
+      setImgUrl(newUrl);
+      console.log("This is new url: ", newUrl);
+    } else {
+      setImgFile(null);
+      setImgUrl(null);
+    }
+  };
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -91,33 +110,56 @@ const NewOutlet = () => {
       return;
     }
 
-    const payload = {
-      name: name,
-      location: location,
-      googleMaps: googleMaps,
-      wazeMaps: wazeMaps,
-      defaultEstWaitTime: defEstWaitTimeInMs,
-      imgUrl: imgUrl,
-      phone: phone,
-      hours: hours,
-      accountId: accountId,
-    };
+    const hasFileToUpload = imgFile !== null;
+    let dataToSubmit;
+    dataToSubmit = new FormData();
+
+    if (hasFileToUpload) {
+      dataToSubmit.append("outletImage", imgFile);
+    }
+    dataToSubmit.append("name", name);
+    dataToSubmit.append("location", location);
+    dataToSubmit.append("googleMaps", googleMaps);
+    dataToSubmit.append("wazeMaps;", wazeMaps);
+    dataToSubmit.append("defaultEstWaitTime", defEstWaitTimeInMs);
+    dataToSubmit.append("hours", hours);
+    dataToSubmit.append("phone", phone);
+
+    console.log("This is the data to submit: ", dataToSubmit);
 
     try {
       console.log("Trying to post to new outlet ", accountId);
-      const res = await apiPrivate.post(`/newOutlet/${accountId}`, payload);
+      setIsLoading(true);
+      const res = await apiPrivate.post(
+        `/newOutlet/${accountId}`,
+        dataToSubmit,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       if (res?.status === 201) {
+        setIsLoading(false);
         console.log("Successfully created NEW outlet!", res.data);
         navigate(`/db/${accountId}/outlets/all`);
       } else {
+        setIsLoading(false);
         setErrors({ general: "Failed to update outlet. Please try again" });
       }
     } catch (error) {
       console.error(error);
     }
   };
-
+  if (isLoading) {
+    return (
+      <Loading
+        title={"Creating New Outlet!"}
+        paragraph={"Do Not Navigate Away. Please Wait. "}
+      />
+    );
+  }
   return (
     <div>
       <div className=" rounded-2xl p-3 relative mx-3 md:mt-5 md:mx-5 bg-primary-cream/50 shadow-lg ">
@@ -200,41 +242,36 @@ const NewOutlet = () => {
             </div>
             <div className={inputDivClass}>
               <label htmlFor="imgUrl" className={labelClass}>
-                URL for an image to your store:
+                Upload the image of your store
               </label>
-              {imgUrl && (
-                <div>
-                  <p className="text-xs font-light">
-                    A sample of how your image looks
-                  </p>
-                  <img
-                    src={imgUrl}
-                    alt="Sample of image"
-                    className="object-cover w-full h-32 rounded-md my-2"
-                    onError={(e) =>
-                      (e.target.src =
-                        "https://placehold.co/150x100/eeeeee/333333?text=Image+Error")
-                    }
-                  />
-                </div>
-              )}
-              <small className="text-xs font-light">
-                Enter the image URL here
-              </small>
-              <input
-                id="imgUrl"
-                type="text"
-                className={inputClass(imgUrlError) + " w-full "}
-                value={imgUrl}
-                onChange={(e) => setImgUrl(e.target.value)}
-              />
+
+              <div>
+                <input
+                  id="imgFile"
+                  type="file"
+                  className={inputClass(imgUrlError) + " w-full "}
+                  onChange={handleFileChange}
+                />
+              </div>
+
               {imgUrlError && errors.imgUrl && (
                 <p className={errorClass}>{errors.imgUrl}</p>
               )}
-              <p className="text-xs">
-                Not sure how to upload your image?{" "}
-                <span>Click This For Guide</span>
-              </p>
+              <div>
+                <p className="text-xs font-light mt-3">A sample of the image</p>
+                <img
+                  src={
+                    imgUrl ||
+                    "https://placehold.co/150x100/eeeeee/333333?text=Image+Error"
+                  }
+                  alt="Sample of image"
+                  className="object-cover w-full h-32 rounded-md my-2"
+                  onError={(e) =>
+                    (e.target.src =
+                      "https://placehold.co/150x100/eeeeee/333333?text=Image+Error")
+                  }
+                />
+              </div>
             </div>
             <div className={inputDivClass}>
               <label htmlFor="defaultEstWaitTime" className={labelClass}>

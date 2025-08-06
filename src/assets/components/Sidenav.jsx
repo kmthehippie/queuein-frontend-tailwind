@@ -34,22 +34,25 @@ const Sidenav = () => {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    const fetchOutlets = async () => {
+    const fetchAndResetOutlets = async () => {
       try {
-        const response = await apiPrivate.get(`/sidenav/${accountId}`);
+        const response = await apiPrivate.get(`/sidenav/${accountId}`); // Await the API call
         if (response?.data) {
           setOutlets(response.data);
         }
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching outlets for side nav:", error);
       }
     };
-    fetchOutlets();
+
+    if (outlets.length === 0) {
+      fetchAndResetOutlets();
+    }
   }, [accountId]);
 
   return (
     <div
-      className="lg:relative absolute top-0 left-0 h-full lg:col-span-1"
+      className="lg:relative absolute top-0 left-0 h-full lg:col-span-1 print:hidden"
       ref={sideNavRef}
     >
       <p
@@ -58,12 +61,13 @@ const Sidenav = () => {
       >
         <i className="fa-solid fa-bars"></i>
       </p>
+      {/* Need to fix the nav so that it fixes on the page */}
       <div
         className={`
-          bg-primary-cream pt-3 h-full 
+          bg-primary-cream pt-3 h-full
           fixed top-0 left-0
           w-[300px]
-          lg:relative lg:w-full md:pl-2  z-10
+          lg:sticky lg:h-fit lg:w-full md:pl-2  z-10
        ${showSideNav ? "block" : "hidden"} lg:block 
         `}
       >

@@ -13,7 +13,7 @@ const Layout = () => {
     }
   }, [pathname]);
   return (
-    <div className="relative w-screen h-screen overflow-hidden flex justify-center items-center">
+    <div className="relative w-screen h-screen overflow-hidden flex justify-center items-center ">
       {!dbPath && (
         <Link to="/">
           <div className="absolute top-0 left-3 z-10 m-3 cursor-pointer block md:left-auto">
@@ -29,13 +29,12 @@ const Layout = () => {
         <img
           src="/BackgroundImage.jpg"
           alt="Background Image containing Leaves"
-          className="absolute right-0 h-screen w-screen object-cover md:w-2/3 rounded-l-[5rem] "
+          className="absolute right-0 h-screen w-screen object-cover md:w-2/3 rounded-l-[5rem] print:hidden"
         />
       </div>
 
-      <div className="relative z-10 w-5/5 sm:w-4/5 h-4/5 border-1 border-white overflow-y-auto lg:w-300 rounded-4xl shadow-2xl bg-white/65">
+      <div className="relative z-10 w-5/5 sm:w-4/5 h-[85vh] border-1 border-white overflow-y-auto lg:w-300 rounded-4xl shadow-2xl bg-white/65 print:h-dvh print:shadow-none">
         <Outlet className="m-0 p-0" />
-        {/* This is where your page content will be rendered */}
       </div>
     </div>
   );
