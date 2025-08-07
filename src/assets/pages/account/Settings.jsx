@@ -1,5 +1,5 @@
 import React from "react";
-import { Outlet, useLocation, useResolvedPath } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 
@@ -18,9 +18,7 @@ const Settings = () => {
   const handleNavigateOutlet = () => {
     navigate(`/db/${accountId}/settings/outlet`);
   };
-  const handleNavigateAuditLog = () => {
-    navigate(`/db/${accountId}/settings/auditlogs`);
-  };
+
   const handleNavigateAccount = () => {
     navigate(`/db/${accountId}/settings/account`);
   };
@@ -28,10 +26,9 @@ const Settings = () => {
   const pathnameEndsWithSettings = location.pathname.endsWith("settings");
   const pathnameEndsWithAccount = location.pathname.endsWith("account");
   const pathnameEndsWithOutlet = location.pathname.endsWith("outlet");
-  const pathnameEndsWithAuditLogs = location.pathname.endsWith("auditlogs");
 
   return (
-    <div className="bg-primary-cream/80 mt-15 mx-3 p-3 lg:size-5/6 lg:m-20 lg:p-5 rounded-3xl border border-primary-green ">
+    <div className="bg-primary-cream/80 mt-15 mx-3 p-3 lg:size-5/6 h-[75vh] lg:m-20 lg:p-5 rounded-3xl border border-primary-green ">
       <div className="lg:mt-3 flex justify-center">
         <button
           className="text-3xl lg:text-4xl font-bold text-center mb-3 cursor-pointer"
@@ -51,20 +48,12 @@ const Settings = () => {
           Account
         </div>
         <div
-          className={`${buttonClass} border-l-1 border-t-1 border-primary-light-green ${
+          className={`${buttonClass} border-l-1 border-t-1  border-r-1 border-primary-light-green ${
             pathnameEndsWithOutlet ? activeButton : ""
           }`}
           onClick={handleNavigateOutlet}
         >
           Outlet
-        </div>
-        <div
-          className={`${buttonClass} border-l-1 border-t-1 border-r-1 border-primary-light-green ${
-            pathnameEndsWithAuditLogs ? activeButton : ""
-          }`}
-          onClick={handleNavigateAuditLog}
-        >
-          Audit Logs
         </div>
       </div>
 

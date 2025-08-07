@@ -3,6 +3,7 @@ import { apiPrivate } from "../api/axios";
 import { msToMins, minsToMs } from "../utils/timeConverter";
 import Loading from "./Loading";
 import QRCode from "./QRCodeButton";
+import { useNavigate } from "react-router-dom";
 
 const OutletUpdateModal = ({
   show,
@@ -12,6 +13,8 @@ const OutletUpdateModal = ({
   onUpdateSuccess,
   view,
 }) => {
+  const navigate = useNavigate();
+
   // --- ALL useState declarations must be at the top level, unconditionally ---
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
@@ -83,11 +86,12 @@ const OutletUpdateModal = ({
       return setChangesExist(true);
     }
     if (outletData.googleMaps !== googleMaps) {
-      console.log("google maps diff", outletData.googleMaps, googleMaps);
+      if (outletData.googleMaps === null) {
+        return setChangesExist(false);
+      }
       return setChangesExist(true);
     }
     if (outletData.wazeMaps !== wazeMaps) {
-      console.log("waze maps diff", outletData.wazeMaps, wazeMaps);
       if (outletData.wazeMaps === null) {
         return setChangesExist(false);
       }
@@ -111,8 +115,8 @@ const OutletUpdateModal = ({
       console.log("phone diff", outletData.phone, phone);
       return setChangesExist(true);
     }
-    if (imgFile !== null) {
-      console.log("imgFile diff", outletData.imgFile, wazeMaps);
+    if (imgUrl !== null && outletData.imgUrl !== imgFile) {
+      console.log("imgFile diff", outletData.imgUrl, imgFile);
       return setChangesExist(true);
     }
     return setChangesExist(false);
@@ -157,50 +161,41 @@ const OutletUpdateModal = ({
     setHoursError(false);
     setImgUrlError(false);
 
-    let hasError = false;
-    let currentErrors = {};
-
     // Validation
     if (name.length < 2) {
-      currentErrors.name = "Name must be longer than 2 characters";
+      setErrors({ general: "Name must be longer than 2 characters" });
       setNameError(true);
-      hasError = true;
+      return;
     }
     if (location.length === 0) {
-      currentErrors.location = "Address can't be empty";
+      setErrors({ general: "Address can't be empty" });
       setLocationError(true);
-      hasError = true;
+      return;
     }
     if (phone.length < 10) {
-      currentErrors.phone = "Contact number must be at least 10 numbers long";
+      setErrors({ general: "Contact number must be at least 10 numbers long" });
       setPhoneError(true);
-      hasError = true;
+      return;
     }
     if (hours.length < 1) {
-      currentErrors.hours = "Hours must be entered";
+      setErrors({ general: "Hours must be entered" });
       setHoursError(true);
-      hasError = true;
+      return;
     }
 
     // Default Estimate Wait Time changes
     const parsedDefaultEstWaitTime = parseFloat(defaultEstWaitTime);
     if (isNaN(parsedDefaultEstWaitTime)) {
-      currentErrors.defaultEstWaitTime = "Estimated wait time must be a number";
+      setErrors({ general: "Estimated wait time must be a number" });
       setDefaultEstWaitTimeError(true);
-      hasError = true;
+      return;
     } else if (parsedDefaultEstWaitTime < 0) {
-      currentErrors.defaultEstWaitTime =
-        "Estimated wait time cannot be negative";
+      setErrors({ general: "Estimated wait time cannot be negative" });
       setDefaultEstWaitTimeError(true);
-      hasError = true;
+      return;
     } else {
       const time = minsToMs(parsedDefaultEstWaitTime);
       setDefaultEstWaitTimeMS(time);
-    }
-
-    if (hasError) {
-      setErrors(currentErrors);
-      return;
     }
 
     const hasFileToUpload = imgFile !== null;
@@ -311,6 +306,12 @@ const OutletUpdateModal = ({
 
   const toggleModal = () => {
     setShowImgUploadModal(!showImgUploadModal);
+  };
+
+  const handleNavigateAuditLog = () => {
+    navigate(`/db/${accountId}/settings/outlet/${outletData.id}/auditlogs`, {
+      replace: true,
+    });
   };
 
   if (view === "modal" && !isLoading) {
@@ -549,8 +550,16 @@ const OutletUpdateModal = ({
             Changes Exist
           </div>
         )}
+        <div className="flex justify-center gap-3">
+          <div className="p-2 text-sm font-light text-gray-500 border-1 border-primary-cream hover:border-primary-green hover:text-primary-dark-green transition ease-in text-center cursor-pointer bg-primary-cream">
+            <button
+              onClick={handleNavigateAuditLog}
+              className="hover:text-primary-green transition ease-in cursor-pointer"
+            >
+              <i className="fa-solid fa-clipboard pr-2"></i> Audit Logs
+            </button>
+          </div>
 
-        <form className="mt-2" onSubmit={handleUpdate}>
           <QRCode
             value={outletData.id}
             text={"View QR Code"}
@@ -561,6 +570,8 @@ const OutletUpdateModal = ({
               "hover:text-primary-green transition ease-in cursor-pointer"
             }
           />
+        </div>
+        <form className="mt-2" onSubmit={handleUpdate}>
           <div className={inputDivClass}>
             <label htmlFor="name" className={labelClass}>
               Name:*

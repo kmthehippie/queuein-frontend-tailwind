@@ -6,10 +6,11 @@ import useApiPrivate from "../../hooks/useApiPrivate";
 import AuthorisedUser from "./AuthorisedUser";
 import useAuth from "../../hooks/useAuth";
 import QRCode from "../../components/QRCodeButton";
+import { numericalSort, alphabeticalSort } from "../../utils/sortList";
 
 const AllOutlets = () => {
   // Functional States
-  const { isAuthenticated, accountId } = useAuth();
+  const { isAuthenticated, accountId, setReloadNav, reloadNav } = useAuth();
   const apiPrivate = useApiPrivate();
 
   const [outlets, setOutlets] = useState([]);
@@ -73,22 +74,21 @@ const AllOutlets = () => {
       console.log("Account id is not defined ", accountId);
       return;
     }
+
     const fetchOutlets = async () => {
       try {
-        console.log("url account id: ", JSON.stringify(accountId));
         const res = await apiPrivate.get(`/allOutlets/${accountId}`);
-        console.log("Res for all outlets ", res.data);
         if (res?.data) {
-          setOutlets(res.data);
-          setAcctName(res.data[0].account.companyName);
+          const sort = numericalSort(res.data);
+          setOutlets(sort);
+          setAcctName(sort[0].account.companyName);
+          setReloadNav();
         }
       } catch (error) {
         console.error(error);
         console.log("Error fetching data in ALL outlets");
       }
     };
-
-    console.log("Account id right before I fetch outlets: ", accountId);
     fetchOutlets();
   }, [accountId, refreshTrigger, isAuthenticated]);
 

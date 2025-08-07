@@ -2,13 +2,14 @@ import React, { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import useApiPrivate from "../hooks/useApiPrivate";
+import { numericalSort, alphabeticalSort } from "../utils/sortList";
 
 const Sidenav = () => {
   const [outlets, setOutlets] = useState([]);
   const [showSideNav, setShowSideNav] = useState(false);
   const sideNavRef = useRef(null);
   const params = useParams();
-  const { isAuthenticated, accountId } = useAuth();
+  const { isAuthenticated, accountId, reloadNav } = useAuth();
   const apiPrivate = useApiPrivate();
 
   //Tailwind classes
@@ -34,21 +35,19 @@ const Sidenav = () => {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    const fetchAndResetOutlets = async () => {
+    const fetchOutlets = async () => {
       try {
         const response = await apiPrivate.get(`/sidenav/${accountId}`); // Await the API call
         if (response?.data) {
-          setOutlets(response.data);
+          const sort = alphabeticalSort(response.data);
+          setOutlets(sort);
         }
       } catch (error) {
         console.error("Error fetching outlets for side nav:", error);
       }
     };
-
-    if (outlets.length === 0) {
-      fetchAndResetOutlets();
-    }
-  }, [accountId]);
+    fetchOutlets();
+  }, [accountId, reloadNav, setOutlets]);
 
   return (
     <div

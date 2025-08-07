@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [account, setAccount] = useState(null);
   const [accountId, setAccountId] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [triggerReload, setTriggerReload] = useState(false);
+  const [reloadNav, setReloadNav] = useState(false);
   const navigate = useNavigate();
 
   const refresh = useCallback(async () => {
@@ -85,10 +85,9 @@ export const AuthProvider = ({ children }) => {
     //empty out the accesstoken and refreshtoken in cookies (Done in backend)
   }, [navigate]);
 
-  const toTriggerReload = () => {
-    console.log("triggering reload.", triggerReload);
-    setTriggerReload(!triggerReload);
-  };
+  useEffect(() => {
+    console.log("There are changes in the reload nav! ", reloadNav);
+  }, [reloadNav]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -117,10 +116,10 @@ export const AuthProvider = ({ children }) => {
       updateAccessToken: setAccessToken,
       updateIsAuthenticated: setIsAuthenticated,
       updateAccount: setAccount,
-      triggerReload,
-      toTriggerReload,
+      reloadNav,
+      setReloadNav: () => setReloadNav((prev) => !prev),
     }),
-    [accessToken, isAuthenticated, account, login, logout, accountId]
+    [accessToken, isAuthenticated, account, login, logout, accountId, reloadNav]
   );
   if (authLoading) {
     return <div>Loading Application...</div>; // Or a more sophisticated spinner

@@ -131,7 +131,7 @@ const NewOutlet = () => {
       console.log("Trying to post to new outlet ", accountId);
       setIsLoading(true);
       const res = await apiPrivate.post(
-        `/newOutlet/${accountId}`,
+        `/newOutlet/${accountId}/outlet_image`,
         dataToSubmit,
         {
           headers: {

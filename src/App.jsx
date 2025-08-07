@@ -197,9 +197,11 @@ const router = createBrowserRouter([
                 //* SETTINGS PAGE
                 path: "settings",
                 element: (
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <Settings />
-                  </Suspense>
+                  <SocketProvider>
+                    <Suspense fallback={<div>Loading...</div>}>
+                      <Settings />
+                    </Suspense>
+                  </SocketProvider>
                 ),
                 children: [
                   {
@@ -209,10 +211,12 @@ const router = createBrowserRouter([
                   {
                     path: "outlet",
                     element: <SettingsOutlet />,
-                  },
-                  {
-                    path: "auditlogs",
-                    element: <AuditLogs />,
+                    children: [
+                      {
+                        path: ":outletId/auditlogs",
+                        element: <AuditLogs />,
+                      },
+                    ],
                   },
                 ],
                 //element: settings -- set the outlet settings, egs. how long the default estimated wait time is. add new outlets. pay monies to me yay.
