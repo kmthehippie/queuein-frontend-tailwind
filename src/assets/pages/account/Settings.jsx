@@ -58,8 +58,46 @@ const Settings = () => {
       </div>
 
       {pathnameEndsWithSettings && (
-        <div className="border-1 border-primary-light-green p-0 bg-primary-cream/80 overflow-y-scroll max-h-135">
-          <h1>Something interesting here</h1>
+        <div className="border-1 border-primary-light-green bg-primary-cream/80 overflow-y-scroll max-h-full p-10">
+          <h1 className="text-4xl pb-3">Notices</h1>
+          <h2 className="text-2xl font-extralight text-gray-500 mb-3">
+            <i className="fa-solid fa-hammer pr-5"></i>More features are in the
+            works!
+          </h2>
+          <p className="font-light italic text-sm">
+            Send me feedback about how you would like this app to be further
+            improved.
+          </p>
+          <small className="text-primary-green">
+            Email me at: kmthehippie+queuein@gmail.com
+          </small>
+
+          <div className="text-sm flex justify-center items-center">
+            <i className="fa-solid fa-fire"></i>
+            <p className="pl-3 pt-5">
+              Automatically open or close of store so that customers know that
+              the store is opened or closed.
+            </p>
+          </div>
+          <div className="text-sm flex justify-center items-center">
+            <i className="fa-solid fa-fire"></i>
+            <p className="pl-3 pt-5">
+              Option to change from restaurant to basic or clinic. This will
+              have a form that will allow you to change the PAX to IC Number or
+              remove the input altogether.
+            </p>
+          </div>
+          <div className="text-sm flex justify-center items-center">
+            <i className="fa-solid fa-fire"></i>
+            <p className="pl-3 pt-5">
+              Option to allow accounts to add notes to a customer. Egs. Need 1
+              baby chair, Complained of tenderness in shin, Request for Ms Lily,
+              Request full mani and pedicure.
+            </p>
+          </div>
+
+          <br />
+          <small>And many more...!</small>
         </div>
       )}
 

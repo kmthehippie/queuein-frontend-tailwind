@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import { apiPrivate } from "../api/axios";
+import { apiPrivate, interceptedApiPrivate } from "../api/axios";
 import { msToMins, minsToMs } from "../utils/timeConverter";
 import Loading from "./Loading";
 import QRCode from "./QRCodeButton";
 import { useNavigate } from "react-router-dom";
+import AuthorisedUser from "../pages/account/AuthorisedUser";
 
 const OutletUpdateModal = ({
   show,
@@ -19,7 +20,7 @@ const OutletUpdateModal = ({
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [googleMaps, setGoogleMaps] = useState("");
-  const [wazeMaps, setWazeMaps] = useState(null);
+  const [wazeMaps, setWazeMaps] = useState("");
   const [defaultEstWaitTimeMS, setDefaultEstWaitTimeMS] = useState(null);
   const [imgFile, setImgFile] = useState(null);
   const [phone, setPhone] = useState("");
@@ -31,6 +32,7 @@ const OutletUpdateModal = ({
   const [defaultEstWaitTime, setDefaultEstWaitTime] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [changesExist, setChangesExist] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const bottomRef = useRef(null);
 
@@ -55,6 +57,7 @@ const OutletUpdateModal = ({
     }`;
 
   useEffect(() => {
+    console.log(outletData);
     if (outletData) {
       setChangesExist(false);
       setName(outletData.name || "");
@@ -77,51 +80,41 @@ const OutletUpdateModal = ({
   }, [outletData]);
 
   const checkChange = () => {
-    if (outletData.name !== name) {
-      console.log("Name diff", outletData.name, name);
-      return setChangesExist(true);
-    }
-    if (outletData.location !== location) {
-      console.log("location diff", outletData.location, location);
-      return setChangesExist(true);
-    }
-    if (outletData.googleMaps !== googleMaps) {
-      if (outletData.googleMaps === null) {
-        return setChangesExist(false);
-      }
-      return setChangesExist(true);
-    }
-    if (outletData.wazeMaps !== wazeMaps) {
-      if (outletData.wazeMaps === null) {
-        return setChangesExist(false);
-      }
-      return setChangesExist(true);
-    }
-    const parsedDefaultEstWaitTime = parseFloat(defaultEstWaitTime);
+    const nameChanged = outletData.name !== name;
+    console.log("name", nameChanged);
+    const locationChanged = outletData.location !== location;
+    console.log("location", locationChanged);
+    const googleMapsChanged =
+      outletData.googleMaps !== googleMaps && outletData.googleMaps !== null;
+    console.log("googleMaps", googleMapsChanged);
+    const wazeMapsChanged =
+      outletData.wazeMaps !== wazeMaps && outletData.wazeMaps !== null;
+    console.log("wazeMaps", wazeMapsChanged);
+    const phoneChanged = outletData.phone !== phone;
+    console.log("phone", phoneChanged);
+    const hoursChanged = outletData.hours !== hours;
+    console.log("hours", hoursChanged);
 
-    if (msToMins(outletData.defaultEstWaitTime) !== parsedDefaultEstWaitTime) {
-      console.log(
-        "default est wait time diff",
-        outletData.defaultEstWaitTime,
-        parsedDefaultEstWaitTime
-      );
-      return setChangesExist(true);
-    }
-    if (outletData.hours !== hours) {
-      console.log("hours diff", outletData.hours, hours);
-      return setChangesExist(true);
-    }
-    if (outletData.phone !== phone) {
-      console.log("phone diff", outletData.phone, phone);
-      return setChangesExist(true);
-    }
-    if (imgUrl !== null && outletData.imgUrl !== imgFile) {
-      console.log("imgFile diff", outletData.imgUrl, imgFile);
-      return setChangesExist(true);
-    }
-    return setChangesExist(false);
+    const defaultWaitTimeInMinutes = msToMins(outletData.defaultEstWaitTime);
+    const parsedWaitTime = parseFloat(defaultEstWaitTime);
+    const waitTimeChanged = defaultWaitTimeInMinutes !== parsedWaitTime;
+
+    const imageChanged = imgFile !== null;
+
+    const anyChanges =
+      nameChanged ||
+      locationChanged ||
+      googleMapsChanged ||
+      wazeMapsChanged ||
+      phoneChanged ||
+      hoursChanged ||
+      waitTimeChanged ||
+      imageChanged;
+
+    console.log(anyChanges);
+
+    setChangesExist(anyChanges);
   };
-
   useEffect(() => {
     if (
       name ||
@@ -150,9 +143,17 @@ const OutletUpdateModal = ({
   if (!show || !outletData) {
     return null;
   }
-
   const handleUpdate = async (e) => {
     e.preventDefault();
+    setErrors("");
+    setShowAuthModal(true);
+  };
+  const handleAuthModalClose = () => {
+    setErrors({ general: "Forbidden" });
+    setShowAuthModal(false);
+  };
+  const updateOutletAllowed = async (staffInfo) => {
+    console.log("Update allowed! ", staffInfo);
     setErrors({});
     setDefaultEstWaitTimeError(false);
     setNameError(false);
@@ -198,26 +199,46 @@ const OutletUpdateModal = ({
       setDefaultEstWaitTimeMS(time);
     }
 
+    let forView = {};
     const hasFileToUpload = imgFile !== null;
     let dataToSubmit;
     dataToSubmit = new FormData();
 
     if (hasFileToUpload) {
+      forView.imgUrl = imgFile;
       dataToSubmit.append("outletImage", imgFile);
     }
 
-    if (outletData.name !== name) dataToSubmit.append("name", name);
-    if (outletData.location !== location)
+    if (outletData.name !== name) {
+      dataToSubmit.append("name", name);
+      forView.name = name;
+    }
+    if (outletData.location !== location) {
       dataToSubmit.append("location", location);
-    if (outletData.googleMaps !== googleMaps)
+      forView.location = location;
+    }
+    if (outletData.googleMaps !== googleMaps) {
       dataToSubmit.append("googleMaps", googleMaps);
-    if (outletData.wazeMaps !== wazeMaps)
+      forView.googleMaps = googleMaps;
+    }
+    if (outletData.wazeMaps !== wazeMaps) {
       dataToSubmit.append("wazeMaps;", wazeMaps);
-    if (msToMins(outletData.defaultEstWaitTime) !== parsedDefaultEstWaitTime)
+      forView.wazeMaps = wazeMaps;
+    }
+    if (msToMins(outletData.defaultEstWaitTime) !== parsedDefaultEstWaitTime) {
       dataToSubmit.append("defaultEstWaitTime", defaultEstWaitTimeMS);
-    if (outletData.hours !== hours) dataToSubmit.append("hours", hours);
-    if (outletData.phone !== phone) dataToSubmit.append("phone", phone);
+      forView.defaultEstWaitTime = defaultEstWaitTimeMS;
+    }
+    if (outletData.hours !== hours) {
+      dataToSubmit.append("hours", hours);
+      forView.hours = hours;
+    }
+    if (outletData.phone !== phone) {
+      dataToSubmit.append("phone", phone);
+      forView.phone = phone;
+    }
 
+    console.log("THis is the data to submit for view: ", forView);
     console.log("This is the data to submit: ", dataToSubmit);
 
     let hasContent = false;
@@ -235,7 +256,7 @@ const OutletUpdateModal = ({
       console.log("Trying to patch to :", accountId, outletData.id);
       setIsLoading(true);
       setShowImgUploadModal(false);
-      const res = await apiPrivate.patch(
+      const res = await interceptedApiPrivate.patch(
         `/updateOutlet/${accountId}/${outletData.id}/outlet_image`,
         dataToSubmit,
         {
@@ -249,6 +270,7 @@ const OutletUpdateModal = ({
         console.log("Outlet updated successfully:", res.data);
         setIsLoading(false);
         onUpdateSuccess(res.data);
+        setShowAuthModal(false);
         onClose();
       } else {
         setIsLoading(false);
@@ -264,7 +286,6 @@ const OutletUpdateModal = ({
       });
     }
   };
-
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -280,7 +301,6 @@ const OutletUpdateModal = ({
   const scrollToBottom = () => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
   const handleReset = (e) => {
     e.preventDefault();
     console.log("Trying to reset");
@@ -303,17 +323,14 @@ const OutletUpdateModal = ({
     setImgFileError(false);
     setChangesExist(false);
   };
-
   const toggleModal = () => {
     setShowImgUploadModal(!showImgUploadModal);
   };
-
   const handleNavigateAuditLog = () => {
     navigate(`/db/${accountId}/settings/outlet/${outletData.id}/auditlogs`, {
       replace: true,
     });
   };
-
   if (view === "modal" && !isLoading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
@@ -539,11 +556,29 @@ const OutletUpdateModal = ({
   if (view === "full" && !isLoading) {
     return (
       <div className="relative">
+        {showAuthModal && (
+          <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
+              <button
+                onClick={handleAuthModalClose}
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
+              >
+                &times;
+              </button>
+              <AuthorisedUser
+                onSuccess={updateOutletAllowed}
+                onFailure={handleAuthModalClose}
+                actionPurpose="Update Outlet Data" // Changed actionPurpose for clarity
+                minimumRole="MANAGER"
+              />
+            </div>
+          </div>
+        )}
         <h1 className="text-2xl font-light text-center">{name || "N/A"}</h1>
 
         {changesExist && (
           <div
-            className="fixed p-2 bg-primary-cream/90 top-1/4 right-1/10 rounded-xl shadow-red-900 shadow-lg/30 cursor-pointer z-20"
+            className="fixed p-2 bg-primary-cream/90 top-1/5 right-1/10 lg:right-1/5 lg:top-1/4  rounded-xl shadow-red-900 shadow-lg/30 cursor-pointer z-20"
             onClick={scrollToBottom}
           >
             <div className="animate-ping bg-red-700 w-3 h-3 rounded-2xl absolute top-0 right-0"></div>
@@ -571,13 +606,13 @@ const OutletUpdateModal = ({
             }
           />
         </div>
-        <form className="mt-2" onSubmit={handleUpdate}>
+        <form className="mt-2">
           <div className={inputDivClass}>
-            <label htmlFor="name" className={labelClass}>
+            <label htmlFor="outletName" className={labelClass}>
               Name:*
             </label>
             <input
-              id="name"
+              id="outletNames"
               type="text"
               className={inputClass(nameError) + " w-full "}
               value={name}
@@ -677,7 +712,7 @@ const OutletUpdateModal = ({
                   "https://placehold.co/150x100/eeeeee/333333?text=Image+Error"
                 }
                 alt="Sample of image"
-                className="object-cover w-full h-32 rounded-md my-2"
+                className="object-cover w-full rounded-md my-2"
                 onError={(e) =>
                   (e.target.src =
                     "https://placehold.co/150x100/eeeeee/333333?text=Image+Error")
@@ -749,7 +784,7 @@ const OutletUpdateModal = ({
 
           <div className="flex justify-center mt-5 " ref={bottomRef}>
             <button
-              type="submit"
+              onClick={(e) => handleUpdate(e)}
               className={
                 buttonClass +
                 " bg-primary-green hover:bg-primary-dark-green mr-3"
@@ -758,7 +793,6 @@ const OutletUpdateModal = ({
               Submit Update
             </button>
             <button
-              type="button"
               className={buttonClass + " bg-red-700 hover:bg-red-900"}
               onClick={handleReset}
             >

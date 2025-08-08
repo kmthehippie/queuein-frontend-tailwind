@@ -67,6 +67,7 @@ const AuthorizedUser = ({
   return (
     <div>
       <h1 className="pb-1">This is a security measure.</h1>
+      {JSON.stringify(actionPurpose)}
       <p className="text-sm font-semibold pb-2">
         Please let us know who you are
       </p>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { apiPrivate } from "../../api/axios";
 
 const QRCode = () => {
@@ -8,6 +8,7 @@ const QRCode = () => {
   const [account, setAccount] = useState({});
   const [queueActive, setQueueActive] = useState(false);
   const [qrcode, setQrcode] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchOutlet = async () => {
@@ -48,7 +49,7 @@ const QRCode = () => {
         <img
           src={account.logo}
           alt={`Image of ${account.companyName}`}
-          className="h-15 print:h-20 pr-3 text-xs w-25 lg:w-40"
+          className="h-15 print:h-20 pr-3 text-xs lg:h-25 object-cover"
         />
         <h1 className="print:text-left">{account.companyName}</h1>{" "}
       </div>
@@ -89,7 +90,18 @@ const QRCode = () => {
         >
           <i className="fa-solid fa-print pr-3"></i>Print QR Code
         </button>
+        <div className="">
+          <button
+            className=" hover:text-primary-dark-green cursor-pointer text-gray-700 font-light py-2 px-4 rounded-2xl"
+            onClick={() => {
+              navigate(-1);
+            }}
+          >
+            Back
+          </button>
+        </div>
       </div>
+
       <div className="absolute bottom-5 left-1/2 -translate-x-1/2 text-md hidden print:block">
         <span className="flex items-end font-black text-primary-green">
           <img src="/Q-logo.svg" alt="Queue In Logo" className=" w-10 " /> UEUE
@@ -97,7 +109,10 @@ const QRCode = () => {
         </span>
       </div>
 
-      <button onClick={handleGenerateQRCode} className="print:hidden">
+      <button
+        onClick={handleGenerateQRCode}
+        className=" hover:text-primary-dark-green cursor-pointer text-gray-700 font-light py-2 px-4 rounded-2xl print:hidden"
+      >
         Generate a QRCode
       </button>
     </div>

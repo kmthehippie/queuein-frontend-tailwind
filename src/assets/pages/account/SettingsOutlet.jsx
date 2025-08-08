@@ -77,6 +77,7 @@ const SettingsOutlet = () => {
     <div className="">
       <div className="lg:grid lg:grid-cols-5 lg:gap-2 overflow-y-auto h-[63vh]">
         <div className="lg:col-span-1 border-primary-light-green p-2 bg-primary-cream z-1 sticky top-0 border-b-1 lg:border-b-0">
+          <p>Some text</p>
           {allOutlets && (
             <div className="flex flex-wrap w-full lg:flex-col">
               <div className="lg:block hidden">

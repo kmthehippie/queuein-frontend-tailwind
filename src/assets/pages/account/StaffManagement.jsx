@@ -102,7 +102,6 @@ const StaffManagement = () => {
     setPendingAction("create");
     setShowAuthModal(true);
   };
-
   const handleDeleteStaff = (staffId) => {
     setErrors({});
     setStaffDeleteId(staffId);
@@ -169,7 +168,6 @@ const StaffManagement = () => {
     };
     getData();
   };
-
   const createStaff = async () => {
     try {
       const data = {
@@ -197,7 +195,6 @@ const StaffManagement = () => {
       setPendingAction(null);
     }
   };
-
   const deleteStaff = async () => {
     if (!staffToDeleteId) {
       console.error("No staff ID to delete");
@@ -228,7 +225,6 @@ const StaffManagement = () => {
       setStaffDeleteId(null);
     }
   };
-
   const updateStaff = async () => {
     try {
       console.log(
@@ -292,7 +288,6 @@ const StaffManagement = () => {
       setUpdateViewModal(true);
     }
   };
-
   const handleAuthSuccess = () => {
     console.log("What is the pending action:", pendingAction);
     if (pendingAction === "create") {
