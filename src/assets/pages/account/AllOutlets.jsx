@@ -157,6 +157,7 @@ const AllOutlets = () => {
                 cssSpan={
                   "hover:text-primary-green transition ease-in cursor-pointer"
                 }
+                prevLocation={window.location.pathname}
               />
               {outlet.name}{" "}
               <span

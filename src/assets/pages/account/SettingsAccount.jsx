@@ -203,7 +203,7 @@ const SettingsAccount = () => {
           </div>
         </div>
       )}
-      <div className="h-[63vh] lg:h-auto">
+      <div className="max-h-[63vh] h-full lg:h-auto overflow-y-auto">
         {emailModalInfo && (
           <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">

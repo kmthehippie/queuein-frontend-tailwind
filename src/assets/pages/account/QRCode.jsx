@@ -43,6 +43,10 @@ const QRCode = () => {
       console.error("Error: ", error);
     }
   };
+
+  const handleNavigate = () => {
+    navigate(-1);
+  };
   return (
     <div className="bg-primary-cream/80 mt-15 mx-3 p-3 lg:size-5/6  lg:m-20 lg:p-5 rounded-3xl border border-primary-green">
       <div className="flex justify-center text-3xl items-center print:text-4xl print:mt-10 mt-5 ">
@@ -93,9 +97,7 @@ const QRCode = () => {
         <div className="">
           <button
             className=" hover:text-primary-dark-green cursor-pointer text-gray-700 font-light py-2 px-4 rounded-2xl"
-            onClick={() => {
-              navigate(-1);
-            }}
+            onClick={handleNavigate}
           >
             Back
           </button>

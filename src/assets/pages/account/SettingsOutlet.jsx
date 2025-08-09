@@ -3,6 +3,7 @@ import useAuth from "../../hooks/useAuth";
 import useApiPrivate from "../../hooks/useApiPrivate";
 import UpdateOutletModal from "../../components/UpdateOutletModal";
 import AuditLogs from "./AuditLogs";
+import { useLocation } from "react-router-dom";
 
 //TODO: SELF NOTES: HOW ABOUT CREATING A COMPONENT THAT TAKES IN NAME OF FIELD, DATA TO DISPLAY, AND ETC. THAT WAY WE CAN JUST CREATE COMPONENT FOR EVERY DIV INSTEAD OF SO MUCH REPEATED CODE.
 
@@ -30,6 +31,7 @@ const SettingsOutlet = () => {
   };
 
   useEffect(() => {
+    console.log(window.location.pathname);
     const fetchAllOutlets = async () => {
       try {
         const res = await apiPrivate.get(`/alloutlets/${accountId}`);
@@ -58,9 +60,11 @@ const SettingsOutlet = () => {
 
   const handleUpdateSuccess = (updatedOutlet) => {
     console.log("Updated Outlet", updatedOutlet);
+    console.log("All outlets: ", allOutlets);
     const outletIndex = allOutlets.findIndex(
       (outlet) => outlet.id === updatedOutlet.id
     );
+    console.log("outlet index: ", outletIndex);
     if (outletIndex !== -1) {
       const newAllOutlets = [...allOutlets];
       newAllOutlets[outletIndex] = updatedOutlet;
@@ -75,9 +79,8 @@ const SettingsOutlet = () => {
 
   return (
     <div className="">
-      <div className="lg:grid lg:grid-cols-5 lg:gap-2 overflow-y-auto h-[63vh]">
+      <div className="lg:grid lg:grid-cols-5 lg:gap-2 overflow-y-auto max-h-[63vh] h-full">
         <div className="lg:col-span-1 border-primary-light-green p-2 bg-primary-cream z-1 sticky top-0 border-b-1 lg:border-b-0">
-          <p>Some text</p>
           {allOutlets && (
             <div className="flex flex-wrap w-full lg:flex-col">
               <div className="lg:block hidden">

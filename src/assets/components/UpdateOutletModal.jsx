@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { apiPrivate, interceptedApiPrivate } from "../api/axios";
+import { interceptedApiPrivate } from "../api/axios";
 import { msToMins, minsToMs } from "../utils/timeConverter";
 import Loading from "./Loading";
 import QRCode from "./QRCodeButton";
-import { useNavigate } from "react-router-dom";
+
 import AuthorisedUser from "../pages/account/AuthorisedUser";
 
 const OutletUpdateModal = ({
@@ -14,8 +14,6 @@ const OutletUpdateModal = ({
   onUpdateSuccess,
   view,
 }) => {
-  const navigate = useNavigate();
-
   // --- ALL useState declarations must be at the top level, unconditionally ---
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
@@ -218,12 +216,16 @@ const OutletUpdateModal = ({
       forView.location = location;
     }
     if (outletData.googleMaps !== googleMaps) {
-      dataToSubmit.append("googleMaps", googleMaps);
-      forView.googleMaps = googleMaps;
+      if (wazeMaps.trim() !== "") {
+        dataToSubmit.append("googleMaps", googleMaps);
+        forView.googleMaps = googleMaps;
+      }
     }
     if (outletData.wazeMaps !== wazeMaps) {
-      dataToSubmit.append("wazeMaps;", wazeMaps);
-      forView.wazeMaps = wazeMaps;
+      if (wazeMaps.trim() !== "") {
+        dataToSubmit.append("wazeMaps", wazeMaps);
+        forView.wazeMaps = wazeMaps;
+      }
     }
     if (msToMins(outletData.defaultEstWaitTime) !== parsedDefaultEstWaitTime) {
       dataToSubmit.append("defaultEstWaitTime", defaultEstWaitTimeMS);
@@ -269,9 +271,8 @@ const OutletUpdateModal = ({
       if (res?.status === 201) {
         console.log("Outlet updated successfully:", res.data);
         setIsLoading(false);
-        onUpdateSuccess(res.data);
         setShowAuthModal(false);
-        onClose();
+        onUpdateSuccess(res.data);
       } else {
         setIsLoading(false);
         setErrors({ general: "Failed to update outlet. Please try again." });
@@ -604,6 +605,7 @@ const OutletUpdateModal = ({
             cssSpan={
               "hover:text-primary-green transition ease-in cursor-pointer"
             }
+            location={window.location.pathname}
           />
         </div>
         <form className="mt-2">
