@@ -2,6 +2,7 @@ import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
+import OutletUpdateModal from "../../components/UpdateOutletModal";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ const Settings = () => {
       </div>
 
       {pathnameEndsWithSettings && (
-        <div className="border-1 border-primary-light-green bg-primary-cream/80 overflow-y-scroll max-h-[63vh] h-full p-10">
+        <div className="border-1 border-primary-light-green bg-primary-cream/80 overflow-y-scroll max-h-[63vh] h-full lg:max-h-[55vh] p-10 ">
           <h1 className="text-4xl pb-3">Notices</h1>
           <h2 className="text-2xl font-extralight text-gray-500 mb-3">
             <i className="fa-solid fa-hammer pr-5"></i>More features are in the

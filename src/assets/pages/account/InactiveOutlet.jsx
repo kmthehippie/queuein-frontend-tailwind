@@ -135,6 +135,7 @@ const InactiveOutlet = () => {
               onFailure={handleAuthModalClose}
               actionPurpose="Start New Queue"
               minimumRole="HOST"
+              outletId={params.outletId}
             />
           </div>
         </div>

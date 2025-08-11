@@ -1,50 +1,47 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 import useApiPrivate from "../../hooks/useApiPrivate";
 import UpdateOutletModal from "../../components/UpdateOutletModal";
 import AuditLogs from "./AuditLogs";
-import { useLocation } from "react-router-dom";
+import { alphabeticalSort } from "../../utils/sortList";
+import { useNavigate, useParams } from "react-router-dom";
+import AllOutlets from "./AllOutlets";
 
 //TODO: SELF NOTES: HOW ABOUT CREATING A COMPONENT THAT TAKES IN NAME OF FIELD, DATA TO DISPLAY, AND ETC. THAT WAY WE CAN JUST CREATE COMPONENT FOR EVERY DIV INSTEAD OF SO MUCH REPEATED CODE.
 
 const SettingsOutlet = () => {
   const { accountId } = useAuth();
   const apiPrivate = useApiPrivate();
+  const { outletId } = useParams();
 
   const [allOutlets, setAllOutlets] = useState([]);
   const [selectedOutletId, setSelectedOutletId] = useState(0);
   const [selectedOutlet, setSelectedOutlet] = useState({});
-  const [modalView, setModalView] = useState(false);
+  const navigate = useNavigate();
+
+  const pathnameEndsWithAuditLogs = location.pathname.endsWith("auditlogs");
   // In SettingsOutlet
   const handleOutletChange = (id) => {
-    const selected = allOutlets.find((outlet) => outlet.id === id);
-    if (selected) {
-      setSelectedOutletId(selected.id);
-      setSelectedOutlet(selected);
+    setSelectedOutletId(id);
+    const outletIndex = allOutlets.findIndex((outlet) => outlet.id === id);
+    setSelectedOutlet(allOutlets[outletIndex]);
+    if (pathnameEndsWithAuditLogs) {
+      navigate(`/db/${accountId}/settings/outlet/${id}/auditlogs`);
     }
-    const remainingOutlets = allOutlets.filter(
-      (outlet) => outlet.id !== selected.id
-    );
-    const sortedOutlets = [selected, ...remainingOutlets];
-    setAllOutlets(sortedOutlets);
-    setModalView(!modalView);
   };
 
   useEffect(() => {
-    console.log(window.location.pathname);
     const fetchAllOutlets = async () => {
       try {
         const res = await apiPrivate.get(`/alloutlets/${accountId}`);
         if (res.data.length > 0) {
-          setAllOutlets(res.data);
-          if (res.data.length > 3) {
-            setModalView(true);
-          }
-          const initialOutlet = res.data[0];
-
-          // Perform all initial state updates in one logical block
+          const sorted = alphabeticalSort(res.data);
+          setAllOutlets(sorted);
+          const initialOutlet =
+            sorted.find((o) => o.id.toString() === outletId) || sorted[0];
           setSelectedOutletId(initialOutlet.id);
           setSelectedOutlet(initialOutlet);
+          // Perform all initial state updates in one logical block
         }
       } catch (error) {
         console.log(error);
@@ -53,9 +50,21 @@ const SettingsOutlet = () => {
     fetchAllOutlets();
   }, []);
 
+  useEffect(() => {
+    if (allOutlets.length > 0 && outletId) {
+      const selected = allOutlets.find((o) => o.id.toString() === outletId);
+      if (selected) {
+        setSelectedOutletId(selected.id);
+        setSelectedOutlet(selected);
+      }
+    }
+  }, [outletId, allOutlets]);
+
+  //TODO: NEED TO HANDLE CANCEL SELECTED OUTLET
   const handleCancel = () => {
     console.log("Handling cancel");
     console.log("selected outlet:", selectedOutlet);
+    //supposed to set pathnameEndsWithAuditLogs to false...i mean since we are no longer there, it should auto...
   };
 
   const handleUpdateSuccess = (updatedOutlet) => {
@@ -72,77 +81,30 @@ const SettingsOutlet = () => {
     }
     setSelectedOutlet(updatedOutlet);
   };
-  const handleToggleView = () => {
-    setModalView(!modalView);
-  };
-  const pathnameEndsWithAuditLogs = location.pathname.endsWith("auditlogs");
 
   return (
     <div className="">
-      <div className="lg:grid lg:grid-cols-5 lg:gap-2 overflow-y-auto max-h-[63vh] h-full">
-        <div className="lg:col-span-1 border-primary-light-green p-2 bg-primary-cream z-1 sticky top-0 border-b-1 lg:border-b-0">
+      <div className="overflow-y-auto max-h-[63vh]  lg:max-h-[55vh] h-full gap-1">
+        <div className="border-b-primary-light-green p-2 bg-primary-cream z-1 sticky top-0 border-b-1 ">
           {allOutlets && (
-            <div className="flex flex-wrap w-full lg:flex-col">
-              <div className="lg:block hidden">
-                {allOutlets.map((outlet) => (
-                  <div
-                    className={`lg:mb-5 cursor-pointer m-0.5 text-sm border-1 border-primary-light-green font-light hover:text-primary-green transition delay-100 duration-150 p-2 ${
-                      selectedOutletId === outlet.id
-                        ? "border-4 border-primary-light-green"
-                        : ""
-                    }`}
-                    key={outlet.id}
+            <div className="flex overflow-x-auto ">
+              {allOutlets.map((outlet) => (
+                <div
+                  className={`text-nowrap cursor-pointer m-0.5 text-sm border-1 border-primary-light-green font-light hover:text-primary-green transition delay-100 duration-150 p-2 ${
+                    selectedOutletId === outlet.id
+                      ? "border-4 border-primary-light-green"
+                      : ""
+                  }`}
+                  key={outlet.id}
+                >
+                  <button
+                    className=" cursor-pointer"
+                    onClick={() => handleOutletChange(outlet.id)}
                   >
-                    <button
-                      className=" cursor-pointer"
-                      onClick={() => handleOutletChange(outlet.id)}
-                    >
-                      {outlet.name}
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div className="lg:hidden ">
-                {(modalView ? allOutlets.slice(0, 3) : allOutlets).map(
-                  (outlet) => (
-                    <div
-                      className={`lg:mb-5 cursor-pointer m-0.5 text-sm border-1 border-primary-light-green font-light hover:text-primary-green transition delay-100 duration-150 p-2 ${
-                        selectedOutletId === outlet.id
-                          ? "border-4 border-primary-light-green"
-                          : ""
-                      }`}
-                      key={outlet.id}
-                    >
-                      <button
-                        className=" cursor-pointer"
-                        onClick={() => handleOutletChange(outlet.id)}
-                      >
-                        {outlet.name}
-                      </button>
-                    </div>
-                  )
-                )}
-                {modalView && (
-                  <div className="absolute right-0 bottom-1">
-                    <button
-                      onClick={handleToggleView}
-                      className="px-3 py-1.5 text-sm text-primary-green border-1 border-white rounded-full  hover:border-primary-green  cursor-pointer  transition-colors duration-200"
-                    >
-                      <i className="fa-solid fa-caret-down text-primary-green"></i>
-                    </button>
-                  </div>
-                )}
-                {!modalView && (
-                  <div className="absolute right-0 bottom-1">
-                    <button
-                      onClick={handleToggleView}
-                      className="px-3 py-1.5 text-sm text-primary-green border-1 border-white rounded-full  hover:border-primary-green cursor-pointer hover:text-white transition-colors duration-200"
-                    >
-                      <i className="fa-solid fa-caret-up text-primary-green"></i>
-                    </button>
-                  </div>
-                )}
-              </div>
+                    {outlet.name}
+                  </button>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -150,7 +112,7 @@ const SettingsOutlet = () => {
           <div className="lg:col-span-4 p-3">
             <UpdateOutletModal
               show={true}
-              onClose={handleCancel} // Pass toggleEdit as the close handler
+              onClose={handleCancel} // Pass toggleEdit as the close handler (Nothing really happens bc ours is component not modal)
               outletData={selectedOutlet} // Pass the full outlet object
               accountId={accountId}
               onUpdateSuccess={handleUpdateSuccess}
@@ -158,7 +120,12 @@ const SettingsOutlet = () => {
             />
           </div>
         )}
-        {pathnameEndsWithAuditLogs && <AuditLogs />}
+        {pathnameEndsWithAuditLogs && (
+          <AuditLogs
+            selectedId={selectedOutletId}
+            outletName={selectedOutlet.name}
+          />
+        )}
       </div>
     </div>
   );

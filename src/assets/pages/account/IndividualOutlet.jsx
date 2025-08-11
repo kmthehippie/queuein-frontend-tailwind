@@ -163,6 +163,7 @@ const IndividualOutlet = () => {
                   onFailure={handleAuthModalClose}
                   actionPurpose="Enter active queue"
                   minimumRole="HOST"
+                  outletId={params.outletId}
                 />
               </div>
             </div>

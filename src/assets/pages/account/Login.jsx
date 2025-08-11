@@ -70,8 +70,8 @@ const Login = () => {
     } catch (err) {
       if (err.response?.data?.errors) {
         setErrors(err.response.data.errors);
-      } else if (err.response?.data?.message) {
-        setErrors({ general: err.response.data.message });
+      } else if (err.response?.data) {
+        setErrors({ general: err.response.data });
       } else {
         setErrors({
           general: "An unexpected error occurred. Please try again.",

@@ -44,8 +44,12 @@ const QRCode = () => {
     }
   };
 
-  const handleNavigate = () => {
-    navigate(-1);
+  const handleNavigateSettings = () => {
+    navigate(`/db/${accountId}/settings/outlet`);
+  };
+
+  const handleNavigateAllOutlets = () => {
+    navigate(`/db/${accountId}/outlets/all`);
   };
   return (
     <div className="bg-primary-cream/80 mt-15 mx-3 p-3 lg:size-5/6  lg:m-20 lg:p-5 rounded-3xl border border-primary-green">
@@ -87,21 +91,29 @@ const QRCode = () => {
         </div>
       </div>
 
-      <div className="flex justify-center mt-6 print:hidden ">
+      <div className="flex flex-wrap justify-center mt-6 print:hidden items-center text-center ">
+        <div className="">
+          <button
+            className=" hover:text-primary-dark-green cursor-pointer text-gray-700 font-light py-2 px-4 rounded-2xl"
+            onClick={handleNavigateSettings}
+          >
+            <i className="fa-solid fa-gear pr-3"></i>Settings
+          </button>
+        </div>
+        <div className="">
+          <button
+            className=" hover:text-primary-dark-green cursor-pointer text-gray-700 font-light py-2 px-4 rounded-2xl"
+            onClick={handleNavigateAllOutlets}
+          >
+            <i className="fa-solid fa-house pr-3"></i>Home
+          </button>
+        </div>
         <button
           onClick={() => window.print()}
           className=" hover:text-primary-dark-green cursor-pointer text-gray-700 font-light py-2 px-4 rounded-2xl"
         >
           <i className="fa-solid fa-print pr-3"></i>Print QR Code
         </button>
-        <div className="">
-          <button
-            className=" hover:text-primary-dark-green cursor-pointer text-gray-700 font-light py-2 px-4 rounded-2xl"
-            onClick={handleNavigate}
-          >
-            Back
-          </button>
-        </div>
       </div>
 
       <div className="absolute bottom-5 left-1/2 -translate-x-1/2 text-md hidden print:block">

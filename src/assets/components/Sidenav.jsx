@@ -88,7 +88,10 @@ const Sidenav = () => {
           to={`/db/${params.accountId}/outlets/all`}
           onClick={toggleSideNav}
         >
-          <div className="pl-3 pt-5 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer">
+          <div
+            className="pl-3 pt-5 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer"
+            onClick={toggleSideNav}
+          >
             <i className="fa-solid fa-house pr-1"></i> Outlets
           </div>
         </Link>
@@ -108,28 +111,28 @@ const Sidenav = () => {
         ) : (
           <div>No outlets available.</div>
         )}
-        <div onClick={toggleSideNav}>
-          <Link to={`/db/${params.accountId}/outlets/new`}>
+        <Link to={`/db/${params.accountId}/outlets/new`}>
+          <div onClick={toggleSideNav}>
             <div className={sideNavButtonClass + " font-semibold"}>
               Create a new outlet +
             </div>
-          </Link>
-        </div>
-        <div
-          className="pl-3 pt-3 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer"
-          onClick={toggleSideNav}
-        >
-          <Link to={`/db/${params.accountId}/settings`}>
+          </div>
+        </Link>
+        <Link to={`/db/${params.accountId}/settings`}>
+          <div
+            className="pl-3 pt-3 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer"
+            onClick={toggleSideNav}
+          >
             <i className="fa-solid fa-gear pr-1"></i> Settings
-          </Link>
-        </div>
+          </div>
+        </Link>
         <Link to={`/db/${params.accountId}/staff`}>
           <div
             className="pl-3 pt-3 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer"
             onClick={toggleSideNav}
           >
             <i className="fa-solid fa-users"></i> Staff
-          </div>
+          </div>{" "}
         </Link>
         <Link to={`/db/${params.accountId}/quit`}>
           <div

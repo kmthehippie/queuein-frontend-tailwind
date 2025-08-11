@@ -283,6 +283,7 @@ const ActiveOutlet = () => {
               onFailure={handleAuthModalClose}
               actionPurpose="End Queue" // Changed actionPurpose for clarity
               minimumRole="MANAGER"
+              outletId={params.outletId}
             />
           </div>
         </div>

@@ -207,6 +207,12 @@ const router = createBrowserRouter([
                   {
                     path: "account",
                     element: <SettingsAccount />,
+                    children: [
+                      {
+                        path: "auditlogs",
+                        element: <AuditLogs />,
+                      },
+                    ],
                   },
                   {
                     path: "outlet",

@@ -5,6 +5,8 @@ import Loading from "./Loading";
 import QRCode from "./QRCodeButton";
 
 import AuthorisedUser from "../pages/account/AuthorisedUser";
+import { useNavigate } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 
 const OutletUpdateModal = ({
   show,
@@ -31,8 +33,11 @@ const OutletUpdateModal = ({
   const [isLoading, setIsLoading] = useState(false);
   const [changesExist, setChangesExist] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [nameChanged, setNameChanged] = useState(false);
 
   const bottomRef = useRef(null);
+  const navigate = useNavigate();
+  const { reloadNav, setReloadNav } = useAuth();
 
   // Errors
   const [errors, setErrors] = useState({});
@@ -55,7 +60,6 @@ const OutletUpdateModal = ({
     }`;
 
   useEffect(() => {
-    console.log(outletData);
     if (outletData) {
       setChangesExist(false);
       setName(outletData.name || "");
@@ -74,10 +78,12 @@ const OutletUpdateModal = ({
       setHoursError(false);
       setImgUrlError(false);
       setImgFileError(false);
+      setNameChanged(false);
     }
   }, [outletData]);
 
   const checkChange = () => {
+    console.log("New");
     const nameChanged = outletData.name !== name;
     console.log("name", nameChanged);
     const locationChanged = outletData.location !== location;
@@ -96,8 +102,9 @@ const OutletUpdateModal = ({
     const defaultWaitTimeInMinutes = msToMins(outletData.defaultEstWaitTime);
     const parsedWaitTime = parseFloat(defaultEstWaitTime);
     const waitTimeChanged = defaultWaitTimeInMinutes !== parsedWaitTime;
-
+    console.log("waitTimeChanged", waitTimeChanged);
     const imageChanged = imgFile !== null;
+    console.log("imageChanged", imageChanged);
 
     const anyChanges =
       nameChanged ||
@@ -108,8 +115,6 @@ const OutletUpdateModal = ({
       hoursChanged ||
       waitTimeChanged ||
       imageChanged;
-
-    console.log(anyChanges);
 
     setChangesExist(anyChanges);
   };
@@ -194,60 +199,89 @@ const OutletUpdateModal = ({
       return;
     } else {
       const time = minsToMs(parsedDefaultEstWaitTime);
+      console.log("Was there a change in default estimate wait time? ", time);
       setDefaultEstWaitTimeMS(time);
     }
 
-    let forView = {};
+    let payload = {};
     const hasFileToUpload = imgFile !== null;
     let dataToSubmit;
-    dataToSubmit = new FormData();
 
     if (hasFileToUpload) {
-      forView.imgUrl = imgFile;
+      dataToSubmit = new FormData();
+
       dataToSubmit.append("outletImage", imgFile);
-    }
-
-    if (outletData.name !== name) {
-      dataToSubmit.append("name", name);
-      forView.name = name;
-    }
-    if (outletData.location !== location) {
-      dataToSubmit.append("location", location);
-      forView.location = location;
-    }
-    if (outletData.googleMaps !== googleMaps) {
-      if (wazeMaps.trim() !== "") {
-        dataToSubmit.append("googleMaps", googleMaps);
-        forView.googleMaps = googleMaps;
+      if (outletData.name !== name) {
+        dataToSubmit.append("name", name);
+      }
+      if (outletData.location !== location) {
+        dataToSubmit.append("location", location);
+      }
+      if (outletData.googleMaps !== googleMaps) {
+        if (wazeMaps.trim() !== "") {
+          dataToSubmit.append("googleMaps", googleMaps);
+        }
+      }
+      if (outletData.wazeMaps !== wazeMaps) {
+        if (wazeMaps.trim() !== "") {
+          dataToSubmit.append("wazeMaps", wazeMaps);
+        }
+      }
+      if (
+        msToMins(outletData.defaultEstWaitTime) !== parsedDefaultEstWaitTime
+      ) {
+        console.log(
+          "This is what we are sending:defaultEstWaitTime ",
+          defaultEstWaitTimeMS
+        );
+        dataToSubmit.append("defaultEstWaitTime", defaultEstWaitTimeMS);
+      }
+      if (outletData.hours !== hours) {
+        dataToSubmit.append("hours", hours);
+      }
+      if (outletData.phone !== phone) {
+        dataToSubmit.append("phone", phone);
+      }
+    } else {
+      if (outletData.name !== name) {
+        payload.name = name;
+      }
+      if (outletData.location !== location) {
+        payload.location = location;
+      }
+      if (outletData.googleMaps !== googleMaps) {
+        if (wazeMaps.trim() !== "") {
+          payload.googleMaps = googleMaps;
+        }
+      }
+      if (outletData.wazeMaps !== wazeMaps) {
+        if (wazeMaps.trim() !== "") {
+          payload.wazeMaps = wazeMaps;
+        }
+      }
+      if (
+        msToMins(outletData.defaultEstWaitTime) !== parsedDefaultEstWaitTime
+      ) {
+        console.log(
+          "This is what we are sending:defaultEstWaitTime ",
+          defaultEstWaitTimeMS
+        );
+        payload.defaultEstWaitTime = defaultEstWaitTimeMS;
+      }
+      if (outletData.hours !== hours) {
+        payload.hours = hours;
+      }
+      if (outletData.phone !== phone) {
+        payload.phone = phone;
       }
     }
-    if (outletData.wazeMaps !== wazeMaps) {
-      if (wazeMaps.trim() !== "") {
-        dataToSubmit.append("wazeMaps", wazeMaps);
-        forView.wazeMaps = wazeMaps;
-      }
-    }
-    if (msToMins(outletData.defaultEstWaitTime) !== parsedDefaultEstWaitTime) {
-      dataToSubmit.append("defaultEstWaitTime", defaultEstWaitTimeMS);
-      forView.defaultEstWaitTime = defaultEstWaitTimeMS;
-    }
-    if (outletData.hours !== hours) {
-      dataToSubmit.append("hours", hours);
-      forView.hours = hours;
-    }
-    if (outletData.phone !== phone) {
-      dataToSubmit.append("phone", phone);
-      forView.phone = phone;
-    }
 
-    console.log("THis is the data to submit for view: ", forView);
-    console.log("This is the data to submit: ", dataToSubmit);
+    console.log("THis is the data to submit for payload: ", payload);
+    console.log("This is the data to submit for form data: ", dataToSubmit);
 
-    let hasContent = false;
-    for (let pair of dataToSubmit.entries()) {
-      hasContent = true;
-      break;
-    }
+    const hasContent = hasFileToUpload
+      ? [...dataToSubmit.entries()].length > 0
+      : Object.keys(payload).length > 0;
 
     if (!hasContent) {
       setErrors({ general: "No changes detected to update." });
@@ -258,20 +292,31 @@ const OutletUpdateModal = ({
       console.log("Trying to patch to :", accountId, outletData.id);
       setIsLoading(true);
       setShowImgUploadModal(false);
-      const res = await interceptedApiPrivate.patch(
-        `/updateOutlet/${accountId}/${outletData.id}/outlet_image`,
-        dataToSubmit,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      let res;
+      if (hasFileToUpload) {
+        res = await interceptedApiPrivate.patch(
+          `/updateOutlet/${accountId}/${outletData.id}/outlet_image`,
+          dataToSubmit,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+      } else {
+        res = await interceptedApiPrivate.patch(
+          `/updateOutlet/${accountId}/${outletData.id}/outlet_image`,
+          payload
+        );
+      }
       console.log(res.status);
-      if (res?.status === 201) {
+      if (res?.status === 201 || res?.status === 200) {
         console.log("Outlet updated successfully:", res.data);
         setIsLoading(false);
         setShowAuthModal(false);
+        if (nameChanged) {
+          setReloadNav(!reloadNav);
+        }
         onUpdateSuccess(res.data);
       } else {
         setIsLoading(false);
@@ -323,6 +368,7 @@ const OutletUpdateModal = ({
     setImgUrlError(false);
     setImgFileError(false);
     setChangesExist(false);
+    setNameChanged(false);
   };
   const toggleModal = () => {
     setShowImgUploadModal(!showImgUploadModal);
@@ -332,19 +378,44 @@ const OutletUpdateModal = ({
       replace: true,
     });
   };
+
+  //TODO: ADD A CTRL-S HANDLES UPDATE
+
   if (view === "modal" && !isLoading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-        <div className="justify-self-center pb-10 w-[90%] md:w-md my-10 bg-primary-cream rounded-3xl p-5 relative max-h-[90vh] overflow-y-auto">
-          <button
-            className="text-red-700 font-semibold absolute top-0 right-0 p-5 hover:text-red-900 transition ease-in cursor-pointer"
-            onClick={onClose}
-          >
-            X
-          </button>
+        <div className="relative w-[90%] md:w-md my-10 bg-primary-cream rounded-3xl p-5 max-h-[90vh] overflow-y-auto">
+          <div className="sticky top-0 -mr-2 flex justify-end ">
+            <button
+              className="text-red-700 font-semibold px-5 py-3.5 hover:text-red-900 transition ease-in cursor-pointer bg-transparent border-1 rounded-full hover:border-red-900 border-transparent hover:bg-primary-cream"
+              onClick={onClose}
+            >
+              X
+            </button>
+          </div>
+
           <h1 className="text-2xl font-light text-center">
             Updating Your Outlet Details
           </h1>
+          {showAuthModal && (
+            <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+              <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
+                <button
+                  onClick={handleAuthModalClose}
+                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
+                >
+                  &times;
+                </button>
+                <AuthorisedUser
+                  onSuccess={updateOutletAllowed}
+                  onFailure={handleAuthModalClose}
+                  actionPurpose="Update Outlet Data" // Changed actionPurpose for clarity
+                  minimumRole="MANAGER"
+                  outletId={outletData.id}
+                />
+              </div>
+            </div>
+          )}
           <form className="mt-5" onSubmit={handleUpdate}>
             <div className={inputDivClass}>
               <label htmlFor="name" className={labelClass}>
@@ -355,7 +426,10 @@ const OutletUpdateModal = ({
                 type="text"
                 className={inputClass(nameError) + " w-full "}
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setNameChanged(true);
+                }}
                 required
               />
               {nameError && errors.name && (
@@ -532,7 +606,7 @@ const OutletUpdateModal = ({
 
             <div className="flex justify-center mt-5">
               <button
-                type="submit"
+                onClick={(e) => handleUpdate(e)}
                 className={
                   buttonClass +
                   " bg-primary-green hover:bg-primary-dark-green mr-3"
@@ -553,7 +627,14 @@ const OutletUpdateModal = ({
       </div>
     );
   }
-
+  if (isLoading) {
+    return (
+      <Loading
+        title={"Update Outlet Information"}
+        paragraph={"Do Not Navigate Away. Please Wait. "}
+      />
+    );
+  }
   if (view === "full" && !isLoading) {
     return (
       <div className="relative">
@@ -571,6 +652,7 @@ const OutletUpdateModal = ({
                 onFailure={handleAuthModalClose}
                 actionPurpose="Update Outlet Data" // Changed actionPurpose for clarity
                 minimumRole="MANAGER"
+                outletId={outletData.id}
               />
             </div>
           </div>
@@ -592,7 +674,8 @@ const OutletUpdateModal = ({
               onClick={handleNavigateAuditLog}
               className="hover:text-primary-green transition ease-in cursor-pointer"
             >
-              <i className="fa-solid fa-clipboard pr-2"></i> Audit Logs
+              <i className="fa-solid fa-clipboard pr-2"></i>
+              Outlet Audit Logs
             </button>
           </div>
 
@@ -608,7 +691,7 @@ const OutletUpdateModal = ({
             location={window.location.pathname}
           />
         </div>
-        <form className="mt-2">
+        <form className="mt-2 mb-5">
           <div className={inputDivClass}>
             <label htmlFor="outletName" className={labelClass}>
               Name:*
@@ -783,35 +866,27 @@ const OutletUpdateModal = ({
             <p className={errorClass + " mt-3"}>{errors.general}</p>
           )}
           <p>* indicate required fields</p>
-
-          <div className="flex justify-center mt-5 " ref={bottomRef}>
-            <button
-              onClick={(e) => handleUpdate(e)}
-              className={
-                buttonClass +
-                " bg-primary-green hover:bg-primary-dark-green mr-3"
-              }
-            >
-              Submit Update
-            </button>
-            <button
-              className={buttonClass + " bg-red-700 hover:bg-red-900"}
-              onClick={handleReset}
-            >
-              Reset Form
-            </button>
-          </div>
         </form>
+        <div
+          className="flex justify-center sticky bottom-0 pb-2 bg-primary-cream "
+          ref={bottomRef}
+        >
+          <button
+            onClick={(e) => handleUpdate(e)}
+            className={
+              buttonClass + " bg-primary-green hover:bg-primary-dark-green mr-3"
+            }
+          >
+            Submit Update
+          </button>
+          <button
+            className={buttonClass + " bg-red-700 hover:bg-red-900"}
+            onClick={handleReset}
+          >
+            Reset Form
+          </button>
+        </div>
       </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <Loading
-        title={"Update Outlet Information"}
-        paragraph={"Do Not Navigate Away. Please Wait. "}
-      />
     );
   }
 };

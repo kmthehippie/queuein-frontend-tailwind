@@ -6,11 +6,11 @@ import useApiPrivate from "../../hooks/useApiPrivate";
 import AuthorisedUser from "./AuthorisedUser";
 import useAuth from "../../hooks/useAuth";
 import QRCode from "../../components/QRCodeButton";
-import { numericalSort, alphabeticalSort } from "../../utils/sortList";
+import { numericalSort } from "../../utils/sortList";
 
 const AllOutlets = () => {
   // Functional States
-  const { isAuthenticated, accountId, setReloadNav, reloadNav } = useAuth();
+  const { isAuthenticated, accountId } = useAuth();
   const apiPrivate = useApiPrivate();
 
   const [outlets, setOutlets] = useState([]);
@@ -38,6 +38,7 @@ const AllOutlets = () => {
 
   const handleUpdateSuccess = (updatedOutlet) => {
     setRefreshTrigger((prev) => !prev);
+    setShowModal(!showModal);
   };
 
   const handleAuthModalClose = () => {
@@ -82,7 +83,6 @@ const AllOutlets = () => {
           const sort = numericalSort(res.data);
           setOutlets(sort);
           setAcctName(sort[0].account.companyName);
-          setReloadNav();
         }
       } catch (error) {
         console.error(error);
@@ -108,6 +108,7 @@ const AllOutlets = () => {
               onFailure={handleAuthModalClose}
               actionPurpose="Delete Outlet"
               minimumRole="MANAGER"
+              outletId={selectedOutletData.id}
             />
           </div>
         </div>

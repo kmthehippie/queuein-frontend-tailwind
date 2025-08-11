@@ -7,6 +7,7 @@ const AuthorizedUser = ({
   onFailure,
   actionPurpose,
   minimumRole,
+  outletId,
 }) => {
   const [name, setName] = useState("");
   const [nameError, setNameError] = useState(false);
@@ -42,7 +43,10 @@ const AuthorizedUser = ({
         password: password,
         actionPurpose: actionPurpose,
         minimumRole: minimumRole,
+        outletId: outletId ? outletId : null,
       };
+      console.log("This is the data to submit to authorise role: ", data);
+
       const res = await apiPrivate.post(
         `/authorisedRole/${params.accountId}`,
         data
@@ -56,6 +60,7 @@ const AuthorizedUser = ({
         };
         onSuccess(info);
       } else {
+        console.log("Something went wrong, status is not 200");
         onFailure();
       }
       console.log(res);
@@ -68,6 +73,7 @@ const AuthorizedUser = ({
     <div>
       <h1 className="pb-1">This is a security measure.</h1>
       {JSON.stringify(actionPurpose)}
+      {JSON.stringify(outletId)}
       <p className="text-sm font-semibold pb-2">
         Please let us know who you are
       </p>
@@ -77,12 +83,12 @@ const AuthorizedUser = ({
 
       <form onSubmit={handleSubmit} className="space-y-4 mt-2">
         <div>
-          <label htmlFor="name" className={labelClass}>
+          <label htmlFor="staff_name" className={labelClass}>
             Name
           </label>
           <input
-            id="name"
-            type="name"
+            id="staff_name"
+            type="text"
             placeholder="Enter your name"
             className={inputClass(!!nameError)} // Use the function
             onChange={(e) => {
