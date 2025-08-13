@@ -71,7 +71,6 @@ const JoinQueue = () => {
       });
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setValidationError("");

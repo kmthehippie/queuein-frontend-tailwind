@@ -19,10 +19,10 @@ const AccountLanding = () => {
       setErrors("");
       try {
         const res = await api.get(`/landingPage/${acctSlug}`);
-        console.log("res returned", res.data);
         if (res?.data?.accountInfo) {
           setCompanyName(res.data.accountInfo.companyName);
           setLogoUrl(res.data.accountInfo.logo);
+          console.log("Outlets with queue: ", res?.data?.outletsWithQueue);
           setOutlets(res.data.outletsWithQueue || []);
         }
         setLoading(false);
@@ -36,7 +36,7 @@ const AccountLanding = () => {
       }
     };
     fetchLandingPageData();
-  }, [acctSlug]);
+  }, []);
 
   if (loading) {
     return <div>Loading Information...</div>;

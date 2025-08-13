@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import api from "../../api/axios";
 import Error from "../Error";
 import moment from "moment";
@@ -13,11 +13,21 @@ const OutletLanding = () => {
   const [statusClass, setStatusClass] = useState("");
   const [lastUpdated, setLastUpdate] = useState(new Date());
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showJoinButton, setShowJoinButton] = useState(false);
 
   const { acctSlug, outletId } = useParams();
 
   const [errors, setErrors] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("source") === "qr") {
+      setShowJoinButton(true);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     if (queueItemsLength > 5) {
@@ -51,14 +61,13 @@ const OutletLanding = () => {
 
     try {
       const res = await api.get(`/outletLandingPage/${acctSlug}/${outletId}`);
-
       if (res?.data) {
         setAccountInfo(res?.data?.accountInfo);
         setOutlet(res?.data?.outlet);
         if (res?.data?.queue) {
           console.log("Data from outlet landing page: ", res.data);
           setQueue(res?.data?.queue[0]);
-          setQueueItemsLength(res?.data?.queueItemsLength || "0");
+          setQueueItemsLength(res?.data?.activeItemsLength || "0");
         }
         setLastUpdate(new Date());
       }
@@ -90,7 +99,7 @@ const OutletLanding = () => {
       clearInterval(timeIntervalId);
       clearInterval(dataFetchInterval);
     };
-  }, [outletId]);
+  }, []);
 
   if (errors) {
     return <Error error={errors} />;
@@ -203,7 +212,7 @@ const OutletLanding = () => {
               </div>
             </div>
           </div>
-          {queue && (
+          {queue && showJoinButton && (
             <div className="p-4 text-center col-span-2">
               <div className="font-bold text-xl mb-3">
                 <h1>Save your spot! </h1>
