@@ -83,22 +83,24 @@ const OutletLanding = () => {
   };
 
   useEffect(() => {
-    const timeIntervalId = setInterval(() => {
-      setCurrentTime(new Date());
-      console.log(formatLastUpdated(currentTime));
-    }, 30000);
+    if (showJoinButton) {
+      const timeIntervalId = setInterval(() => {
+        setCurrentTime(new Date());
+        console.log(formatLastUpdated(currentTime));
+      }, 30000);
 
-    const dataFetchInterval = setInterval(() => {
-      fetchOutletLandingPageData();
-      console.log("Fetching data due to set interval");
-    }, 150000);
+      const dataFetchInterval = setInterval(() => {
+        fetchOutletLandingPageData();
+        console.log("Fetching data due to set interval");
+      }, 150000);
 
-    fetchOutletLandingPageData(); // Initial fetch if no queueId
-    return () => {
-      console.log("clearing intervals");
-      clearInterval(timeIntervalId);
-      clearInterval(dataFetchInterval);
-    };
+      return () => {
+        console.log("clearing intervals");
+        clearInterval(timeIntervalId);
+        clearInterval(dataFetchInterval);
+      };
+    }
+    fetchOutletLandingPageData();
   }, []);
 
   if (errors) {

@@ -21,11 +21,11 @@ const Toast = ({ id, content, type, duration, sticky, close }) => {
     warning: "bg-yellow-500 border-yellow-600 text-gray-800",
   };
   const baseClasses = `
-  p-4 rounded-lg // Added shadow and top border for distinction
+  p-4 rounded-lg
   text-white font-medium
-  flex items-start justify-between gap-4 // Use items-start for better alignment with longer content
-  transition-all duration-300 ease-out // For smooth entry/exit
-  max-w-xs w-full pointer-events-auto // Allows clicks on the toast itself
+  flex items-start justify-between gap-4 
+  transition-all duration-300 ease-out 
+  max-w-xs w-full pointer-events-auto 
 `;
   const animationClasses = isVisible
     ? "opacity-100 translate-y-full"

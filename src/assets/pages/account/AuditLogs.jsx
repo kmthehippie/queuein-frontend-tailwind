@@ -69,15 +69,15 @@ const AuditLogs = ({ selectedId, outletName }) => {
           {/* Table Headers for large screens */}
 
           <div className="hidden lg:grid lg:grid-cols-3 font-bold text-gray-600 mb-2 text-center">
-            <div>Action Type</div>
             <div>Created On</div>
+            <div>Action Type</div>
             <div>Done By</div>
           </div>
 
           {/* Audit Log entries */}
           {auditLogs.map((auditLog) => (
             <div
-              className="p-3 mb-3 lg:p-0 lg:m-0 lg:grid lg:grid-cols-3 border-1 lg:border-0"
+              className="p-3 mb-3 lg:p-0 lg:m-0 lg:grid lg:grid-cols-3 border-3 lg:border-primary-cream even:bg-primary-cream odd:bg-secondary-gray hover:border-primary-light-green hover:border-3"
               key={auditLog.id}
             >
               <div className="mb-1 lg:mb-1">

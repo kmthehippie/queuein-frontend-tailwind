@@ -13,6 +13,7 @@ const AuthorizedUser = ({
   const [nameError, setNameError] = useState(false);
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [capslockOn, setCapslockOn] = useState(false);
   const [errors, setErrors] = useState("");
   const params = useParams();
   const apiPrivate = useApiPrivate();
@@ -24,6 +25,9 @@ const AuthorizedUser = ({
   const buttonClass = `mt-3 transition ease-in text-white font-light bg-primary-green py-2 px-4 rounded-2xl cursor-pointer focus:outline-none focus:shadow-outline min-w-20`;
   const errorClass = `text-red-600 text-center`;
 
+  const handleCheckCapsLock = (e) => {
+    setCapslockOn(e.getModifierState("CapsLock"));
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (name.length === 0) {
@@ -72,8 +76,7 @@ const AuthorizedUser = ({
   return (
     <div>
       <h1 className="pb-1">This is a security measure.</h1>
-      {JSON.stringify(actionPurpose)}
-      {JSON.stringify(outletId)}
+
       <p className="text-sm font-semibold pb-2">
         Please let us know who you are
       </p>
@@ -98,6 +101,7 @@ const AuthorizedUser = ({
           />
           <small>Capitalization Matters!</small>
         </div>
+
         <div>
           <label htmlFor="password" className={labelClass}>
             Password
@@ -110,8 +114,12 @@ const AuthorizedUser = ({
             onChange={(e) => {
               setPassword(e.target.value);
             }}
+            onKeyUp={handleCheckCapsLock}
             autoComplete="password"
           />
+          {capslockOn && (
+            <div className="text-xs text-red-700">Your CAPSLOCK is on.</div>
+          )}
         </div>
         {errors && <p className={errorClass}>{errors.general}</p>}
         <button onClick={handleSubmit} className={buttonClass}>

@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(async () => {
     console.log("Logging out!");
     try {
-      const response = await apiPrivate.post("/logout");
+      const response = await apiPrivate.post(`/logout/${accountId}`);
       if (response.status === 200 || response.status === 204) {
         console.log("Logout successfully.");
       }

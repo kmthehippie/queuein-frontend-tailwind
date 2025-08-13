@@ -308,8 +308,11 @@ const JoinQueue = () => {
                 htmlFor="vip"
                 className="ms-2 text-xs font-light text-gray-600 pl-1 md:pl-3"
               >
-                Join our VIP list! By providing your consent, we'll retain your
-                phone number to send you exclusive offers and updates.
+                Join our VIP list! By providing your consent,{" "}
+                <span className="font-bold">
+                  we will retain your phone number
+                </span>{" "}
+                to send you exclusive offers and updates.
               </label>
             </div>
           </div>

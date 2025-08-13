@@ -140,12 +140,10 @@ const IndividualOutlet = () => {
   }
 
   return (
-    <div className="flex items-center justify-center md:w-full md:h-full pt-12">
-      <div className="w-[90%] h-[90%] rounded-2xl p-5 m-1 bg-primary-cream/50 shadow-lg text-left relative">
+    <div className="flex items-center justify-center md:w-full  ">
+      <div className="w-[90%] h-[90%] rounded-2xl p-5 m-1 bg-primary-cream/50 shadow-lg text-left relative my-8 ">
         <h1 className="font-semibold text-2xl pb-2">{outletName}</h1>
-
         <Outlet />
-
         {/* Conditionally render the modal only if showAuthModalState is an object with onSuccess */}
         {showAuthModalState &&
           typeof showAuthModalState === "object" &&

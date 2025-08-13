@@ -13,7 +13,7 @@ const Login = () => {
   const [passwordError, setPasswordError] = useState("");
   const [emailError, setEmailError] = useState(""); // Add state for email error
   const [errors, setErrors] = useState(""); // Changed from errors to generalError
-
+  const [capslockOn, setCapslockOn] = useState(false);
   const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800`;
   const inputClass = (
     hasError // Changed inputClass to be a function
@@ -24,7 +24,9 @@ const Login = () => {
   const checkBoxClass = `w-6 h-6 rounded-lg accent-primary-green hover:accent-primary-light-green text-primary-green focus:ring-2 ring-primary-light-green border-primary-dark-green`;
   const buttonClass = `bg-primary-green mt-3 hover:bg-primary-dark-green w-full transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline`;
   const linkClass = `text-primary-green hover:text-primary-dark-green transition ease-in`;
-
+  const handleCheckCapsLock = (e) => {
+    setCapslockOn(e.getModifierState("CapsLock"));
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors(""); // Clear general error on new submission
@@ -124,8 +126,12 @@ const Login = () => {
                 onChange={(e) => {
                   setPassword(e.target.value);
                 }}
+                onKeyUp={handleCheckCapsLock}
                 autoComplete="password"
               />
+              {capslockOn && (
+                <div className="text-xs text-red-700">Your CAPSLOCK is on.</div>
+              )}
               {passwordError && <p className={errorClass}>{passwordError}</p>}{" "}
               {/* Show password error */}
             </div>

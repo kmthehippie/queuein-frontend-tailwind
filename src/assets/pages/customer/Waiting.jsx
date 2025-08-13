@@ -46,16 +46,11 @@ const Waiting = () => {
   const [noShow, setNoShow] = useState(false);
 
   //PERMISSION FOR NOTIFICATION
-  const [notificationPermission, setNotificationPermission] = useState(
-    Notification.permission
-  );
+  const [notificationPermission, setNotificationPermission] = useState(false);
 
   //* useStuff
   const navigate = useNavigate();
   const location = useLocation();
-
-  //? What is this useQueueSession for??? Why can't I just grab data from the localstorage context? Isn't that the point of a local storage context????
-
   const { queueData, isLoadingSession } = useQueueSession(location.state?.data);
 
   //* Helper functions
@@ -104,6 +99,7 @@ const Waiting = () => {
       setEwt(queueData.outlet.defaultEstWaitTime);
       setDataLoaded(true);
     }
+    setNotificationPermission(Notification.permission);
   }, [queueData]);
 
   //* HANDLE INTERACTION
@@ -116,6 +112,7 @@ const Waiting = () => {
           .play()
           .catch((e) => console.error("Audio playback failed: ", e));
         setUserInteracted(true);
+        setNotificationPermission(Notification.permission);
       }
     };
 
@@ -178,7 +175,17 @@ const Waiting = () => {
   useEffect(() => {
     console.log("Does isConnected exist in socket?", isConnected, queueItem);
     if (socket && isConnected && queueItem) {
-      socket.emit("join_queue", `queue_${queueItem.queueId}`);
+      console.log(
+        "Just joined queue with: ",
+        `queue_${queueItem.queueId}`,
+        queueItem.name,
+        queueItem.pax
+      );
+      socket.emit("join_queue", {
+        queueId: `queue_${queueItem.queueId}`,
+        customerName: queueItem.name,
+        customerPax: queueItem.pax,
+      });
       socket.emit("set_queue_item_id", queueItem.id);
       socket.emit("join_queue_item_id", `queueitem_${queueItem.id}`);
       socket.emit("cust_req_queue_refresh", queueItem.queueId);
@@ -194,7 +201,6 @@ const Waiting = () => {
       return () => clearTimeout(timer); // Cleanup the timer
     }
   }, [socket, isConnected, queueItem?.queueId, queueItem?.customerId]);
-
   useEffect(() => {
     if (dataLoaded && queueItem !== null && !!socket && isConnected) {
       const called = () => {
@@ -227,7 +233,6 @@ const Waiting = () => {
           setModalCalled(false);
         }
       };
-
       const handleSeatedUpdate = (data) => {
         console.log("Handling seated", data);
         if (
@@ -242,7 +247,6 @@ const Waiting = () => {
           setInactive(false);
         }
       };
-
       const handleNoShowUpdate = (data) => {
         if (
           data.alert &&
@@ -288,7 +292,6 @@ const Waiting = () => {
         setPax(data.pax);
         handleCalledUpdate(data);
       });
-
       socket.on("res_queue_refresh", (data) => {
         console.log("Res queue refresh receiving data from Sockets", data);
         if (data.inactive) {
@@ -336,11 +339,12 @@ const Waiting = () => {
     isConnected,
   ]);
 
+  //* HANDLE STUFF
+
   const leaveQueue = async (e) => {
     e.preventDefault();
     setModalLeave(true);
   };
-
   const handleLeaveQueue = async (e) => {
     e.preventDefault();
 
@@ -371,12 +375,10 @@ const Waiting = () => {
       console.error(error);
     }
   };
-
   const paxUpdate = (e) => {
     e.preventDefault();
     setModalUpdate(true);
   };
-
   const handlePaxUpdate = async (e) => {
     e.preventDefault();
 
@@ -405,7 +407,6 @@ const Waiting = () => {
     setModalUpdate(false);
     setNewPax("");
   };
-
   const handleJustLoadedPage = () => {
     console.log("Just loaded complete.");
     setJustLoadPage(false);

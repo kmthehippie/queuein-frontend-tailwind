@@ -22,7 +22,7 @@ const Register = () => {
   const [errors, setErrors] = useState("");
   const [emailSame, setEmailSame] = useState(false);
   const [passwordSame, setPasswordSame] = useState(false);
-
+  const [capslockOn, setCapslockOn] = useState(false);
   //Use hooks imported
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -50,6 +50,9 @@ const Register = () => {
     }
   }, [passwordSame, companyPassword]);
 
+  const handleCheckCapsLock = (e) => {
+    setCapslockOn(e.getModifierState("CapsLock"));
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setConfirmCompanyPasswordError("");
@@ -232,9 +235,15 @@ const Register = () => {
                   onChange={(e) => {
                     setCompanyPassword(e.target.value);
                   }}
+                  onKeyUp={handleCheckCapsLock}
                   autoComplete="password"
                   required
                 />
+                {capslockOn && (
+                  <div className="text-xs text-red-700">
+                    Your CAPSLOCK is on.
+                  </div>
+                )}
               </div>
               <div>
                 <label htmlFor="cfm-company-password" className={labelClass}>
@@ -248,9 +257,15 @@ const Register = () => {
                   onChange={(e) => {
                     setCompanyCfmPassword(e.target.value);
                   }}
+                  onKeyUp={handleCheckCapsLock}
                   autoComplete="password"
                   required
                 />
+                {capslockOn && (
+                  <div className="text-xs text-red-700">
+                    Your CAPSLOCK is on.
+                  </div>
+                )}
               </div>
               <div className="flex items-center m-2">
                 <input
@@ -314,8 +329,14 @@ const Register = () => {
                   onChange={(e) => {
                     setOwnerPassword(e.target.value);
                   }}
+                  onKeyUp={handleCheckCapsLock}
                   autoComplete="password"
                 />
+                {capslockOn && (
+                  <div className="text-xs text-red-700">
+                    Your CAPSLOCK is on.
+                  </div>
+                )}
               </div>
             </div>
           </form>

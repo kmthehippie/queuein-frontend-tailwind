@@ -6,6 +6,7 @@ import SocketContext from "../../context/SocketContext";
 import useApiPrivate from "../../hooks/useApiPrivate";
 import useAuth from "../../hooks/useAuth";
 import AuthorisedUser from "./AuthorisedUser";
+import useToast from "../../hooks/useToast";
 
 const ActiveOutlet = () => {
   const { socket, isConnected } = useContext(SocketContext);
@@ -13,6 +14,7 @@ const ActiveOutlet = () => {
   const params = useParams();
   const location = useLocation();
   const apiPrivate = useApiPrivate();
+  const toast = useToast();
   const { staffInfo } = location.state || {}; // Ensure it's an object, even if empty
 
   const [activeQueue, setActiveQueue] = useState(true);
@@ -96,7 +98,6 @@ const ActiveOutlet = () => {
     };
     activeQueueItems();
   }, [isAuthenticated, params.queueId, apiPrivate]);
-
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
     const handleMediaQueryChange = (e) => setLg(e.matches);
@@ -118,37 +119,58 @@ const ActiveOutlet = () => {
         accountId: params.accountId,
         queueId: params.queueId,
       };
-
+      console.log("Trying to emit staff info ", infoForSocket);
       socket.emit("set_staff_info", infoForSocket);
-
       const handleHostQueueUpdate = (data) => {
         if (data) {
           setQueueItems(data);
         }
       };
-
-      socket.on("host_queue_update", handleHostQueueUpdate);
+      //! CUSTOMER NOT JOINING
+      const customerJoined = (dataToEmit) => {
+        console.log("Customer joined: ", dataToEmit);
+        if ("Notification" in window && Notification.permission === "granted") {
+          const audio = new Audio("/Ding.mp3");
+          audio
+            .play()
+            .catch((e) => console.error("Audio playback failed: ", e));
+          new Notification("New customer!", {
+            body: `There is a new customer ${dataToEmit.customerName}: ${dataToEmit.pax} pax that just joined the queue`,
+            vibrate: [200, 100, 200, 100, 200],
+          });
+        }
+      };
+      const paxChanged = (dataToEmit) => {
+        if ("Notification" in window && Notification.permission === "granted") {
+          const audio = new Audio("/Ding.mp3");
+          audio
+            .play()
+            .catch((e) => console.error("Audio playback failed: ", e));
+          new Notification(`Change of Pax!`, {
+            body: `${dataToEmit.customerName} changed pax to ${dataToEmit.pax} people!`,
+            vibrate: [200, 100, 200, 100, 200],
+          });
+        }
+      };
+      socket.on("new_customer_joined", handleHostQueueUpdate, customerJoined);
+      socket.on("customer_pax_changed", handleHostQueueUpdate, paxChanged);
 
       return () => {
         socket.off("host_queue_update", handleHostQueueUpdate);
       };
     }
-  }, [
-    socket,
-    isConnected,
-    JSON.stringify(staffInfo),
-    params.outletId,
-    params.accountId,
-    params.queueId,
-    setQueueItems,
-  ]);
+  }, [socket, isConnected, params.outletId, params.accountId, params.queueId]);
+
+  useEffect(() => {
+    //if notificationPermission === "granted" then we open a toast to say notifications are active. We will update you when a customer joins the queue or changes the pax
+    //Else just create a toast that says there is no notifications.
+  }, []);
 
   //HANDLES
   const handleAddCustomer = useCallback((e) => {
     e.preventDefault();
     setCreateCustomerModal(true);
   }, []);
-
   const handleCalled = useCallback(
     async (e, id) => {
       const newCalledStatus = e.target.checked;
