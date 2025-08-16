@@ -15,14 +15,12 @@ const AccountLanding = () => {
   useEffect(() => {
     const fetchLandingPageData = async () => {
       setLoading(true);
-      console.log("Fetching landing page");
       setErrors("");
       try {
         const res = await api.get(`/landingPage/${acctSlug}`);
         if (res?.data?.accountInfo) {
           setCompanyName(res.data.accountInfo.companyName);
           setLogoUrl(res.data.accountInfo.logo);
-          console.log("Outlets with queue: ", res?.data?.outletsWithQueue);
           setOutlets(res.data.outletsWithQueue || []);
         }
         setLoading(false);

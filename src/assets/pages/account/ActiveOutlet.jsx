@@ -27,6 +27,8 @@ const ActiveOutlet = () => {
   const [errors, setErrors] = useState("");
   const [currentTime, setCurrentTime] = useState(moment());
 
+  const [userInteracted, setUserInteracted] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState(false);
   //HELPER FUNCTION
   const convertedTime = (date) => moment(date).fromNow();
 
@@ -36,6 +38,7 @@ const ActiveOutlet = () => {
   const activeTableAnswer = `flex items-center justify-center text-sm `;
   const landscapeHeaderClass = `border-l-1 border-t-1 border-b-1 border-r-1 border-primary-green p-1`;
   const errorClass = `text-red-600 text-center`;
+  const [highlightedItem, setHighlightedItem] = useState(null);
   const getWaitingTimeClass = useCallback(
     (date) => {
       const createdAt = moment(date);
@@ -107,10 +110,49 @@ const ActiveOutlet = () => {
       mediaQuery.removeEventListener("change", handleMediaQueryChange);
   }, []);
 
+  //HANDLE INTERACTION FOR NOTIFICATIONS
+  //* HANDLE INTERACTION
+  const handleUserInteraction = () => {
+    if (!userInteracted) {
+      const silentAudio = new Audio("/Ding.mp3");
+      silentAudio.volume = 0;
+      silentAudio
+        .play()
+        .catch((e) => console.error("Audio playback failed: ", e));
+      setUserInteracted(true);
+    }
+  };
+
+  useEffect(() => {
+    setNotificationPermission(Notification.permission);
+    document.addEventListener("click", handleUserInteraction, { once: true });
+    document.addEventListener("touchstart", handleUserInteraction, {
+      once: true,
+    });
+    document.addEventListener("keydown", handleUserInteraction, { once: true });
+    document.addEventListener("scroll", handleUserInteraction, { once: true });
+
+    return () => {
+      document.removeEventListener("click", handleUserInteraction, {
+        once: true,
+      });
+      document.removeEventListener("touchstart", handleUserInteraction, {
+        once: true,
+      });
+      document.removeEventListener("keydown", handleUserInteraction, {
+        once: true,
+      });
+      document.removeEventListener("scroll", handleUserInteraction, {
+        once: true,
+      });
+    };
+  }, [userInteracted]);
+
   //SOCKET HERE
+  //EMIT
   useEffect(() => {
     if (socket && isConnected) {
-      socket.emit("join_queue", `queue_${params.queueId}`);
+      // socket.emit("join_queue", `queue_${params.queueId}`);
       const infoForSocket = {
         staffId: staffInfo.staffId,
         staffRole: staffInfo.staffRole,
@@ -119,52 +161,73 @@ const ActiveOutlet = () => {
         accountId: params.accountId,
         queueId: params.queueId,
       };
-      console.log("Trying to emit staff info ", infoForSocket);
       socket.emit("set_staff_info", infoForSocket);
-      const handleHostQueueUpdate = (data) => {
-        if (data) {
-          setQueueItems(data);
-        }
-      };
-      //! CUSTOMER NOT JOINING
-      const customerJoined = (dataToEmit) => {
-        console.log("Customer joined: ", dataToEmit);
-        if ("Notification" in window && Notification.permission === "granted") {
-          const audio = new Audio("/Ding.mp3");
-          audio
-            .play()
-            .catch((e) => console.error("Audio playback failed: ", e));
-          new Notification("New customer!", {
-            body: `There is a new customer ${dataToEmit.customerName}: ${dataToEmit.pax} pax that just joined the queue`,
-            vibrate: [200, 100, 200, 100, 200],
-          });
-        }
-      };
-      const paxChanged = (dataToEmit) => {
-        if ("Notification" in window && Notification.permission === "granted") {
-          const audio = new Audio("/Ding.mp3");
-          audio
-            .play()
-            .catch((e) => console.error("Audio playback failed: ", e));
-          new Notification(`Change of Pax!`, {
-            body: `${dataToEmit.customerName} changed pax to ${dataToEmit.pax} people!`,
-            vibrate: [200, 100, 200, 100, 200],
-          });
-        }
-      };
-      socket.on("new_customer_joined", handleHostQueueUpdate, customerJoined);
-      socket.on("customer_pax_changed", handleHostQueueUpdate, paxChanged);
-
-      return () => {
-        socket.off("host_queue_update", handleHostQueueUpdate);
-      };
+      socket.emit("join_host", `host_${params.queueId}`);
     }
   }, [socket, isConnected, params.outletId, params.accountId, params.queueId]);
-
+  //LISTEN
   useEffect(() => {
     //if notificationPermission === "granted" then we open a toast to say notifications are active. We will update you when a customer joins the queue or changes the pax
     //Else just create a toast that says there is no notifications.
-  }, []);
+    if (socket && isConnected) {
+      const alert = (header, body) => {
+        if ("Notification" in window && Notification.permission === "granted") {
+          const audio = new Audio("/Ding.mp3");
+          audio
+            .play()
+            .catch((e) => console.error("Audio playback failed: ", e));
+          new Notification(header, {
+            body: body,
+            vibrate: [200, 100],
+          });
+        }
+      };
+      const handleHostQueueUpdate = (data) => {
+        if (data) {
+          setQueueItems(data.queueItems);
+          if (data.notice && data.notice.action === "pax") {
+            const newQueueItems = data.queueItems;
+            const newQueueItem = newQueueItems.filter(
+              (item) => item.id === data.notice.queueItemId
+            );
+            const old = queueItems.filter(
+              (items) => items.id === data.notice.queueItemId
+            );
+            console.log(old, newQueueItem);
+            alert(
+              "There is a pax change",
+              `${old[0].name} has changed pax from ${old[0].pax} to ${newQueueItem[0].pax} `
+            );
+            // Set the item to be highlighted and start a timeout
+            console.log(newQueueItem[0].id);
+            setHighlightedItem(newQueueItem[0].id);
+
+            // Clear the highlight after 2 minutes (120000 ms)
+            setTimeout(() => {
+              setHighlightedItem(null);
+            }, 120000);
+            //Need a way to highlight the queueItemId that has changes and these highlighted changes only last maybe 5 minutes or something.
+          } else if (data.notice && data.notice.action === "join") {
+            const newQueueItems = data.queueItems;
+            const newQueueItem = newQueueItems.filter(
+              (item) => item.id === data.notice.queueItemId
+            );
+            alert(
+              "New Customer has Joined the Queue!",
+              `${newQueueItem[0].name} has joined with ${newQueueItem[0].pax} pax`
+            );
+            //Need a way to highlight the queueItemId that has changes and these highlighted changes only last maybe 5 minutes or something.
+          }
+        }
+      };
+      socket.on("host_queue_update", handleHostQueueUpdate);
+      socket.on("host_update", handleHostQueueUpdate);
+      return () => {
+        socket.off("host_queue_update");
+        socket.off("host_update");
+      };
+    }
+  }, [socket, isConnected, params.outletId, params.accountId, params.queueId]);
 
   //HANDLES
   const handleAddCustomer = useCallback((e) => {
@@ -213,27 +276,72 @@ const ActiveOutlet = () => {
     },
     [apiPrivate, socket, params.queueId]
   );
+
   const handleSeated = useCallback(
     async (e, id) => {
       const newSeatedStatus = e.target.checked;
+      setQueueItems((prevItems) =>
+        prevItems.map((item) => {
+          return item.id === id ? { ...item, seated: newSeatedStatus } : item;
+        })
+      );
 
       try {
         const res = await apiPrivate.patch(`/seatQueueItem/${id}`, {
-          seated: !!newSeatedStatus,
+          seated: newSeatedStatus,
         });
 
+        // The patch here also calls the emit from the backend, we don't need to do socket emit from the front end.
+
         if (res?.status === 201) {
-          console.log("Seated status updated on backend.");
+          console.log("Call status updated on backend.");
         } else {
-          console.error("Failed to update seated status on backend.");
+          setQueueItems((prevItems) =>
+            prevItems.map((item) => {
+              return item.id === id
+                ? { ...item, seated: !newSeatedStatus }
+                : item;
+            })
+          );
+          console.error("Failed to update call status on backend.");
         }
       } catch (error) {
         console.error(error);
-        console.error("Error updating seated status.");
+        setQueueItems((prevItems) =>
+          prevItems.map((item) => {
+            return item.id === id
+              ? { ...item, seated: !newSeatedStatus }
+              : item;
+          })
+        );
+        console.error("Error updating call status.");
       }
     },
     [apiPrivate, socket, params.queueId]
   );
+  // const handleSeated = useCallback(
+  //   async (e, id) => {
+  //     const newSeatedStatus = e.target.checked;
+
+  //     try {
+  //       const res = await apiPrivate.patch(`/seatQueueItem/${id}`, {
+  //         seated: !!newSeatedStatus,
+  //       });
+
+  //       if (res?.status === 201) {
+  //         console.log("Seated status updated on backend.", res.data);
+  //         //why is seated not set?
+  //       } else {
+  //         console.error("Failed to update seated status on backend.");
+  //       }
+  //     } catch (error) {
+  //       console.error(error);
+  //       console.error("Error updating seated status.");
+  //     }
+  //   },
+  //   [apiPrivate, socket, params.queueId]
+  // );
+
   const handleAuthModalClose = () => {
     setErrors({ general: "Forbidden" });
     setShowAuthModal(false);
@@ -394,7 +502,16 @@ const ActiveOutlet = () => {
                           <div className="grid grid-cols-3 border-b-1">
                             <div className="col-span-1 flex items-center p-1 border-r-1">
                               <div className={activeTableHeader}>PAX</div>
-                              <div className={activeTableAnswer}>
+                              <div
+                                className={
+                                  activeTableAnswer +
+                                  ` ${
+                                    item.id === highlightedItem
+                                      ? "bg-yellow-200 animate-pulse px-5"
+                                      : ""
+                                  }`
+                                }
+                              >
                                 {item.pax || "N/A"}
                               </div>
                             </div>
@@ -640,7 +757,17 @@ const ActiveOutlet = () => {
                       >
                         {convertedTime(item.createdAt)}
                       </div>
-                      <div className={landscapeHeaderClass + " col-span-1"}>
+                      <div
+                        className={
+                          landscapeHeaderClass +
+                          `col-span-1
+                           ${
+                             item.id === highlightedItem
+                               ? "bg-yellow-200 animate-pulse"
+                               : ""
+                           }`
+                        }
+                      >
                         {item.pax}
                       </div>
                       <div className={landscapeHeaderClass + " col-span-3"}>
@@ -816,7 +943,7 @@ const ActiveOutlet = () => {
                               htmlFor={`noShow-inactive-${item.id}`}
                               className={"text-xs ml-2"}
                             >
-                              No Show {JSON.stringify(item.noShow)}
+                              No Show
                             </label>
                           </div>
                         </form>

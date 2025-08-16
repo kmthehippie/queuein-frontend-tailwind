@@ -10,7 +10,7 @@ import useLSContext from "../../hooks/useLSContext";
 
 const Waiting = () => {
   const { socket, isConnected, reconnect } = useSocket();
-  const { setActiveQueueSession, activeQueueSession } = useLSContext();
+  const { setActiveQueueSession } = useLSContext();
   const toast = useToast();
 
   const [accountInfo, setAccountInfo] = useState("");
@@ -23,9 +23,6 @@ const Waiting = () => {
   const [currentlyServing, setCurrentlyServing] = useState("");
   const [customerPosition, setCustomerPosition] = useState("");
   const [calledTimeElapsed, setCalledTimeElapsed] = useState("");
-
-  const [userInteracted, setUserInteracted] = useState(false);
-  const [justLoadPage, setJustLoadPage] = useState(true);
 
   const [connection, setConnection] = useState(true);
   //ewt = estimated wait time
@@ -46,11 +43,17 @@ const Waiting = () => {
   const [noShow, setNoShow] = useState(false);
 
   //PERMISSION FOR NOTIFICATION
-  const [notificationPermission, setNotificationPermission] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState(
+    Notification.permission
+  );
+  const [userInteracted, setUserInteracted] = useState(false);
 
   //* useStuff
   const navigate = useNavigate();
   const location = useLocation();
+
+  //? What is this useQueueSession for??? Why can't I just grab data from the localstorage context? Isn't that the point of a local storage context????
+
   const { queueData, isLoadingSession } = useQueueSession(location.state?.data);
 
   //* Helper functions
@@ -99,23 +102,21 @@ const Waiting = () => {
       setEwt(queueData.outlet.defaultEstWaitTime);
       setDataLoaded(true);
     }
-    setNotificationPermission(Notification.permission);
-  }, [queueData]);
+  }, [queueData, isLoadingSession]);
 
   //* HANDLE INTERACTION
-  useEffect(() => {
-    const handleUserInteraction = () => {
-      if (!userInteracted) {
-        const silentAudio = new Audio("/AlertSound.mp3");
-        silentAudio.volume = 1;
-        silentAudio
-          .play()
-          .catch((e) => console.error("Audio playback failed: ", e));
-        setUserInteracted(true);
-        setNotificationPermission(Notification.permission);
-      }
-    };
+  const handleUserInteraction = () => {
+    if (!userInteracted) {
+      const silentAudio = new Audio("/AlertSound.mp3");
+      silentAudio.volume = 0;
+      silentAudio
+        .play()
+        .catch((e) => console.error("Audio playback failed: ", e));
+      setUserInteracted(true);
+    }
+  };
 
+  useEffect(() => {
     document.addEventListener("click", handleUserInteraction, { once: true });
     document.addEventListener("touchstart", handleUserInteraction, {
       once: true,
@@ -175,22 +176,15 @@ const Waiting = () => {
   useEffect(() => {
     console.log("Does isConnected exist in socket?", isConnected, queueItem);
     if (socket && isConnected && queueItem) {
-      console.log(
-        "Just joined queue with: ",
-        `queue_${queueItem.queueId}`,
-        queueItem.name,
-        queueItem.pax
-      );
-      socket.emit("join_queue", {
-        queueId: `queue_${queueItem.queueId}`,
-        customerName: queueItem.name,
-        customerPax: queueItem.pax,
-      });
+      socket.emit("join_queue", `queue_${queueItem.queueId}`);
       socket.emit("set_queue_item_id", queueItem.id);
       socket.emit("join_queue_item_id", `queueitem_${queueItem.id}`);
       socket.emit("cust_req_queue_refresh", queueItem.queueId);
       console.log("Trying to update host: ", queueItem.queueId);
-      socket.emit("cust_update_host", queueItem.queueId);
+      socket.emit("cust_update_host", {
+        queueId: queueItem.queueId,
+        action: "join",
+      });
 
       setConnection(true); // Update local connection state
     } else if (socket && !isConnected) {
@@ -201,6 +195,7 @@ const Waiting = () => {
       return () => clearTimeout(timer); // Cleanup the timer
     }
   }, [socket, isConnected, queueItem?.queueId, queueItem?.customerId]);
+
   useEffect(() => {
     if (dataLoaded && queueItem !== null && !!socket && isConnected) {
       const called = () => {
@@ -233,6 +228,7 @@ const Waiting = () => {
           setModalCalled(false);
         }
       };
+
       const handleSeatedUpdate = (data) => {
         console.log("Handling seated", data);
         if (
@@ -247,6 +243,7 @@ const Waiting = () => {
           setInactive(false);
         }
       };
+
       const handleNoShowUpdate = (data) => {
         if (
           data.alert &&
@@ -262,9 +259,19 @@ const Waiting = () => {
         }
       };
 
-      socket.on("host_called_cust", handleCalledUpdate);
-      socket.on("host_seated_cust", handleSeatedUpdate);
-      socket.on("host_noShow_cust", handleNoShowUpdate);
+      // socket.on("host_called_cust", handleCalledUpdate);
+      // socket.on("host_seated_cust", handleSeatedUpdate);
+      // socket.on("host_noShow_cust", handleNoShowUpdate);
+
+      socket.on("queueitem_update", (data) => {
+        if (data.action === "seated") {
+          handleSeatedUpdate(data);
+        } else if (data.action === "called") {
+          handleCalledUpdate(data);
+        } else if (data.action === "noShow") {
+          handleNoShowUpdate(data);
+        }
+      });
       socket.on("queue_update", (data) => {
         console.log("Queue update receiving data from Sockets", data);
         if (data.inactive) {
@@ -292,6 +299,7 @@ const Waiting = () => {
         setPax(data.pax);
         handleCalledUpdate(data);
       });
+
       socket.on("res_queue_refresh", (data) => {
         console.log("Res queue refresh receiving data from Sockets", data);
         if (data.inactive) {
@@ -339,7 +347,7 @@ const Waiting = () => {
     isConnected,
   ]);
 
-  //* HANDLE STUFF
+  //* FUNCTIONS
 
   const leaveQueue = async (e) => {
     e.preventDefault();
@@ -396,7 +404,10 @@ const Waiting = () => {
         if (socket && socket.connected && queueItem?.queueId) {
           console.log("Sending an emit from socket from waiting page");
           socket.emit("cust_req_queue_refresh", queueItem.queueId);
-          socket.emit("cust_update_host", queueItem.queueId);
+          socket.emit("cust_update_host", {
+            queueId: queueItem.queueId,
+            action: "pax",
+          });
           //should socket.emit("update_to_host", queueItem.queueId)
         }
       }
@@ -406,10 +417,6 @@ const Waiting = () => {
 
     setModalUpdate(false);
     setNewPax("");
-  };
-  const handleJustLoadedPage = () => {
-    console.log("Just loaded complete.");
-    setJustLoadPage(false);
   };
 
   //* REFRESH QUEUE USING SOCKETS
@@ -481,6 +488,7 @@ const Waiting = () => {
           </div>
         </div>
       )}
+
       {modalUpdate && (
         <div className="bg-primary-ultra-dark-green/85 min-w-full min-h-full absolute top-0 left-0 z-5">
           <div className="bg-primary-cream z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/2 left-1/2 -translate-1/2 p-10 md:min-w-md">
@@ -540,59 +548,6 @@ const Waiting = () => {
             >
               No
             </button>
-          </div>
-        </div>
-      )}
-
-      {justLoadPage && (
-        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
-            <button
-              onClick={handleJustLoadedPage}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
-            >
-              &times;
-            </button>
-            <div className="text-center">
-              <i className="fa-solid fa-thumbs-up text-5xl text-primary-green"></i>
-              <h1 className="font-bold text-primary-green">
-                <span className="text-2xl">Success!</span>
-              </h1>
-              <h2 className="text-primary-green pb-5">
-                You have joined the queue.
-              </h2>
-              <p className="text-sm text-gray-500 italic pb-2">
-                We'll notify you when it's your turn.
-              </p>
-              <p className="text-sm text-gray-500 italic pb-2">
-                Make sure your{" "}
-                <span className="font-bold text-primary-green">
-                  notifications are turned on.
-                </span>{" "}
-                You will hear a{" "}
-                <span className="font-bold text-primary-green">sound</span> when
-                we <span className="font-bold text-primary-green">call</span>{" "}
-                you.
-              </p>
-              <p className="text-xs italic pb-2">
-                It will be the same one you hear when you close this pop-up.
-              </p>
-              <p className="pb-2 text-primary-green font-bold ">OR</p>
-              <p className="text-sm text-gray-500 italic pb-5">
-                Alternatively, you can{" "}
-                <span className="font-bold text-primary-green">
-                  keep this page open
-                </span>{" "}
-                to track your position in the queue. (You won't be able to hear
-                the sound.)
-              </p>
-              <button
-                onClick={handleJustLoadedPage}
-                className="text-primary-light-green hover:text-gray-800 text-xl font-bold border-1 border-primary-light-green px-5 py-2 cursor-pointer hover:border-primary-dark-green transition duration-300 ease-in"
-              >
-                Got it!
-              </button>
-            </div>
           </div>
         </div>
       )}
@@ -657,6 +612,7 @@ const Waiting = () => {
             <p>{`You have been removed from the queue at ${outlet.name}`} </p>
             <br />
             <p className="italic text-stone-400">
+              {JSON.stringify(calledTimeElapsed)}
               We could not reach you for {calledTimeElapsed}. We had to give up
               your spot for another waiting customer. Please rejoin the queue if
               you are still hungry!

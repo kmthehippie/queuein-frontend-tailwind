@@ -10,6 +10,7 @@ export const SocketProvider = ({ children }) => {
 
   const connectSocket = useCallback(() => {
     const newSocket = io(import.meta.env.VITE_BACKEND_URL);
+    console.log("We are creating a new socket?");
     setSocket(newSocket);
 
     newSocket.on("connect", () => {

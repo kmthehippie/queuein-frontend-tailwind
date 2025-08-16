@@ -60,8 +60,8 @@ const InactiveOutlet = () => {
       setLoading(false);
     }
   };
-  const startQueueAllowed = async () => {
-    console.log("Here is to start queue: ");
+  const startQueueAllowed = async (staffInfo) => {
+    console.log("We are able to start queue: ", staffInfo);
     if (queueName.length === 0) {
       setQueueName(moment().format("llll"));
     }
@@ -76,8 +76,9 @@ const InactiveOutlet = () => {
       );
       console.log("Created new queue! ", res.data);
       if (res?.status === 201) {
-        navigate(
-          `/db/${params.accountId}/outlet/${params.outletId}/active/${res.data.id}`
+        await navigate(
+          `/db/${params.accountId}/outlet/${params.outletId}/active/${res.data.id}`,
+          { state: { staffInfo: staffInfo } }
         );
       }
     } catch (error) {
