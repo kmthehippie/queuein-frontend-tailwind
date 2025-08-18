@@ -125,8 +125,6 @@ const Register = () => {
       password: ownerPassword,
     };
 
-    console.log("Registering: ", accountInfo, ownerInfo);
-
     try {
       const res = await apiPrivate.post("/register", {
         accountInfo,

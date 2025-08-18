@@ -7,6 +7,7 @@ import useApiPrivate from "../../hooks/useApiPrivate";
 import useAuth from "../../hooks/useAuth";
 import AuthorisedUser from "./AuthorisedUser";
 import useToast from "../../hooks/useToast";
+import PermissionNotification from "../../components/PermissionNotification";
 
 const ActiveOutlet = () => {
   const { socket, isConnected } = useContext(SocketContext);
@@ -28,7 +29,9 @@ const ActiveOutlet = () => {
   const [currentTime, setCurrentTime] = useState(moment());
 
   const [userInteracted, setUserInteracted] = useState(false);
-  const [notificationPermission, setNotificationPermission] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState(
+    Notification.permission
+  );
   //HELPER FUNCTION
   const convertedTime = (date) => moment(date).fromNow();
 
@@ -122,7 +125,7 @@ const ActiveOutlet = () => {
       setUserInteracted(true);
     }
   };
-
+  //HANDLE USER INTERACTIONS
   useEffect(() => {
     setNotificationPermission(Notification.permission);
     document.addEventListener("click", handleUserInteraction, { once: true });
@@ -147,7 +150,37 @@ const ActiveOutlet = () => {
       });
     };
   }, [userInteracted]);
-
+  //HANDLE NOTIFICATIONS
+  useEffect(() => {
+    if (!("Notification" in window)) {
+      toast.open(
+        "Your browser does not support notifications. We will not be able to notify you.",
+        {
+          type: "info",
+          duration: null,
+          sticky: true,
+          id: "browser-notfi-unsupported",
+        }
+      );
+    } else if (notificationPermission === "granted") {
+      toast.open(
+        "Notifications are active. We will notify you of your customers actions.",
+        {
+          type: "success",
+          duration: 5000,
+          sticky: false,
+          id: "notif-perms-allowed",
+        }
+      );
+    } else if (notificationPermission === "denied") {
+      toast.open(PermissionNotification, {
+        type: "info",
+        duration: null,
+        sticky: true,
+        id: "notif-perms-denied",
+      });
+    }
+  }, [notificationPermission, toast.open]);
   //SOCKET HERE
   //EMIT
   useEffect(() => {
@@ -193,13 +226,11 @@ const ActiveOutlet = () => {
             const old = queueItems.filter(
               (items) => items.id === data.notice.queueItemId
             );
-            console.log(old, newQueueItem);
             alert(
               "There is a pax change",
               `${old[0].name} has changed pax from ${old[0].pax} to ${newQueueItem[0].pax} `
             );
-            // Set the item to be highlighted and start a timeout
-            console.log(newQueueItem[0].id);
+
             setHighlightedItem(newQueueItem[0].id);
 
             // Clear the highlight after 2 minutes (120000 ms)
@@ -319,29 +350,6 @@ const ActiveOutlet = () => {
     },
     [apiPrivate, socket, params.queueId]
   );
-  // const handleSeated = useCallback(
-  //   async (e, id) => {
-  //     const newSeatedStatus = e.target.checked;
-
-  //     try {
-  //       const res = await apiPrivate.patch(`/seatQueueItem/${id}`, {
-  //         seated: !!newSeatedStatus,
-  //       });
-
-  //       if (res?.status === 201) {
-  //         console.log("Seated status updated on backend.", res.data);
-  //         //why is seated not set?
-  //       } else {
-  //         console.error("Failed to update seated status on backend.");
-  //       }
-  //     } catch (error) {
-  //       console.error(error);
-  //       console.error("Error updating seated status.");
-  //     }
-  //   },
-  //   [apiPrivate, socket, params.queueId]
-  // );
-
   const handleAuthModalClose = () => {
     setErrors({ general: "Forbidden" });
     setShowAuthModal(false);

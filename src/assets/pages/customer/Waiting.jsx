@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, Link, useNavigate, useParams } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import moment from "moment";
 import api from "../../api/axios";
 import useSocket from "../../hooks/useSocket";
@@ -80,10 +80,6 @@ const Waiting = () => {
   //* INSTANTIATE
   useEffect(() => {
     if (queueData && !isLoadingSession) {
-      console.log(
-        "Data for instantiation from running useQueueSession:",
-        queueData
-      );
       setAccountInfo(queueData.accountInfo);
       setOutlet(queueData.outlet);
       setQueueItem(queueData.queueItem);
@@ -174,13 +170,11 @@ const Waiting = () => {
 
   //* SOCKET HERE
   useEffect(() => {
-    console.log("Does isConnected exist in socket?", isConnected, queueItem);
     if (socket && isConnected && queueItem) {
       socket.emit("join_queue", `queue_${queueItem.queueId}`);
       socket.emit("set_queue_item_id", queueItem.id);
       socket.emit("join_queue_item_id", `queueitem_${queueItem.id}`);
       socket.emit("cust_req_queue_refresh", queueItem.queueId);
-      console.log("Trying to update host: ", queueItem.queueId);
       socket.emit("cust_update_host", {
         queueId: queueItem.queueId,
         action: "join",
@@ -218,7 +212,6 @@ const Waiting = () => {
           queueItem.id === data.queueItemId &&
           data.action === "called"
         ) {
-          console.log("This is handle called update: ", data);
           const calledAt = moment(data.calledAt).format(
             "dddd, MMMM Do YYYY, h:mm:ss a"
           );
@@ -230,7 +223,6 @@ const Waiting = () => {
       };
 
       const handleSeatedUpdate = (data) => {
-        console.log("Handling seated", data);
         if (
           data.alert &&
           queueItem.id === data.queueItemId &&
@@ -250,7 +242,6 @@ const Waiting = () => {
           queueItem.id === data.queueItemId &&
           data.action === "noShow"
         ) {
-          console.log("No Show triggered!");
           setNoShow(true);
           setInactive(true);
         } else if (data.alert === false && data.action === "noShow") {
@@ -273,7 +264,6 @@ const Waiting = () => {
         }
       });
       socket.on("queue_update", (data) => {
-        console.log("Queue update receiving data from Sockets", data);
         if (data.inactive) {
           setInactive(true);
           if (data.seated) {
@@ -289,7 +279,6 @@ const Waiting = () => {
           called();
         }
 
-        console.log("Inside socket queue_Update data: ", data);
         setLastUpdated(new Date());
         setProgressBar(data.queueList.arr);
         setCurrentlyServing(data.currentlyServing);
@@ -301,7 +290,6 @@ const Waiting = () => {
       });
 
       socket.on("res_queue_refresh", (data) => {
-        console.log("Res queue refresh receiving data from Sockets", data);
         if (data.inactive) {
           setInactive(data.inactive);
           setSeated(data.seated);
@@ -319,13 +307,11 @@ const Waiting = () => {
             if (data.called) {
               called();
             }
-            // We need to check if the user has been called.
-            console.log("Res queue ", data);
           } catch (error) {
             console.error("Error in res_queue_refresh handler:", error);
           }
         } else if (inactive) {
-          console.log(data);
+          console.log("Inactive");
         }
       });
 
@@ -360,15 +346,11 @@ const Waiting = () => {
       const acctSlug = accountInfo.slug;
       const queueId = queueItem.queueId;
       const queueItemId = queueItem.id;
-      console.log("Customer is trying to leave queue: ", queueItemId);
       const res = await api.post(
         `/customerQuit/${acctSlug}/${queueId}/${queueItemId}`
       );
 
       if (res?.status === 201) {
-        console.log("201 status for leaving queue: ", res.data);
-        console.log("This is the queueId before quit: ", queueId);
-        //need to add setActiveQueueSession to false
         setActiveQueueSession(false);
         socket.emit("queue_update", queueId);
         const navStateData = { ...res?.data };
@@ -402,7 +384,6 @@ const Waiting = () => {
 
       if (res?.data) {
         if (socket && socket.connected && queueItem?.queueId) {
-          console.log("Sending an emit from socket from waiting page");
           socket.emit("cust_req_queue_refresh", queueItem.queueId);
           socket.emit("cust_update_host", {
             queueId: queueItem.queueId,

@@ -48,13 +48,11 @@ const AllOutlets = () => {
   };
 
   const handleDelete = async (outlet) => {
-    console.log("Handle delete of this outlet ", outlet.id);
     setErrors("");
     setOutletId(outlet.id);
     setShowAuthModal(true);
   };
   const deleteOutletAllowed = async () => {
-    console.log(outletId, " is the outlet we are deleting");
     try {
       const res = await apiPrivate.delete(
         `/delOutlet/${accountId}/${outletId}`

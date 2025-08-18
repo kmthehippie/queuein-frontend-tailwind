@@ -33,7 +33,6 @@ const JoinQueue = () => {
     return numberString.replace(/\D/g, "");
   };
   const validMalaysianNumber = (number) => {
-    console.log("Inside validMalaysianNumber fn", number);
     const numeralsOnly = extractNumerals(number);
     const regex = /^(\+?6?01)[02-46-9]-*[0-9]{7}$|^(\+?6?01)[1]-*[0-9]{8}$/gm;
     return regex.test(numeralsOnly);
@@ -91,7 +90,6 @@ const JoinQueue = () => {
     if (validNumber) {
       const extractedNumber = extractNumerals(number);
       setFormattedNumber(extractedNumber);
-      console.log("This is the formatted number:", formattedNumber);
     } else {
       setNumberError(true);
       isValid = false;
@@ -123,7 +121,6 @@ const JoinQueue = () => {
       return;
     }
     if (isValid) {
-      console.log("Setting should post to true");
       setShouldPost(true);
     }
     //! ADD 2 FACTOR AUTHENTICATION TO JOIN QUEUE. Once they hit submit, they need to 2FA. Then once authenticated, pass to back end.
@@ -144,10 +141,8 @@ const JoinQueue = () => {
           `/customerForm/${acctSlug}/${outlet.id}/${queueId}`,
           data
         );
-        console.log("Response from posting form: ", res);
-        let queueItemId = res?.data?.queueItem;
+
         if (res.status === 201 || res.status === 200) {
-          console.log("Status is 201 or 200", queueItemId);
           const data = { ...res.data, accountInfo, outlet };
           const queueItem = res.data.queueItem;
           const storeToLocalStorage = {

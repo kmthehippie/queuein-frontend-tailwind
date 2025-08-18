@@ -47,7 +47,7 @@ const PermissionNotification = ({ close }) => {
       <h3 className="font-bold text-lg mb-2">Notifications Off!</h3>
       <p className="text-sm">
         We will <span className="font-semibold">NOT</span> be able to properly
-        notify you of your turn.
+        notify you.
       </p>
 
       <p className="text-sm">
