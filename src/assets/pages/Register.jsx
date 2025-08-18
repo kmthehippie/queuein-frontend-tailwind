@@ -168,7 +168,7 @@ const Register = () => {
           <small className="block mb-4 text-gray-600">
             Enter your credentials to create your account.
           </small>
-          <form onSubmit={handleSubmit} className="space-y-4 lg:flex">
+          <form onSubmit={handleSubmit} className="space-y-4 lg:flex lg:h-full">
             <div className="flex-row p-1">
               <div>
                 <label htmlFor="company-name" className={labelClass}>
@@ -340,7 +340,7 @@ const Register = () => {
           </form>
           {errors && <p className={errorClass}>{errors.general}</p>}
           <button type="button" className={buttonClass} onClick={handleSubmit}>
-            Sign In
+            Register
           </button>
           <p className="mt-3 text-center">
             Already have an account?{" "}
