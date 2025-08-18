@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { apiPrivate } from "../api/axios";
 
 const AuthContext = createContext(null);
@@ -18,9 +18,13 @@ export const AuthProvider = ({ children }) => {
   const [authLoading, setAuthLoading] = useState(true);
   const [reloadNav, setReloadNav] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const refresh = useCallback(async () => {
-    console.log("Trying to refresh within auth context: ");
+    console.log("Trying to refresh within auth context: ", location.pathname);
+    if (location.pathname.includes("/register")) {
+      return null;
+    }
     try {
       const response = await apiPrivate.post("/refresh");
 
