@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import useApiPrivate from "../../hooks/useApiPrivate";
 import AuthorisedUser from "./AuthorisedUser";
+import Loading from "../../components/Loading";
 
 const IndividualOutlet = () => {
   const params = useParams();
@@ -123,7 +124,9 @@ const IndividualOutlet = () => {
   }, [params.accountId, params.outletId, refresh, apiPrivate, navigate]);
 
   if (loading) {
-    return <div className="">Loading...</div>;
+    return (
+      <Loading title={"Loading..."} paragraph={"Please wait while it loads."} />
+    );
   }
   if (errors) {
     return (

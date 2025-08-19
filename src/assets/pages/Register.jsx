@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import { apiPrivate } from "../api/axios";
+import Loading from "../components/Loading";
+
 const Register = () => {
   //States
   const [companyName, setCompanyName] = useState("");
@@ -23,6 +25,8 @@ const Register = () => {
   const [emailSame, setEmailSame] = useState(false);
   const [passwordSame, setPasswordSame] = useState(false);
   const [capslockOn, setCapslockOn] = useState(false);
+
+  const [loading, setLoading] = useState(false);
   //Use hooks imported
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -126,6 +130,7 @@ const Register = () => {
     };
 
     try {
+      setLoading(true);
       const res = await apiPrivate.post("/register", {
         accountInfo,
         ownerInfo,
@@ -133,9 +138,12 @@ const Register = () => {
       if (res.status === 201 && res.data?.accessToken && res.data?.accountId) {
         const accessToken = res.data?.accessToken;
         const accountId = res.data?.accountId;
+        setLoading(false);
         login(accessToken, accountId);
         setErrors({});
+
         setTimeout(() => {
+          setLoading(false);
           navigate(`/db/${res.data.accountId}/outlets/all`);
         }, 1500);
       } else {
@@ -146,6 +154,7 @@ const Register = () => {
         });
       }
     } catch (err) {
+      setLoading(false);
       if (err.response?.data?.errors) {
         setErrors(err.response.data.errors);
       } else if (err.response?.data?.message) {
@@ -158,6 +167,17 @@ const Register = () => {
       console.error("Axios error: ", err.response?.data.errors);
     }
   };
+
+  if (loading) {
+    return (
+      <Loading
+        title={"Registering your account!"}
+        paragraph={
+          "Do Not Navigate Away. Please wait for your account to be registered."
+        }
+      />
+    );
+  }
   return (
     <div className="flex h-full">
       <div className="flex-4/5 flex items-start my-10 justify-center overflow-auto ">
