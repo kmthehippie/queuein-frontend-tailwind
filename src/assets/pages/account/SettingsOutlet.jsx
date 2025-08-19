@@ -107,6 +107,11 @@ const SettingsOutlet = () => {
               ))}
             </div>
           )}
+          {!allOutlets && (
+            <div className="flex overflow-x-auto ">
+              No outlets available yet.
+            </div>
+          )}
         </div>
         {!pathnameEndsWithAuditLogs && (
           <div className="lg:col-span-4 p-3">
