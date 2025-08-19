@@ -20,22 +20,25 @@ const Home = () => {
       <div className="flex flex-col items-center justify-center ">
         <h1 className="font-extralight text-5xl mt-10">WELCOME</h1>
         <div className="flex">
-          <i className="fa-solid fa-screwdriver text-[150px] mt-10 text-primary-dark-green"></i>{" "}
-          <i className="fa-solid fa-hammer text-[150px] mt-10 text-primary-dark-green rotate-y-180"></i>
+          <i className="fa-solid fa-screwdriver text-[120px] mt-10 text-primary-dark-green"></i>{" "}
+          <i className="fa-solid fa-hammer text-[120px] mt-10 text-primary-dark-green rotate-y-180"></i>
         </div>
-        <p className="mt-10 font-extralight italic text-2xl">
+        <p className="mt-5 font-extralight italic text-xl text-center">
           Don't mind the mess, this page is still under development!
         </p>
-        <div className="mt-10 text-center font-light bg-primary-cream/70 border-1 border-primary-green p-6 rounded-xl">
+        <div className="mt-5 text-center font-light bg-primary-cream/70 border-1 border-primary-green p-6 rounded-xl">
           <p>
             Want to have a look at the customer POV?
             <br />
             This is a sample page that your customers would be looking at
+            <br />
             <button className={buttonClass} onClick={handleNavNLBH}>
               Sample Customer View
             </button>
           </p>
-          <div className="w-full flex items-center justify-center">
+          <br />
+          <div className="w-full flex flex-col items-center justify-center">
+            <p>Scan the following to get to a sample queue</p>
             <img
               src="https://res.cloudinary.com/dv9llxfzi/image/upload/v1755579717/QueueIn/QRCode/4d714b9b-c2de-4987-b82f-b5cc8aab16b9-qr-1.png"
               alt="Sample QR Code for Desa Sri Hartamas NLBH"
