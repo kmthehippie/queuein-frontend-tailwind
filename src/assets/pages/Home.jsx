@@ -18,10 +18,10 @@ const Home = () => {
   return (
     <div>
       <div className="flex flex-col items-center justify-center ">
-        <h1 className="font-extralight text-5xl mt-10">WELCOME</h1>
-        <div className="flex">
-          <i className="fa-solid fa-screwdriver text-[120px] mt-10 text-primary-dark-green"></i>{" "}
-          <i className="fa-solid fa-hammer text-[120px] mt-10 text-primary-dark-green rotate-y-180"></i>
+        <h1 className="font-extralight text-4xl mt-10">WELCOME</h1>
+        <div className="flex mt-3">
+          <i className="fa-solid fa-screwdriver text-[90px]  text-primary-dark-green"></i>{" "}
+          <i className="fa-solid fa-hammer text-[90px]  text-primary-dark-green rotate-y-180"></i>
         </div>
         <p className="mt-5 font-extralight italic text-xl text-center">
           Don't mind the mess, this page is still under development!

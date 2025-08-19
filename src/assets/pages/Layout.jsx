@@ -18,7 +18,7 @@ const Layout = () => {
         <Link to="/">
           <div className="absolute top-0 left-3 z-10 m-3 cursor-pointer block md:left-auto">
             <span className="flex items-end font-black text-primary-green">
-              <img src="/Q-logo.svg" alt="Queue In Logo" className=" w-15 " />{" "}
+              <img src="/Q-logo.svg" alt="Queue In Logo" className=" w-12 " />{" "}
               UEUE IN
             </span>
           </div>

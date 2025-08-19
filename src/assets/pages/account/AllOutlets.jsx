@@ -10,7 +10,7 @@ import { numericalSort } from "../../utils/sortList";
 
 const AllOutlets = () => {
   // Functional States
-  const { isAuthenticated, accountId } = useAuth();
+  const { isAuthenticated, accountId, reloadNav, setReloadNav } = useAuth();
   const apiPrivate = useApiPrivate();
 
   const [outlets, setOutlets] = useState([]);
@@ -24,6 +24,7 @@ const AllOutlets = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(false);
 
   const [errors, setErrors] = useState("");
+  const [errorsModal, setErrorsModal] = useState(false);
   const errorClass = `text-red-600 text-center`;
 
   const toggleEdit = (outletId) => {
@@ -38,17 +39,25 @@ const AllOutlets = () => {
 
   const handleUpdateSuccess = (updatedOutlet) => {
     setRefreshTrigger((prev) => !prev);
+    setReloadNav(!reloadNav);
     setShowModal(!showModal);
   };
 
   const handleAuthModalClose = () => {
-    setErrors({ general: "Forbidden" });
+    setErrors({
+      general:
+        "Forbidden. There was an issue with validating your staff account. ",
+    });
+    setErrorsModal(true);
     setShowAuthModal(false);
     //Navigate -1 ?
   };
 
   const handleDelete = async (outlet) => {
+    console.log("This is the outlet inside handle delete: ", outlet);
     setErrors("");
+    setErrorsModal(false);
+    setSelectedOutletData(outlet);
     setOutletId(outlet.id);
     setShowAuthModal(true);
   };
@@ -59,11 +68,13 @@ const AllOutlets = () => {
       );
       if (res.status === 201) {
         setRefreshTrigger((prev) => !prev);
+        setReloadNav(!reloadNav);
         setShowAuthModal(false);
       }
     } catch (error) {
       console.error(error);
       setErrors({ general: `Error deleting outlet ${outletId}` });
+      setErrorsModal(true);
       setShowAuthModal(false);
     }
   };
@@ -85,6 +96,8 @@ const AllOutlets = () => {
       } catch (error) {
         console.error(error);
         console.log("Error fetching data in ALL outlets");
+        setErrors({ general: { error } });
+        setErrorsModal(true);
       }
     };
     fetchOutlets();
@@ -130,7 +143,22 @@ const AllOutlets = () => {
       <h1 className="ml-5 text-sm font-light italic text-stone-500 mb-5">
         Manage your existing outlets...
       </h1>
-      {errors && <p className={errorClass}>{errors.general}</p>}
+
+      {errorsModal && (
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
+            <button
+              onClick={() => {
+                setErrorsModal(!errorsModal);
+              }}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
+            >
+              &times;
+            </button>
+            <p className={errorClass}>{errors.general}</p>
+          </div>{" "}
+        </div>
+      )}
       <div className="grid lg:grid-cols-2 grid-cols-1 mb-10">
         {outlets.map((outlet) => (
           <div
