@@ -6,7 +6,6 @@ const PermissionNotification = ({ close }) => {
   const toast = useToast();
   const [localNotificationPermission, setLocalNotificationPermission] =
     useState(Notification.permission);
-  // const [showModal, setShowModal] = useState(false);
 
   const handleNotification = useCallback(async () => {
     try {
@@ -31,9 +30,7 @@ const PermissionNotification = ({ close }) => {
       );
     }
   }, [close, toast]);
-  // const handleToggleModal = () => {
-  //   setShowModal(!showModal);
-  // };
+
   useEffect(() => {
     if (localNotificationPermission === "granted") {
       close();

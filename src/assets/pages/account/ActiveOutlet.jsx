@@ -179,6 +179,13 @@ const ActiveOutlet = () => {
         sticky: true,
         id: "notif-perms-denied",
       });
+    } else if (notificationPermission === "default") {
+      toast.open(PermissionNotification, {
+        type: "info",
+        duration: null,
+        sticky: true,
+        id: "notif-perms-default",
+      });
     }
   }, [notificationPermission, toast.open]);
   //SOCKET HERE
