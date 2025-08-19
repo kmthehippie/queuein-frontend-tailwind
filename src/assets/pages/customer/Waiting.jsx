@@ -7,6 +7,7 @@ import useToast from "../../hooks/useToast";
 import useQueueSession from "../../hooks/useQueueSession";
 import PermissionNotification from "../../components/PermissionNotification";
 import useLSContext from "../../hooks/useLSContext";
+import NotificationModal from "../../components/NotificationModal";
 
 const Waiting = () => {
   const { socket, isConnected, reconnect } = useSocket();
@@ -43,6 +44,7 @@ const Waiting = () => {
   const [noShow, setNoShow] = useState(false);
 
   //PERMISSION FOR NOTIFICATION
+  const [openNotifModal, setOpenNotifModal] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState(
     Notification.permission
   );
@@ -51,8 +53,6 @@ const Waiting = () => {
   //* useStuff
   const navigate = useNavigate();
   const location = useLocation();
-
-  //? What is this useQueueSession for??? Why can't I just grab data from the localstorage context? Isn't that the point of a local storage context????
 
   const { queueData, isLoadingSession } = useQueueSession(location.state?.data);
 
@@ -80,6 +80,7 @@ const Waiting = () => {
   //* INSTANTIATE
   useEffect(() => {
     if (queueData && !isLoadingSession) {
+      setOpenNotifModal(true);
       setAccountInfo(queueData.accountInfo);
       setOutlet(queueData.outlet);
       setQueueItem(queueData.queueItem);
@@ -410,6 +411,17 @@ const Waiting = () => {
     }
   };
 
+  if (openNotifModal) {
+    return (
+      <NotificationModal
+        title={`Hi ${queueItem.name}!`}
+        paragraph={`You are at position ${customerPosition}.`}
+        onClose={() => {
+          setOpenNotifModal(false);
+        }}
+      />
+    );
+  }
   return (
     <div className="flex-row items-center justify-center p-3 sm:p-5 md:pt-8 relative h-full">
       {modalLeave && (
@@ -469,7 +481,6 @@ const Waiting = () => {
           </div>
         </div>
       )}
-
       {modalUpdate && (
         <div className="bg-primary-ultra-dark-green/85 min-w-full min-h-full absolute top-0 left-0 z-5">
           <div className="bg-primary-cream z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/2 left-1/2 -translate-1/2 p-10 md:min-w-md">

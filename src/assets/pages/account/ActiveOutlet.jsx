@@ -225,6 +225,10 @@ const ActiveOutlet = () => {
       const handleHostQueueUpdate = (data) => {
         if (data) {
           setQueueItems(data.queueItems);
+          console.log(
+            "Buggy here: Queue items are set but data.notice unknown ",
+            data
+          );
           if (data.notice && data.notice.action === "pax") {
             const newQueueItems = data.queueItems;
             const newQueueItem = newQueueItems.filter(
