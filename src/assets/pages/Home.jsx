@@ -28,13 +28,18 @@ const Home = () => {
         </p>
         <div className="mt-10 text-center font-light bg-primary-cream/70 border-1 border-primary-green p-6 rounded-xl">
           <p>
-            Want to have a look at the customer POV? This is a sample page that
-            your customers would be looking at
+            Want to have a look at the customer POV?
+            <br />
+            This is a sample page that your customers would be looking at
             <button className={buttonClass} onClick={handleNavNLBH}>
               Sample Customer View
             </button>
           </p>
-
+          <img
+            src="https://res.cloudinary.com/dv9llxfzi/image/upload/v1755579717/QueueIn/QRCode/4d714b9b-c2de-4987-b82f-b5cc8aab16b9-qr-1.png"
+            alt="Sample QR Code for Desa Sri Hartamas NLBH"
+            className=""
+          />
           <p>
             Head on over to register:{" "}
             <button className={buttonClass} onClick={handleNavRegister}>
