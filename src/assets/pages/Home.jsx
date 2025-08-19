@@ -5,6 +5,10 @@ const Home = () => {
   const navigate = useNavigate();
   const buttonClass = `bg-primary-green mt-3 hover:bg-primary-dark-green w-auto transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline`;
 
+  const handleNavNLBH = () => {
+    navigate("/nasi-lemak-burung-hantu");
+  };
+
   const handleNavRegister = () => {
     navigate("/db/register");
   };
@@ -23,6 +27,14 @@ const Home = () => {
           Don't mind the mess, this page is still under development!
         </p>
         <div className="mt-10 text-center font-light bg-primary-cream/70 border-1 border-primary-green p-6 rounded-xl">
+          <p>
+            Want to have a look at the customer POV? This is a sample page that
+            your customers would be looking at
+            <button className={buttonClass} onClick={handleNavNLBH}>
+              Sample Customer View
+            </button>
+          </p>
+
           <p>
             Head on over to register:{" "}
             <button className={buttonClass} onClick={handleNavRegister}>
