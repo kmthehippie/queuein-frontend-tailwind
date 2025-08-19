@@ -203,7 +203,6 @@ const Waiting = () => {
             vibrate: [200, 100, 200, 100, 200],
           });
         }
-        setModalCalled(true);
       };
 
       const handleCalledUpdate = (data) => {
@@ -216,6 +215,7 @@ const Waiting = () => {
             "dddd, MMMM Do YYYY, h:mm:ss a"
           );
           setCalledTimeElapsed(calledAt);
+          setModalCalled(true);
           called();
         } else if (data.alert === false && data.action === "called") {
           setModalCalled(false);
