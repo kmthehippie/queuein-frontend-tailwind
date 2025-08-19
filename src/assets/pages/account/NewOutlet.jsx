@@ -9,7 +9,7 @@ const NewOutlet = () => {
   const { accountId } = useParams();
   const navigate = useNavigate();
   const apiPrivate = useApiPrivate();
-  const { toTriggerReload } = useAuth();
+  const { setReloadNav } = useAuth();
   //DATA TO SET
   const [name, setName] = useState(""); // Initialize with empty string
   const [location, setLocation] = useState("");
@@ -20,7 +20,6 @@ const NewOutlet = () => {
   const [imgFile, setImgFile] = useState("");
   const [phone, setPhone] = useState("");
   const [hours, setHours] = useState("");
-
   const [isLoading, setIsLoading] = useState(false);
 
   //Errors
@@ -142,6 +141,7 @@ const NewOutlet = () => {
 
       if (res?.status === 201) {
         setIsLoading(false);
+        setReloadNav();
         console.log("Successfully created NEW outlet!", res.data);
         navigate(`/db/${accountId}/outlets/all`);
       } else {
