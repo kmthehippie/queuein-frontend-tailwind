@@ -40,7 +40,7 @@ const Home = () => {
           <div className="w-full flex flex-col items-center justify-center">
             <p>Scan the following to get to a sample queue</p>
             <img
-              src="https://res.cloudinary.com/dv9llxfzi/image/upload/v1755579717/QueueIn/QRCode/4d714b9b-c2de-4987-b82f-b5cc8aab16b9-qr-1.png"
+              src="https://res.cloudinary.com/dv9llxfzi/image/upload/v1755602077/QueueIn/QRCode/4d714b9b-c2de-4987-b82f-b5cc8aab16b9-qr-1.png"
               alt="Sample QR Code for Desa Sri Hartamas NLBH"
               className=""
             />

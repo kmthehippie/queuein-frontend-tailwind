@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { apiPrivate } from "../api/axios";
+import Loading from "../components/Loading";
 
 const AuthContext = createContext(null);
 
@@ -27,7 +28,7 @@ export const AuthProvider = ({ children }) => {
     }
     try {
       const response = await apiPrivate.post("/refresh");
-
+      setAuthLoading(true);
       if (response.data?.accessToken) {
         setAccessToken(response.data.accessToken);
         setAccount(response.data.accountId);
@@ -55,6 +56,8 @@ export const AuthProvider = ({ children }) => {
       logout();
       navigate("/db/login", { replace: true });
       return null;
+    } finally {
+      setAuthLoading(false);
     }
   }, []);
 
@@ -126,7 +129,12 @@ export const AuthProvider = ({ children }) => {
     [accessToken, isAuthenticated, account, login, logout, accountId, reloadNav]
   );
   if (authLoading) {
-    return <div>Loading Application...</div>; // Or a more sophisticated spinner
+    return (
+      <Loading
+        title={"Loading your previous login... "}
+        paragraph={"Please wait for the loading to end."}
+      />
+    );
   }
 
   return (
