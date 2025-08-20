@@ -224,44 +224,86 @@ const ActiveOutlet = () => {
       };
       const handleHostQueueUpdate = (data) => {
         if (data) {
-          setQueueItems(data.queueItems);
-          console.log(
-            "Buggy here: Queue items are set but data.notice unknown ",
-            data
-          );
+          const newQueueItems = data.queueItems;
+          setQueueItems(newQueueItems);
+
           if (data.notice && data.notice.action === "pax") {
-            const newQueueItems = data.queueItems;
             const newQueueItem = newQueueItems.filter(
               (item) => item.id === data.notice.queueItemId
             );
-            const old = queueItems.filter(
-              (items) => items.id === data.notice.queueItemId
-            );
-            alert(
-              "There is a pax change",
-              `${old[0].name} has changed pax from ${old[0].pax} to ${newQueueItem[0].pax} `
-            );
 
-            setHighlightedItem(newQueueItem[0].id);
+            if (newQueueItem.length > 0) {
+              alert(
+                "There is a pax change",
+                `${newQueueItem[0].name} has changed pax to ${newQueueItem[0].pax} `
+              );
+            } else {
+              console.warn("Updated item not found in the new queue list.");
+            }
 
-            // Clear the highlight after 2 minutes (120000 ms)
+            setHighlightedItem(data.notice.queueItemId);
+
             setTimeout(() => {
               setHighlightedItem(null);
             }, 120000);
-            //Need a way to highlight the queueItemId that has changes and these highlighted changes only last maybe 5 minutes or something.
           } else if (data.notice && data.notice.action === "join") {
             const newQueueItems = data.queueItems;
             const newQueueItem = newQueueItems.filter(
               (item) => item.id === data.notice.queueItemId
             );
-            alert(
-              "New Customer has Joined the Queue!",
-              `${newQueueItem[0].name} has joined with ${newQueueItem[0].pax} pax`
-            );
-            //Need a way to highlight the queueItemId that has changes and these highlighted changes only last maybe 5 minutes or something.
+
+            if (newQueueItem.length > 0) {
+              alert(
+                "New Customer has Joined the Queue!",
+                `${newQueueItem[0].name} has joined with ${newQueueItem[0].pax} pax`
+              );
+            }
           }
         }
       };
+      // const handleHostQueueUpdate = (data) => {
+      //   if (data) {
+      //     setQueueItems(data.queueItems);
+      //     console.log(
+      //       "Buggy here: Queue items are set but data.notice unknown ",
+      //       data
+      //     );
+      //     console.log("Data notice", data.notice);
+      //     if (data.notice && data.notice.action === "pax") {
+      //       const newQueueItems = data.queueItems;
+      //       const newQueueItem = newQueueItems.filter(
+      //         (item) => item.id === data.notice.queueItemId
+      //       );
+      //       const old = queueItems.filter(
+      //         (items) => items.id === data.notice.queueItemId
+      //       );
+      //       console.log("Result of filter: ", old, newQueueItem);
+      //       console.log("Data notoce queueItem id: ", data.notice.queueItemId);
+      //       alert(
+      //         "There is a pax change",
+      //         `${newQueueItem[0].name} has changed pax from ${old[0].pax} to ${newQueueItem[0].pax} `
+      //       );
+
+      //       setHighlightedItem(data.notice.queueItemId);
+
+      //       // Clear the highlight after 2 minutes (120000 ms)
+      //       setTimeout(() => {
+      //         setHighlightedItem(null);
+      //       }, 120000);
+      //       //Need a way to highlight the queueItemId that has changes and these highlighted changes only last maybe 5 minutes or something.
+      //     } else if (data.notice && data.notice.action === "join") {
+      //       const newQueueItems = data.queueItems;
+      //       const newQueueItem = newQueueItems.filter(
+      //         (item) => item.id === data.notice.queueItemId
+      //       );
+      //       alert(
+      //         "New Customer has Joined the Queue!",
+      //         `${newQueueItem[0].name} has joined with ${newQueueItem[0].pax} pax`
+      //       );
+      //       //Need a way to highlight the queueItemId that has changes and these highlighted changes only last maybe 5 minutes or something.
+      //     }
+      //   }
+      // };
       socket.on("host_queue_update", handleHostQueueUpdate);
       socket.on("host_update", handleHostQueueUpdate);
       return () => {
@@ -506,12 +548,18 @@ const ActiveOutlet = () => {
                                 {item.position}
                               </div>
                             </div>
-                            <div className="flex items-center p-1 ">
-                              <div className={activeTableHeader}>Name</div>
-                              <div className={activeTableAnswer}>
-                                {item.name || item?.customer?.name || "N/A"}
+                            <div className="flex items-center p-1 relative">
+                              <div
+                                className={`text-xs text-primary-dark-green mr-3 ml-2`}
+                              >
+                                Name
+                              </div>
+                              <div className={activeTableAnswer + " "}>
+                                <span className="z-1">
+                                  {item.name || item?.customer?.name || "N/A"}
+                                </span>
                                 {item?.customer && (
-                                  <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
+                                  <span className="ml-2 px-2 py-0.5  absolute top-0 right-0 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
                                     VIP
                                   </span>
                                 )}
@@ -562,7 +610,7 @@ const ActiveOutlet = () => {
                           </div>
                           <form className="flex items-center mt-1">
                             <div className={activeTableHeader}>Status</div>
-                            <div className="flex">
+                            <div className="flex flex-wrap gap-1">
                               <div
                                 className={
                                   activeTableAnswer + " flex items-center ml-5"
@@ -648,12 +696,14 @@ const ActiveOutlet = () => {
                                 {item.position}
                               </div>
                             </div>
-                            <div className="flex items-center p-1 ">
+                            <div className="flex items-center p-1 relative">
                               <div className={activeTableHeader}>Name</div>
                               <div className={activeTableAnswer}>
-                                {item?.customer?.name || item.name || "N/A"}
+                                <span className="z-1">
+                                  {item?.customer?.name || item.name || "N/A"}
+                                </span>
                                 {item?.customer && (
-                                  <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
+                                  <span className="ml-2 px-2 py-0.5 absolute top-0 right-0 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
                                     VIP
                                   </span>
                                 )}
@@ -682,12 +732,14 @@ const ActiveOutlet = () => {
                                 {item.position}
                               </div>
                             </div>
-                            <div className="flex items-center p-1 ">
+                            <div className="flex items-center p-1 relative">
                               <div className={activeTableHeader}>Name</div>
                               <div className={activeTableAnswer}>
-                                {item?.customer?.name || item?.name || "N/A"}
+                                <span className="z-1">
+                                  {item?.customer?.name || item?.name || "N/A"}
+                                </span>
                                 {item?.customer && (
-                                  <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
+                                  <span className="ml-2 px-2 py-0.5 absolute top-0 right-0 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
                                     VIP
                                   </span>
                                 )}

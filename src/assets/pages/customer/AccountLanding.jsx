@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import api from "../../api/axios";
 import { Link, useParams } from "react-router-dom";
 import Error from "../Error";
+import Loading from "../../components/Loading";
 
 const AccountLanding = () => {
   const [companyName, setCompanyName] = useState("");
@@ -37,7 +38,12 @@ const AccountLanding = () => {
   }, []);
 
   if (loading) {
-    return <div>Loading Information...</div>;
+    return (
+      <Loading
+        title={`${acctSlug} is loading`}
+        paragraph={"Please wait while our servers wake up"}
+      />
+    );
   }
   if (errors) {
     return <Error error={errors} />;
@@ -136,8 +142,7 @@ const AccountLanding = () => {
                     <img src="/Q-logo.svg" alt="Queue Logo" className="w-5" />
                     <span className="pl-3">
                       {outlet.queues.length > 0 ? (
-                        <Link to={`join/${outlet.queues[0].id}`}>
-                          {/* IMPORTANT: // Find out the queueItems. If they exist, then  depending on the count, Busy, Not Busy, Very Busy...etc for now placeholder just the queue id will do*/}
+                        <p>
                           {outlet.queues[0].queueLength > 5 ? (
                             <span className="text-red-700 hover:text-primary-dark-green transition ease-in">
                               Very Busy
@@ -151,7 +156,7 @@ const AccountLanding = () => {
                               Short Queue
                             </span>
                           )}
-                        </Link>
+                        </p>
                       ) : (
                         "Quick Entry"
                       )}
