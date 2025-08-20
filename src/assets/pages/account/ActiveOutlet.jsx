@@ -231,7 +231,6 @@ const ActiveOutlet = () => {
             const newQueueItem = newQueueItems.filter(
               (item) => item.id === data.notice.queueItemId
             );
-
             if (newQueueItem.length > 0) {
               alert(
                 "There is a pax change",
@@ -240,9 +239,7 @@ const ActiveOutlet = () => {
             } else {
               console.warn("Updated item not found in the new queue list.");
             }
-
             setHighlightedItem(data.notice.queueItemId);
-
             setTimeout(() => {
               setHighlightedItem(null);
             }, 120000);
@@ -251,7 +248,6 @@ const ActiveOutlet = () => {
             const newQueueItem = newQueueItems.filter(
               (item) => item.id === data.notice.queueItemId
             );
-
             if (newQueueItem.length > 0) {
               alert(
                 "New Customer has Joined the Queue!",
@@ -261,49 +257,7 @@ const ActiveOutlet = () => {
           }
         }
       };
-      // const handleHostQueueUpdate = (data) => {
-      //   if (data) {
-      //     setQueueItems(data.queueItems);
-      //     console.log(
-      //       "Buggy here: Queue items are set but data.notice unknown ",
-      //       data
-      //     );
-      //     console.log("Data notice", data.notice);
-      //     if (data.notice && data.notice.action === "pax") {
-      //       const newQueueItems = data.queueItems;
-      //       const newQueueItem = newQueueItems.filter(
-      //         (item) => item.id === data.notice.queueItemId
-      //       );
-      //       const old = queueItems.filter(
-      //         (items) => items.id === data.notice.queueItemId
-      //       );
-      //       console.log("Result of filter: ", old, newQueueItem);
-      //       console.log("Data notoce queueItem id: ", data.notice.queueItemId);
-      //       alert(
-      //         "There is a pax change",
-      //         `${newQueueItem[0].name} has changed pax from ${old[0].pax} to ${newQueueItem[0].pax} `
-      //       );
 
-      //       setHighlightedItem(data.notice.queueItemId);
-
-      //       // Clear the highlight after 2 minutes (120000 ms)
-      //       setTimeout(() => {
-      //         setHighlightedItem(null);
-      //       }, 120000);
-      //       //Need a way to highlight the queueItemId that has changes and these highlighted changes only last maybe 5 minutes or something.
-      //     } else if (data.notice && data.notice.action === "join") {
-      //       const newQueueItems = data.queueItems;
-      //       const newQueueItem = newQueueItems.filter(
-      //         (item) => item.id === data.notice.queueItemId
-      //       );
-      //       alert(
-      //         "New Customer has Joined the Queue!",
-      //         `${newQueueItem[0].name} has joined with ${newQueueItem[0].pax} pax`
-      //       );
-      //       //Need a way to highlight the queueItemId that has changes and these highlighted changes only last maybe 5 minutes or something.
-      //     }
-      //   }
-      // };
       socket.on("host_queue_update", handleHostQueueUpdate);
       socket.on("host_update", handleHostQueueUpdate);
       return () => {
