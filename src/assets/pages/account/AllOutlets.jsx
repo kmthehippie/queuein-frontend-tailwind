@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { msToMins } from "../../utils/timeConverter";
 import UpdateOutletModal from "../../components/UpdateOutletModal";
 import useApiPrivate from "../../hooks/useApiPrivate";
@@ -12,6 +12,7 @@ const AllOutlets = () => {
   // Functional States
   const { isAuthenticated, accountId, reloadNav, setReloadNav } = useAuth();
   const apiPrivate = useApiPrivate();
+  const navigate = useNavigate();
 
   const [outlets, setOutlets] = useState([]);
   const [outletId, setOutletId] = useState("");
@@ -20,6 +21,7 @@ const AllOutlets = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [acctName, setAcctName] = useState("");
   const [selectedOutletData, setSelectedOutletData] = useState(null);
+  const [logo, setLogo] = useState("");
 
   const [refreshTrigger, setRefreshTrigger] = useState(false);
 
@@ -51,6 +53,9 @@ const AllOutlets = () => {
     setErrorsModal(true);
     setShowAuthModal(false);
     //Navigate -1 ?
+  };
+  const handleNavSettingsAcct = () => {
+    navigate(`/db/${accountId}/settings/account`);
   };
 
   const handleDelete = async (outlet) => {
@@ -91,6 +96,7 @@ const AllOutlets = () => {
         if (res?.data) {
           const sort = numericalSort(res.data);
           setOutlets(sort);
+          setLogo(sort[0].account.logo);
           setAcctName(sort[0].account.companyName);
         }
       } catch (error) {
@@ -143,6 +149,23 @@ const AllOutlets = () => {
       <h1 className="ml-5 text-sm font-light italic text-stone-500 mb-5">
         Manage your existing outlets...
       </h1>
+
+      {!logo && (
+        <div className="font-light text-primary-dark-green lg:absolute lg:top-0 lg:right-0 lg:w-50 lg:z-1 text-center p-3 bg-primary-cream/80 m-3 border-1 border-red-900">
+          <h1 className="font-bold text-lg">Notification</h1>
+          <p className="text-sm">
+            Your <span className="font-medium">logo</span> is not set up yet,
+            please{" "}
+            <button
+              onClick={handleNavSettingsAcct}
+              className="bg-primary-dark-green text-white px-2 py-1 rounded-xl hover:bg-primary-green cursor-pointer"
+            >
+              Update Your Logo
+            </button>
+            .
+          </p>
+        </div>
+      )}
 
       {errorsModal && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">

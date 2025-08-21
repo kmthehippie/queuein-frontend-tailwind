@@ -528,7 +528,7 @@ const ActiveOutlet = () => {
                                   activeTableAnswer +
                                   ` ${
                                     item.id === highlightedItem
-                                      ? "bg-yellow-200 animate-pulse px-5"
+                                      ? "bg-yellow-200 px-5"
                                       : ""
                                   }`
                                 }
@@ -787,9 +787,7 @@ const ActiveOutlet = () => {
                           landscapeHeaderClass +
                           `col-span-1
                            ${
-                             item.id === highlightedItem
-                               ? "bg-yellow-200 animate-pulse"
-                               : ""
+                             item.id === highlightedItem ? "bg-yellow-200 " : ""
                            }`
                         }
                       >

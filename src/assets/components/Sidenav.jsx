@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import useApiPrivate from "../hooks/useApiPrivate";
 import { numericalSort, alphabeticalSort } from "../utils/sortList";
@@ -11,6 +11,7 @@ const Sidenav = () => {
   const params = useParams();
   const { isAuthenticated, accountId, reloadNav } = useAuth();
   const apiPrivate = useApiPrivate();
+  const navigate = useNavigate();
 
   //Tailwind classes
   const sideNavButtonClass = ` pl-5 pt-3 m-1 pb-3 cursor-pointer transition ease-in rounded-xl leading-4
@@ -20,7 +21,19 @@ const Sidenav = () => {
   const toggleSideNav = () => {
     setShowSideNav(!showSideNav);
   };
+  const handleNav = (outletId) => {
+    if (
+      location.pathname.includes(`outlet/${outletId}/active`) ||
+      location.pathname.includes(`outlet/${outletId}/inactive`)
+    ) {
+      console.log("True the pathname ends with outletid");
+      setShowSideNav(false);
+      return;
+    }
 
+    setShowSideNav(false);
+    navigate(`/db/${params.accountId}/outlet/${outletId}`);
+  };
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (sideNavRef.current && !sideNavRef.current.contains(e.target)) {
@@ -51,7 +64,7 @@ const Sidenav = () => {
 
   return (
     <div
-      className="lg:relative absolute top-0 left-0 h-full lg:col-span-1 print:hidden"
+      className="lg:relative absolute top-0 left-0 h-[85vh] lg:col-span-1 print:hidden"
       ref={sideNavRef}
     >
       <p
@@ -99,13 +112,12 @@ const Sidenav = () => {
         {outlets.length > 0 ? (
           <div>
             {outlets.map((outlet) => (
-              <Link
-                to={`/db/${params.accountId}/outlet/${outlet.id}`}
+              <div
                 key={outlet.id}
-                onClick={() => setShowSideNav(false)} // Close sidenav on link click
+                onClick={() => handleNav(outlet.id)} // Close sidenav on link click
               >
                 <div className={sideNavButtonClass}>{outlet.name}</div>
-              </Link>
+              </div>
             ))}
           </div>
         ) : (

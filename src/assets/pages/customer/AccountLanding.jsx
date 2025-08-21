@@ -142,7 +142,7 @@ const AccountLanding = () => {
                     <img src="/Q-logo.svg" alt="Queue Logo" className="w-5" />
                     <span className="pl-3">
                       {outlet.queues.length > 0 ? (
-                        <p>
+                        <span>
                           {outlet.queues[0].queueLength > 5 ? (
                             <span className="text-red-700 hover:text-primary-dark-green transition ease-in">
                               Very Busy
@@ -156,7 +156,7 @@ const AccountLanding = () => {
                               Short Queue
                             </span>
                           )}
-                        </p>
+                        </span>
                       ) : (
                         "Quick Entry"
                       )}

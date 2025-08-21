@@ -27,6 +27,14 @@ const Attribution = () => {
             Pixabay
           </a>
         </li>
+        <li>
+          Photo by Krizjohn Rosales:
+          https://www.pexels.com/photo/group-of-men-forming-a-libe-761295/
+        </li>
+        <li>
+          Photo by Burst:
+          https://www.pexels.com/photo/person-writing-on-paper-on-top-of-table-544965/
+        </li>
       </ul>
     </div>
   );

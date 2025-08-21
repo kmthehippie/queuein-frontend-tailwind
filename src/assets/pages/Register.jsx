@@ -179,9 +179,9 @@ const Register = () => {
     );
   }
   return (
-    <div className="flex h-full">
-      <div className="flex-4/5 flex items-start my-10 justify-center overflow-auto ">
-        <div className="bg-white/50 p-10 rounded-xl shadow-md w-4/5 flex-row md:pb-0 md:pt-5 min-h-full h-auto items-center justify-center">
+    <div className="flex h-full items-center">
+      <div className="flex-4/5 flex items-start my-10 py-3 lg:py-5 lg:my-0 justify-center overflow-auto ">
+        <div className="bg-white/50 p-10 rounded-xl shadow-md  w-4/5 flex-row md:pb-5 md:pt-5 min-h-full h-auto items-center justify-center">
           <h1 className="text-3xl font-semibold mb-2 font-poppins">
             Great Choice!
           </h1>

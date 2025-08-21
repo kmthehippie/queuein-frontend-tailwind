@@ -49,14 +49,12 @@ const AuthorizedUser = ({
         minimumRole: minimumRole,
         outletId: outletId ? outletId : null,
       };
-      console.log("This is the data to submit to authorise role: ", data);
 
       const res = await apiPrivate.post(
         `/authorisedRole/${params.accountId}`,
         data
       );
       if (res.status === 200) {
-        console.log("Info for res: ", res.data);
         const info = {
           staffId: res.data.staffId,
           staffRole: res.data.staffRole,
@@ -67,7 +65,6 @@ const AuthorizedUser = ({
         console.log("Something went wrong, status is not 200");
         onFailure();
       }
-      console.log(res);
     } catch (error) {
       console.error(error);
       onFailure();

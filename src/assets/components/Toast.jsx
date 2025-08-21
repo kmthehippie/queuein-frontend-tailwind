@@ -26,6 +26,7 @@ const Toast = ({ id, content, type, duration, sticky, close }) => {
   flex items-start justify-between gap-4 
   transition-all duration-300 ease-out 
   max-w-xs w-full pointer-events-auto 
+  print:hidden
 `;
   const animationClasses = isVisible
     ? "opacity-100 translate-y-full"
