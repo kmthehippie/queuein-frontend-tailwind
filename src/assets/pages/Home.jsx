@@ -76,7 +76,9 @@ const futureFeaturesData = [
 ];
 const Home = () => {
   const navigate = useNavigate();
-  const buttonClass = `bg-primary-green mt-3 hover:bg-primary-dark-green w-auto transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline`;
+  const emailAddress = import.meta.env.VITE_FEEDBACK_EMAIL_ADDRESS;
+  const subject = `Feedback`;
+
   const [introText, setIntroText] = useState(false);
   const [featureText, setFeatureText] = useState(false);
   const visibleFeatures = featuresData.slice(0, 4);
@@ -214,7 +216,7 @@ const Home = () => {
                 <span className="font-semibold text-sm">Free for now!</span>
                 <br />
                 The app is now available for{" "}
-                <span className="font-semibold">free</span> as we are still in
+                <span className="font-semibold">free</span> as it is still in
                 the alpha phase!
                 <p className="text-xs">
                   We might have to start charge a small fee to pay for servers
@@ -396,7 +398,13 @@ const Home = () => {
             <p className="text-sm mt-4 text-center">
               Do you have more ideas? Or maybe something's broken! <br />
               Please send me feedback via email:{" "}
-              <span className="text-primary-green">km_dev@hotmail.com</span>
+              <a
+                href={`mailto:${emailAddress}?subject=${encodeURIComponent(
+                  subject
+                )}`}
+              >
+                Email Us
+              </a>
             </p>
           </div>
         </div>

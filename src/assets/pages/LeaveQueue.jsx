@@ -2,27 +2,29 @@ import React from "react";
 import { useParams } from "react-router-dom";
 
 const LeaveQueue = () => {
-  const { acctSlug, queueItemId } = useParams();
-  const subject = `Left ${acctSlug} using ${queueItemId} `;
+  const { acctSlug, queueId } = useParams();
+  const subject = `Left ${acctSlug} using ${queueId} `;
   const emailAddress = import.meta.env.VITE_FEEDBACK_EMAIL_ADDRESS;
   return (
-    <div>
-      <div className="">
-        <h1 className="font-extralight text-3xl text-primary-green">
+    <div className="flex flex-col items-center justify-center ">
+      <div className="font-light max-w-xl mx-auto">
+        <h1 className="font-extralight text-4xl mt-10 text-center">
           Sorry you had to leave the queue!
         </h1>
       </div>
-      <p>
-        We hope to do better next time. Please leave us a feedback as to what we
-        can improve at.
-      </p>
-      <a
-        href={`mailto:${emailAddress}@example.com?subject=${encodeURIComponent(
-          subject
-        )}`}
-      >
-        Email Us
-      </a>
+      <div className="mt-8 max-w-lg p-6 bg-gradient-to-br from-primary-cream/80 to-primary-cream/60 rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl mx-5 lg:mx-1 text-center">
+        <p className="my-4 font-light text-center text-lg">
+          I hope to make the app better for your usage. Please leave me a
+          feedback.
+        </p>
+        <a
+          href={`mailto:${emailAddress}?subject=${encodeURIComponent(subject)}`}
+        >
+          <div className="font-light text-primary-cream bg-primary-dark-green px-5 py-2">
+            Email Us
+          </div>
+        </a>
+      </div>
     </div>
   );
 };

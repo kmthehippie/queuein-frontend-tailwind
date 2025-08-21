@@ -210,9 +210,10 @@ const ActiveOutlet = () => {
     //if notificationPermission === "granted" then we open a toast to say notifications are active. We will update you when a customer joins the queue or changes the pax
     //Else just create a toast that says there is no notifications.
     if (socket && isConnected) {
-      const alert = (header, body) => {
+      const alert = (header, body, soundEffect) => {
+        console.log("when alert: ", header, body);
         if ("Notification" in window && Notification.permission === "granted") {
-          const audio = new Audio("/Ding.mp3");
+          const audio = new Audio(soundEffect);
           audio
             .play()
             .catch((e) => console.error("Audio playback failed: ", e));
@@ -222,19 +223,23 @@ const ActiveOutlet = () => {
           });
         }
       };
+
       const handleHostQueueUpdate = (data) => {
         if (data) {
           const newQueueItems = data.queueItems;
           setQueueItems(newQueueItems);
+          console.log("Data notice: ");
 
-          if (data.notice && data.notice.action === "pax") {
+          if (data.notice.action === "pax") {
+            console.log("Data notice action is pax: ", data.notice.queueItemId);
             const newQueueItem = newQueueItems.filter(
               (item) => item.id === data.notice.queueItemId
             );
             if (newQueueItem.length > 0) {
               alert(
                 "There is a pax change",
-                `${newQueueItem[0].name} has changed pax to ${newQueueItem[0].pax} `
+                `${newQueueItem[0].name} has changed pax to ${newQueueItem[0].pax} `,
+                "/Ding.mp3"
               );
             } else {
               console.warn("Updated item not found in the new queue list.");
@@ -243,17 +248,35 @@ const ActiveOutlet = () => {
             setTimeout(() => {
               setHighlightedItem(null);
             }, 120000);
-          } else if (data.notice && data.notice.action === "join") {
-            const newQueueItems = data.queueItems;
+          } else if (data.notice.action === "join") {
+            console.log("someone joined queue", data.notice);
             const newQueueItem = newQueueItems.filter(
               (item) => item.id === data.notice.queueItemId
             );
             if (newQueueItem.length > 0) {
               alert(
                 "New Customer has Joined the Queue!",
-                `${newQueueItem[0].name} has joined with ${newQueueItem[0].pax} pax`
+                `${newQueueItem[0].name} has joined with ${newQueueItem[0].pax} pax`,
+                "/Success.mp3"
               );
             }
+          } else if (data.notice.action === "quit") {
+            console.log("Someone quit the queue", data.notice);
+            const newQueueItem = newQueueItems.filter(
+              (item) => item.id === data.notice.queueItemId
+            );
+            if (newQueueItem) {
+              alert(
+                "Customer has quit the queue.",
+                `${newQueueItem[0].name} has left the queue.`,
+                "/FailSound.mp3"
+              );
+            }
+          } else if (data.notice.action === "noShow") {
+            const newQueueItem = newQueueItems.filter(
+              (item) => item.id === data.notice.queueItemId
+            );
+            console.log(`We set customer ${newQueueItem.name} as no show.`);
           }
         }
       };

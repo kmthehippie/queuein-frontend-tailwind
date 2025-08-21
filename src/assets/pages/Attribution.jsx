@@ -35,6 +35,26 @@ const Attribution = () => {
           Photo by Burst:
           https://www.pexels.com/photo/person-writing-on-paper-on-top-of-table-544965/
         </li>
+        <li>
+          Failure Sound Effect by{" "}
+          <a href="https://pixabay.com/users/floraphonic-38928062/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=224413">
+            floraphonic
+          </a>{" "}
+          from{" "}
+          <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=224413">
+            Pixabay
+          </a>
+        </li>
+        <li>
+          Success Sound Effect by{" "}
+          <a href="https://pixabay.com/users/freesound_community-46691455/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=6346">
+            freesound_community
+          </a>{" "}
+          from{" "}
+          <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=6346">
+            Pixabay
+          </a>
+        </li>
       </ul>
     </div>
   );

@@ -373,6 +373,12 @@ const Waiting = () => {
   const handlePaxUpdate = async (e) => {
     e.preventDefault();
 
+    if (parseInt(newPax) === parseInt(pax)) {
+      setNewPax("");
+      setModalUpdate(false);
+      return;
+    }
+
     try {
       const acctSlug = accountInfo.slug;
       const queueId = queueItem.queueId;
