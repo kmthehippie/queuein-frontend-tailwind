@@ -197,102 +197,6 @@ const Home = () => {
             </button>
           </div>
         </div>
-
-        <div className="font-light  max-w-2xl mx-auto">
-          <h2 className="font-extralight text-2xl mt-10 text-center">
-            Features
-          </h2>
-          <ul className="list-none space-y-4 bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md max-w-200 m-1 text-xs">
-            {visibleFeatures.map((feature, index) => (
-              <li className="flex items-center" key={index}>
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white mr-3">
-                  ✓
-                </span>
-                <p className="text-gray-800">
-                  <span className="font-semibold text-sm">{feature.title}</span>
-                  <br /> {feature.description}
-                </p>
-              </li>
-            ))}
-
-            {featureText && (
-              <>
-                {hiddenFeatures.map((feature, index) => (
-                  <li className="flex items-center" key={index}>
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white mr-3">
-                      ✓
-                    </span>
-                    <p className="text-gray-800">
-                      <span className="font-semibold text-sm">
-                        {feature.title}
-                      </span>
-                      <br /> {feature.description}
-                    </p>
-                  </li>
-                ))}
-              </>
-            )}
-
-            <li className="flex items-center justify-center">
-              <button
-                onClick={toggleFeatureText}
-                className="w-full text-primary-green hover:text-primary-light-green px-3 py-2 flex items-center justify-center"
-              >
-                <i
-                  className={`fa-solid fa-caret-down text-2xl mr-2 transform transition-transform duration-300 ${
-                    featureText ? "rotate-180" : ""
-                  }`}
-                ></i>
-                <span className="text-sm font-medium">
-                  {featureText
-                    ? "Show Less Features..."
-                    : "Show More Features..."}
-                </span>
-              </button>
-            </li>
-          </ul>
-        </div>
-
-        <div className="font-light max-w-2xl mx-auto">
-          <h2 className="font-extralight text-2xl mt-10 text-center">
-            Future features
-          </h2>
-          <div className="bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md m-1">
-            <p className="text-xs mb-4">
-              As this is just the first iteration of queuein, you can be sure
-              that there will be many improvements and additional features to
-              come. The following are some examples of what is to come.
-            </p>
-            <ul className="list-none space-y-4 text-xs">
-              {futureFeaturesData.map((feature, index) => (
-                <li className="flex items-start" key={index}>
-                  <span className="flex-shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white mr-3 mt-1">
-                    ★
-                  </span>
-                  <div className="text-gray-800">
-                    <span className="font-semibold text-sm">
-                      {feature.title}
-                    </span>
-                    {feature.description && <br />}
-                    {feature.description}
-                    {feature.sublist && (
-                      <ul className="list-disc ml-6 mt-2 space-y-1">
-                        {feature.sublist.map((item, subIndex) => (
-                          <li key={subIndex}>{item}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <p className="text-sm mt-4 text-center">
-              Do you have more ideas? Or maybe something's broken! <br />
-              Please send me feedback via email:{" "}
-              <span className="text-primary-green">km_dev@hotmail.com</span>
-            </p>
-          </div>
-        </div>
         <div className="font-light max-w-2xl mx-auto ">
           <div className="flex mt-3 mb-5 items-center justify-center">
             <i className="fa-solid fa-screwdriver text-[50px]  text-primary-dark-green"></i>{" "}
@@ -302,6 +206,23 @@ const Home = () => {
             <i className="fa-solid fa-hammer text-[50px]  text-primary-dark-green rotate-y-180"></i>
           </div>
           <div className="bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md m-1">
+            <div className="text-gray-800 flex items-center">
+              <span className="flex-shrink-0 w-6 h-6 bg-primary-green rounded-full flex items-center justify-center text-white mr-3 mt-1">
+                <i className="fa-solid fa-screwdriver  text-white"></i>{" "}
+              </span>
+              <div className="">
+                <span className="font-semibold text-sm">Free for now!</span>
+                <br />
+                The app is now available for{" "}
+                <span className="font-semibold">free</span> as we are still in
+                the alpha phase!
+                <p className="text-xs">
+                  We might have to start charge a small fee to pay for servers
+                  and hosting at a later date.
+                </p>
+              </div>
+            </div>
+            <br />
             <div className="text-gray-800 flex items-center">
               <span className="flex-shrink-0 w-6 h-6 bg-primary-green rounded-full flex items-center justify-center text-white mr-3 mt-1">
                 <i className="fa-solid fa-screwdriver  text-white"></i>{" "}
@@ -369,18 +290,114 @@ const Home = () => {
                 <br />A sample account you can{" "}
                 <button
                   className="text-primary-green hover:text-primary-light-green italic font-semibold"
-                  onClick={handleNavRegister}
+                  onClick={handleNavLogin}
                 >
                   login
                 </button>{" "}
                 <br />
-                <p className="text-xs">
-                  email: general@nlbh.com and pw: 123123
-                  <br />
-                  staff: A Cool Dude and pw: 123123
-                </p>
+                <div className="text-xs mt-1">
+                  LOGIN DETAILS:
+                  <div>email: general@nlbh.com pw: 123123</div>
+                  STAFF DETAILS:
+                  <div> staff: A Cool Dude pw: 123123</div>
+                </div>
               </div>
             </div>
+          </div>
+        </div>
+        <div className="font-light  max-w-2xl mx-auto">
+          <h2 className="font-extralight text-2xl mt-10 text-center">
+            Features
+          </h2>
+          <ul className="list-none space-y-4 bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md max-w-200 m-1 text-xs">
+            {visibleFeatures.map((feature, index) => (
+              <li className="flex items-center" key={index}>
+                <span className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white mr-3">
+                  ✓
+                </span>
+                <p className="text-gray-800">
+                  <span className="font-semibold text-sm">{feature.title}</span>
+                  <br /> {feature.description}
+                </p>
+              </li>
+            ))}
+
+            {featureText && (
+              <>
+                {hiddenFeatures.map((feature, index) => (
+                  <li className="flex items-center" key={index}>
+                    <span className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white mr-3">
+                      ✓
+                    </span>
+                    <p className="text-gray-800">
+                      <span className="font-semibold text-sm">
+                        {feature.title}
+                      </span>
+                      <br /> {feature.description}
+                    </p>
+                  </li>
+                ))}
+              </>
+            )}
+
+            <li className="flex items-center justify-center">
+              <button
+                onClick={toggleFeatureText}
+                className="w-full text-primary-green hover:text-primary-light-green px-3 py-2 flex items-center justify-center"
+              >
+                <i
+                  className={`fa-solid fa-caret-down text-2xl mr-2 transform transition-transform duration-300 ${
+                    featureText ? "rotate-180" : ""
+                  }`}
+                ></i>
+                <span className="text-sm font-medium">
+                  {featureText
+                    ? "Show Less Features..."
+                    : "Show More Features..."}
+                </span>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <div className="font-light max-w-2xl mx-auto mb-10">
+          <h2 className="font-extralight text-2xl mt-10 text-center">
+            Future features
+          </h2>
+          <div className="bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md m-1">
+            <p className="text-xs mb-4">
+              As this is just the first iteration of queuein, you can be sure
+              that there will be many improvements and additional features to
+              come. The following are some examples of what is to come.
+            </p>
+            <ul className="list-none space-y-4 text-xs">
+              {futureFeaturesData.map((feature, index) => (
+                <li className="flex items-start" key={index}>
+                  <span className="flex-shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white mr-3 mt-1">
+                    ★
+                  </span>
+                  <div className="text-gray-800">
+                    <span className="font-semibold text-sm">
+                      {feature.title}
+                    </span>
+                    {feature.description && <br />}
+                    {feature.description}
+                    {feature.sublist && (
+                      <ul className="list-disc ml-6 mt-2 space-y-1">
+                        {feature.sublist.map((item, subIndex) => (
+                          <li key={subIndex}>{item}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <p className="text-sm mt-4 text-center">
+              Do you have more ideas? Or maybe something's broken! <br />
+              Please send me feedback via email:{" "}
+              <span className="text-primary-green">km_dev@hotmail.com</span>
+            </p>
           </div>
         </div>
       </div>
