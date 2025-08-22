@@ -12,7 +12,7 @@ import NotificationModal from "../../components/NotificationModal";
 
 const ActiveOutlet = () => {
   const { socket, isConnected } = useContext(SocketContext);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, businessType } = useAuth();
   const params = useParams();
   const location = useLocation();
   const apiPrivate = useApiPrivate();
@@ -505,7 +505,7 @@ const ActiveOutlet = () => {
         <div className="">
           {queueItems.length === 0 && (
             <div className="mt-3 font-semibold italic text-primary-dark-green">
-              There are no customers in queue yet...
+              There are no queuers in queue yet...
             </div>
           )}
           {errors && <p className={errorClass}>{errors.general}</p>}
@@ -518,7 +518,7 @@ const ActiveOutlet = () => {
               handleAddCustomer(e);
             }}
           >
-            Add Customer
+            Add Queuer
           </button>
 
           {/* PORTRAIT */}
@@ -534,7 +534,7 @@ const ActiveOutlet = () => {
                           <div className="grid grid-cols-2 border-b-1">
                             <div className="flex items-center p-1 border-r-1">
                               <div className={activeTableHeader + " mr-5"}>
-                                Customer Number
+                                Queuer Number
                               </div>
                               <div className={activeTableAnswer + ""}>
                                 {item.position}
@@ -548,7 +548,7 @@ const ActiveOutlet = () => {
                               </div>
                               <div className={activeTableAnswer + " "}>
                                 <span className="z-1">
-                                  {item.name || item?.customer?.name || "N/A"}
+                                  {item.name || item?.Queuer?.name || "N/A"}
                                 </span>
                                 {item?.customer && (
                                   <span className="ml-2 px-2 py-0.5  absolute top-0 right-0 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
@@ -558,41 +558,43 @@ const ActiveOutlet = () => {
                               </div>
                             </div>
                           </div>
-                          <div className="grid grid-cols-3 border-b-1">
-                            <div className="col-span-1 flex items-center p-1 border-r-1">
-                              <div className={activeTableHeader}>PAX</div>
-                              <div
-                                className={
-                                  activeTableAnswer +
-                                  ` ${
-                                    item.id === highlightedItem
-                                      ? "bg-yellow-200 px-5"
-                                      : ""
-                                  }`
-                                }
-                              >
-                                {item.pax || "N/A"}
+                          {businessType === "RESTAURANT" && (
+                            <div className={`grid grid-cols-3 border-b-1`}>
+                              <div className="col-span-1 flex items-center p-1 border-r-1">
+                                <div className={activeTableHeader}>PAX</div>
+                                <div
+                                  className={
+                                    activeTableAnswer +
+                                    ` ${
+                                      item.id === highlightedItem
+                                        ? "bg-yellow-200 px-5"
+                                        : ""
+                                    }`
+                                  }
+                                >
+                                  {item.pax || "N/A"}
+                                </div>
+                              </div>
+                              <div className="col-span-2 flex items-center p-1 ">
+                                <div className={activeTableHeader}>
+                                  <i className="fa-solid fa-clock"></i> Waited
+                                </div>
+                                <div
+                                  className={
+                                    activeTableAnswer +
+                                    " text-xs" +
+                                    getWaitingTimeClass(item.createdAt)
+                                  }
+                                >
+                                  {convertedTime(item.createdAt)}
+                                </div>
                               </div>
                             </div>
-                            <div className="col-span-2 flex items-center p-1 ">
-                              <div className={activeTableHeader}>
-                                <i className="fa-solid fa-clock"></i> Waited
-                              </div>
-                              <div
-                                className={
-                                  activeTableAnswer +
-                                  " text-xs" +
-                                  getWaitingTimeClass(item.createdAt)
-                                }
-                              >
-                                {convertedTime(item.createdAt)}
-                              </div>
-                            </div>
-                          </div>
+                          )}
 
                           <div className="flex items-center p-1 border-b-1">
                             <div className={activeTableHeader}>
-                              <i className="fa-solid fa-phone"></i> Customer
+                              <i className="fa-solid fa-phone"></i> Queuer
                             </div>
                             <div className={activeTableAnswer}>
                               {item.contactNumber ||
@@ -682,7 +684,7 @@ const ActiveOutlet = () => {
                           <div className="grid grid-cols-2">
                             <div className="flex items-center p-1 ">
                               <div className={activeTableHeader + ""}>
-                                Customer Number
+                                Queuer Number
                               </div>
                               <div className={activeTableAnswer + ""}>
                                 {item.position}
@@ -718,7 +720,7 @@ const ActiveOutlet = () => {
                           <div className="grid grid-cols-2">
                             <div className="flex items-center p-1 ">
                               <div className={activeTableHeader + ""}>
-                                Customer Number
+                                Queuer Number
                               </div>
                               <div className={activeTableAnswer + ""}>
                                 {item.position}
@@ -757,7 +759,7 @@ const ActiveOutlet = () => {
                     " text-primary-dark-green col-span-1 border-l-10 rounded-l-xl"
                   }
                 >
-                  Cust Q#
+                  Q#
                 </div>
                 <div
                   className={
@@ -766,26 +768,29 @@ const ActiveOutlet = () => {
                 >
                   Time Waited
                 </div>
-                <div
-                  className={
-                    landscapeHeaderClass + " text-primary-dark-green col-span-1"
-                  }
-                >
-                  PAX
-                </div>
+                {businessType === "RESTAURANT" && (
+                  <div
+                    className={
+                      landscapeHeaderClass +
+                      " text-primary-dark-green col-span-1"
+                    }
+                  >
+                    PAX
+                  </div>
+                )}
                 <div
                   className={
                     landscapeHeaderClass + " text-primary-dark-green col-span-3"
                   }
                 >
-                  Customer Name
+                  Queuer Name
                 </div>
                 <div
                   className={
                     landscapeHeaderClass + " text-primary-dark-green col-span-2"
                   }
                 >
-                  Customer Contact Number
+                  Queuer Contact Number
                 </div>
                 <div
                   className={
@@ -820,17 +825,19 @@ const ActiveOutlet = () => {
                       >
                         {convertedTime(item.createdAt)}
                       </div>
-                      <div
-                        className={
-                          landscapeHeaderClass +
-                          `col-span-1
+                      {businessType === "RESTAURANT" && (
+                        <div
+                          className={
+                            landscapeHeaderClass +
+                            `col-span-1
                            ${
                              item.id === highlightedItem ? "bg-yellow-200 " : ""
                            }`
-                        }
-                      >
-                        {item.pax}
-                      </div>
+                          }
+                        >
+                          {item.pax}
+                        </div>
+                      )}
                       <div className={landscapeHeaderClass + " col-span-3"}>
                         {item?.customer?.name || item?.name}
                         {item?.customer && (
@@ -926,13 +933,15 @@ const ActiveOutlet = () => {
                       >
                         {convertedTime(item.createdAt)}
                       </div>
-                      <div
-                        className={
-                          landscapeHeaderClass + " col-span-1 bg-stone-300"
-                        }
-                      >
-                        {item.pax}
-                      </div>
+                      {businessType === "RESTAURANT" && (
+                        <div
+                          className={
+                            landscapeHeaderClass + " col-span-1 bg-stone-300"
+                          }
+                        >
+                          {item.pax}
+                        </div>
+                      )}
                       <div
                         className={
                           landscapeHeaderClass + " col-span-3 bg-stone-300"
@@ -1037,14 +1046,16 @@ const ActiveOutlet = () => {
                       >
                         {convertedTime(item.createdAt)}
                       </div>
-                      <div
-                        className={
-                          landscapeHeaderClass +
-                          " col-span-1 bg-red-950/50 text-white"
-                        }
-                      >
-                        {item.pax}
-                      </div>
+                      {businessType === "RESTAURANT" && (
+                        <div
+                          className={
+                            landscapeHeaderClass +
+                            " col-span-1 bg-red-950/50 text-white"
+                          }
+                        >
+                          {item.pax}
+                        </div>
+                      )}
                       <div
                         className={
                           landscapeHeaderClass +

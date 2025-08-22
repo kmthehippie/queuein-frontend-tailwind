@@ -5,13 +5,15 @@ import useAuth from "../../hooks/useAuth";
 import AuthorisedUser from "../../pages/account/AuthorisedUser";
 import Loading from "../../components/Loading";
 import { Outlet, useNavigate } from "react-router-dom";
+import { unescapeHtml } from "../../utils/unescapeHtml";
 
 const SettingsAccount = () => {
-  const { accountId } = useAuth();
+  const { accountId, refresh } = useAuth();
   const navigate = useNavigate();
   const [account, setAccount] = useState({});
   const [companyName, setCompanyName] = useState("");
   const [companyEmail, setCompanyEmail] = useState("");
+  const [businessType, setBusinessType] = useState("");
   const [createdAt, setCreatedAt] = useState("");
   const [logo, setLogo] = useState("");
   const [slug, setSlug] = useState("");
@@ -22,9 +24,12 @@ const SettingsAccount = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAuditLogs, setShowAuditLogs] = useState(false);
 
+  const [slugError, setSlugError] = useState(false);
   const [companyNameError, setCompanyNameError] = useState(false);
   const [errors, setErrors] = useState();
   const [isLoading, setIsLoading] = useState(false);
+  const emailAddress = import.meta.env.VITE_FEEDBACK_EMAIL_ADDRESS;
+  const subject = `Feedback ${companyName} account issue`;
 
   const [emailModalInfo, setEmailModalInfo] = useState(false);
   const [slugModalInfo, setSlugModalInfo] = useState(false);
@@ -38,8 +43,10 @@ const SettingsAccount = () => {
       console.log(response);
       if (response.data) {
         setAccount(response.data);
-        setCompanyName(response.data.companyName);
+        const name = unescapeHtml(response.data.companyName);
+        setCompanyName(name);
         setCompanyEmail(response.data.companyEmail);
+        setBusinessType(response.data.businessType);
         const updateDate = new Date(response.data.createdAt);
         const formattedTime = updateDate.toLocaleString("en-US", {
           year: "numeric",
@@ -73,30 +80,42 @@ const SettingsAccount = () => {
     });
   };
   const checkChange = () => {
-    const nameChanged = account.companyName !== companyName;
-
-    // Check for a new file upload
+    const name = unescapeHtml(account.companyName);
+    const nameChanged = name !== companyName;
+    const btChanged = account.businessType !== businessType;
+    const slugChanged = account.slug !== slug;
     const fileChanged = imgFile !== null && imgFile !== "";
 
-    // Set changesExist to true if any of the above are true
-    setChangesExist(nameChanged || fileChanged);
+    setChangesExist(nameChanged || fileChanged || btChanged || slugChanged);
   };
-  const handleUpdate = useCallback((e) => {
-    e.preventDefault();
-    setErrors("");
-    setShowAuthModal(true);
-  }, []);
+  const handleUpdate = useCallback(
+    (e) => {
+      e.preventDefault();
+      console.log("Changes exist in handle update?", changesExist);
+      if (changesExist) {
+        setErrors("");
+        setShowAuthModal(true);
+      }
+    },
+    [changesExist]
+  );
   const updateAccountAllowed = async (staffInfo) => {
     console.log(
       "Update account allowed called from settings account. This is the staff information: ",
       staffInfo
     );
     setCompanyNameError(false);
+    setSlugError(false);
     setErrors({});
 
     if (companyName.length < 5) {
       setCompanyNameError(true);
       setErrors({ general: "Name must be longer than 5 characters" });
+      return;
+    }
+    if (slug.length < 5) {
+      setSlugError(true);
+      setErrors({ general: "Slug must be longer than 5 characters" });
       return;
     }
 
@@ -115,16 +134,25 @@ const SettingsAccount = () => {
       if (account.companyName !== companyName) {
         dataToSubmit.append("companyName", companyName);
       }
-    } else {
-      if (hasFileToUpload) {
-        if (imgFile !== "") {
-          dataToSubmit.append("outletImage", imgFile);
-          payload.logo = imgFile;
-        }
+
+      if (account.businessType !== businessType) {
+        dataToSubmit.append("businessType", businessType);
       }
+      if (account.slug !== slug) {
+        dataToSubmit.append("slug", slug);
+      }
+    } else {
       if (account.companyName !== companyName) {
         dataToSubmit.append("companyName", companyName);
         payload.companyName = companyName;
+      }
+      if (account.businessType !== businessType) {
+        dataToSubmit.append("businessType", businessType);
+        payload.businessType = businessType;
+      }
+      if (account.slug !== slug) {
+        dataToSubmit.append("slug", slug);
+        payload.slug = slug;
       }
     }
     let hasContent = false;
@@ -139,9 +167,6 @@ const SettingsAccount = () => {
 
     try {
       setIsLoading(true);
-      console.log("Trying to patch to account ", accountId);
-      console.log("This is the payload: ", payload);
-      console.log("This is the data to submit: ", dataToSubmit);
 
       let res;
       if (hasFileToUpload) {
@@ -166,12 +191,14 @@ const SettingsAccount = () => {
         setIsLoading(false);
         setChangesExist(false);
         setCompanyName(res.data.companyName);
+        setBusinessType(res.data.businessType);
+        setSlug(res.data.slug);
         setLogo(res.data.logo);
         setImgFile("");
         setAccount(res.data);
         setShowAuthModal(false);
+        refresh();
       }
-      console.log(dataToSubmit);
     } catch (error) {
       setIsLoading(false);
       setErrors({ general: "Failed to update account. Please try again." });
@@ -190,10 +217,10 @@ const SettingsAccount = () => {
     setShowAuthModal(false);
   };
   useEffect(() => {
-    if (companyName || imgFile || logo) {
+    if (companyName || imgFile || logo || businessType || slug) {
       checkChange();
     }
-  }, [companyName, imgFile]);
+  }, [companyName, imgFile, businessType, slug]);
 
   const pathname = window.location.pathname;
   const pathnameEndsWithAccountAuditLogs =
@@ -262,7 +289,14 @@ const SettingsAccount = () => {
                 </div>
                 <small className="text-red-800 italic p-0 ">
                   Sorry, this field cannot be changed. If you really need to,
-                  please contact the admin at ....
+                  please contact the admin at{" "}
+                  <a
+                    href={`mailto:${emailAddress}?subject=${encodeURIComponent(
+                      subject
+                    )}`}
+                  >
+                    km_dev@hotmail.com
+                  </a>
                 </small>
               </div>
             </div>
@@ -284,10 +318,6 @@ const SettingsAccount = () => {
                     <p>This should be a modal</p>
                     <p>It's how your customers will look for your shop!</p>
                   </div>
-                  <small className="text-red-800 italic p-0 ">
-                    Sorry, this field cannot be changed. If you really need to,
-                    please contact the admin at ....
-                  </small>
                 </small>
               </div>
             </div>
@@ -334,25 +364,34 @@ const SettingsAccount = () => {
                   required
                 />
               </div>
-              <div
-                className={`px-3 py-1 h-full lg:grid lg:grid-cols-4 items-center lg:pl-5 pb-4`}
-              >
+              <div className={inputDivClass}>
                 <label htmlFor="slug" className={labelClass}>
-                  <i
-                    className="fa-solid fa-circle-info pr-1 cursor-pointer "
-                    onClick={() => {
-                      setSlugModalInfo(!slugModalInfo);
-                    }}
-                  ></i>
-                  Company Slug:{" "}
+                  Slug
                 </label>
-                <p
-                  className={
-                    "lg:col-span-3 appearance-none block pl-1 pt-2 text-gray-700 text-sm leading-tight border-gray-400 peer "
-                  }
+                <input
+                  id="slug"
+                  type="text"
+                  className={inputClass(slugError) + " lg:col-span-3  w-full "}
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className={inputDivClass}>
+                <label htmlFor="businessType" className={labelClass}>
+                  Business Type
+                </label>
+                <select
+                  id="businessType"
+                  value={businessType}
+                  onChange={(e) => setBusinessType(e.target.value)}
+                  className="border-none px-2 py-1"
                 >
-                  {slug}
-                </p>
+                  <option value="BASIC">Basic</option>
+                  <option value="RESTAURANT">Restaurant</option>
+                  <option value="CLINIC">Clinic</option>
+                </select>
               </div>
               <div
                 className={`px-3 py-1 h-full lg:grid lg:grid-cols-4 items-center lg:pl-5 pb-4`}

@@ -10,6 +10,8 @@ const Register = () => {
   const [companyNameErr, setCompanyNameErr] = useState("");
   const [companyEmail, setCompanyEmail] = useState("");
   const [companyEmailErr, setCompanyEmailErr] = useState("");
+  const [businessType, setBusinessType] = useState("");
+  const [businessTypeError, setBusinessTypeError] = useState(false);
   const [companyPassword, setCompanyPassword] = useState("");
   const [passwordCompanyError, setPasswordCompanyError] = useState("");
   const [companyCfmPassword, setCompanyCfmPassword] = useState("");
@@ -57,6 +59,10 @@ const Register = () => {
   const handleCheckCapsLock = (e) => {
     setCapslockOn(e.getModifierState("CapsLock"));
   };
+  const validateName = (name) => {
+    const alphanumericRegex = /^[a-zA-Z0-9 ]+$/;
+    return alphanumericRegex.test(name);
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setConfirmCompanyPasswordError("");
@@ -66,17 +72,28 @@ const Register = () => {
     setCompanyNameErr("");
     setOwnerNameErr("");
     setOwnerPasswordError("");
+    setBusinessType("");
 
-    //Some validation
     if (companyEmail.length < 6) {
       setErrors({ general: "Email invalid" });
       setCompanyEmailErr(true);
+      return;
+    }
+    if (!validateName(companyName)) {
+      setCompanyNameErr(true);
+      setErrors({
+        general: "Name can only contain letters, numbers, and spaces.",
+      });
       return;
     }
     if (ownerEmail.length < 6) {
       setErrors({ general: "Email invalid" });
       setOwnerEmailErr(true);
       return;
+    }
+    if (businessType.length === 0) {
+      setErrors({ general: "Please select business type" });
+      setBusinessTypeError(true);
     }
     if (companyPassword !== companyCfmPassword) {
       setErrors({ general: "Passwords do not match" });
@@ -108,6 +125,7 @@ const Register = () => {
       companyName: companyName,
       companyEmail: companyEmail,
       password: companyPassword,
+      businessType: businessType,
     };
 
     if (
@@ -116,7 +134,8 @@ const Register = () => {
       !companyCfmPassword ||
       !ownerEmail ||
       !ownerPassword ||
-      !ownerName
+      !ownerName ||
+      !businessType
     ) {
       setErrors({ general: "Please fill out the required fields" });
       return;
@@ -136,10 +155,12 @@ const Register = () => {
         ownerInfo,
       });
       if (res.status === 201 && res.data?.accessToken && res.data?.accountId) {
+        console.log("Response from registering: ", res.data);
         const accessToken = res.data?.accessToken;
         const accountId = res.data?.accountId;
+        const businessType = res.data?.businessType;
         setLoading(false);
-        login(accessToken, accountId);
+        login(accessToken, accountId, businessType);
         setErrors({});
 
         setTimeout(() => {
@@ -179,9 +200,9 @@ const Register = () => {
     );
   }
   return (
-    <div className="flex h-full items-center">
-      <div className="flex-4/5 flex items-start my-10 py-3 lg:py-5 lg:my-0 justify-center overflow-auto ">
-        <div className="bg-white/50 p-10 rounded-xl shadow-md  w-4/5 flex-row md:pb-5 md:pt-5 min-h-full h-auto items-center justify-center">
+    <div className="flex lg:h-full lg:items-center ">
+      <div className="lg:flex-4/5 w-full flex items-center lg:items-start my-10 py-3 lg:py-5 lg:my-0 justify-center overflow-auto ">
+        <div className="bg-white/50 p-10 rounded-xl shadow-md w-4/5 flex-row md:pb-5 md:pt-5 min-h-full h-auto items-center justify-center">
           <h1 className="text-3xl font-semibold mb-2 font-poppins">
             Great Choice!
           </h1>
@@ -215,7 +236,7 @@ const Register = () => {
                   id="company-email"
                   type="email"
                   placeholder="Enter your company email"
-                  className={inputClass(!!companyEmailErr)} // Use the function
+                  className={inputClass(!!companyEmailErr)}
                   onChange={(e) => {
                     setCompanyEmail(e.target.value);
                   }}
@@ -223,6 +244,7 @@ const Register = () => {
                   required
                 />
               </div>
+
               <div className="flex items-center m-2">
                 <input
                   id="email-same-checkbox"
@@ -240,7 +262,27 @@ const Register = () => {
                   Owner's email is the same as Company email
                 </label>
               </div>
-
+              <div className="text-sm text-gray-600">
+                <label htmlFor="business-type" className={labelClass}>
+                  Business Type
+                </label>
+                <select
+                  id="business-type"
+                  onChange={(e) => setBusinessType(e.target.value)}
+                  className={
+                    `border-1 border-gray-400 rounded-lg px-2 py-1` +
+                    `${businessTypeError ? " border-red-600" : ""}`
+                  }
+                >
+                  {" "}
+                  <option value="" defaultValue disabled>
+                    -----Please select an option-----
+                  </option>
+                  <option value="BASIC">Basic</option>
+                  <option value="RESTAURANT">Restaurant</option>
+                  <option value="CLINIC">Clinic</option>
+                </select>
+              </div>
               <div>
                 <label htmlFor="company-password" className={labelClass}>
                   Company Password

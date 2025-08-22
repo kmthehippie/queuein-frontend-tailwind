@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [account, setAccount] = useState(null);
   const [accountId, setAccountId] = useState(null);
+  const [businessType, setBusinessType] = useState("BASIC");
   const [authLoading, setAuthLoading] = useState(true);
   const [reloadNav, setReloadNav] = useState(false);
   const navigate = useNavigate();
@@ -30,6 +31,8 @@ export const AuthProvider = ({ children }) => {
       const response = await apiPrivate.post("/refresh");
       setAuthLoading(true);
       if (response.data?.accessToken) {
+        console.log("Res in context", response.data);
+        setBusinessType(response.data.businessType);
         setAccessToken(response.data.accessToken);
         setAccount(response.data.accountId);
         setIsAuthenticated(true);
@@ -61,7 +64,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = useCallback((newAccessToken, accountId) => {
+  const login = useCallback((newAccessToken, accountId, businessType) => {
     console.log(
       "Logging in in auth context: setting accesstoken & acct id ",
       newAccessToken,
@@ -69,6 +72,7 @@ export const AuthProvider = ({ children }) => {
     );
     setAccessToken(newAccessToken);
     setAccount({ id: accountId });
+    setBusinessType(businessType);
     setAccountId(accountId);
     setIsAuthenticated(true);
   }, []);
@@ -114,6 +118,7 @@ export const AuthProvider = ({ children }) => {
   const contextValue = useMemo(
     () => ({
       accessToken,
+      businessType,
       login,
       logout,
       refresh,

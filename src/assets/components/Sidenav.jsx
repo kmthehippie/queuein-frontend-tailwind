@@ -7,9 +7,10 @@ import { numericalSort, alphabeticalSort } from "../utils/sortList";
 const Sidenav = () => {
   const [outlets, setOutlets] = useState([]);
   const [showSideNav, setShowSideNav] = useState(false);
+  const [outletText, setOutletText] = useState("");
   const sideNavRef = useRef(null);
   const params = useParams();
-  const { isAuthenticated, accountId, reloadNav } = useAuth();
+  const { isAuthenticated, accountId, reloadNav, businessType } = useAuth();
   const apiPrivate = useApiPrivate();
   const navigate = useNavigate();
 
@@ -48,12 +49,24 @@ const Sidenav = () => {
 
   useEffect(() => {
     if (!isAuthenticated) return;
+    const handleOutletText = (type) => {
+      if (type === "RESTAURANT") {
+        setOutletText("Outlet");
+      } else if (type === "CLINIC") {
+        setOutletText("Clinic");
+      } else if (type === "BASIC") {
+        setOutletText("Event Location");
+      }
+    };
     const fetchOutlets = async () => {
       try {
-        const response = await apiPrivate.get(`/sidenav/${accountId}`); // Await the API call
+        const response = await apiPrivate.get(`/sidenav/${accountId}`);
         if (response?.data) {
           const sort = alphabeticalSort(response.data);
           setOutlets(sort);
+          handleOutletText(businessType);
+        } else if (response?.status === 404) {
+          setOutlets([]);
         }
       } catch (error) {
         console.error("Error fetching outlets for side nav:", error);
@@ -105,7 +118,7 @@ const Sidenav = () => {
             className="pl-3 pt-5 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer"
             onClick={toggleSideNav}
           >
-            <i className="fa-solid fa-house pr-1"></i> Outlets
+            <i className="fa-solid fa-house pr-1"></i> {outletText}
           </div>
         </Link>
 
@@ -121,12 +134,14 @@ const Sidenav = () => {
             ))}
           </div>
         ) : (
-          <div>No outlets available.</div>
+          <div className="ml-4 text-sm text-gray-500">
+            No {outletText}s Available.
+          </div>
         )}
         <Link to={`/db/${params.accountId}/outlets/new`}>
           <div onClick={toggleSideNav}>
             <div className={sideNavButtonClass + " font-semibold"}>
-              Create a new outlet +
+              Create a new {outletText} +
             </div>
           </div>
         </Link>

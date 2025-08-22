@@ -6,6 +6,7 @@ import useApiPrivate from "../../hooks/useApiPrivate";
 import AuthorisedUser from "./AuthorisedUser";
 import useAuth from "../../hooks/useAuth";
 import QRCode from "../../components/QRCodeButton";
+import { unescapeHtml } from "../../utils/unescapeHtml";
 import { numericalSort } from "../../utils/sortList";
 
 const AllOutlets = () => {
@@ -22,7 +23,8 @@ const AllOutlets = () => {
   const [acctName, setAcctName] = useState("");
   const [selectedOutletData, setSelectedOutletData] = useState(null);
   const [logo, setLogo] = useState("");
-
+  const [businessType, setBusinessType] = useState("");
+  const [outletText, setOutletText] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(false);
 
   const [errors, setErrors] = useState("");
@@ -89,15 +91,28 @@ const AllOutlets = () => {
       console.log("Account id is not defined ", accountId);
       return;
     }
-
+    const handleOutletText = (type) => {
+      if (type === "RESTAURANT") {
+        setOutletText("Outlet");
+      } else if (type === "CLINIC") {
+        setOutletText("Clinic");
+      } else if (type === "BASIC") {
+        setOutletText("Event Location");
+      }
+    };
     const fetchOutlets = async () => {
       try {
         const res = await apiPrivate.get(`/allOutlets/${accountId}`);
+        console.log("Res from all outlets: ", res.data);
         if (res?.data) {
-          const sort = numericalSort(res.data);
+          console.log("Res from all outlets: ", res.data);
+          const sort = numericalSort(res.data.outlets);
           setOutlets(sort);
-          setLogo(sort[0].account.logo);
-          setAcctName(sort[0].account.companyName);
+          setLogo(res.data.accountInfo.logo);
+          const name = unescapeHtml(res.data.accountInfo.companyName);
+          setAcctName(name);
+          setBusinessType(res.data.accountInfo.businessType);
+          handleOutletText(res.data.accountInfo.businessType);
         }
       } catch (error) {
         console.error(error);
@@ -142,12 +157,12 @@ const AllOutlets = () => {
           to={`/db/${accountId}/outlets/new`}
           className="font-extralight text-3xl"
         >
-          Create New Outlet +
+          Create New {outletText} +
         </Link>
       </div>
 
       <h1 className="ml-5 text-sm font-light italic text-stone-500 mb-5">
-        Manage your existing outlets...
+        Manage your existing {outletText}s...
       </h1>
 
       {!logo && (
@@ -261,7 +276,7 @@ const AllOutlets = () => {
               md:w-2/3 active:bg-red-700 hover:bg-red-900 hover:text-white"
                 onClick={() => handleDelete(outlet)}
               >
-                <i className="fa-solid fa-trash"></i> Delete this outlet
+                <i className="fa-solid fa-trash"></i> Delete this {outletText}
               </div>
             </div>
           </div>

@@ -19,6 +19,7 @@ const AccountLanding = () => {
       setErrors("");
       try {
         const res = await api.get(`/landingPage/${acctSlug}`);
+        console.log("Response from fetching landing page: ", res.data);
         if (res?.data?.accountInfo) {
           setCompanyName(res.data.accountInfo.companyName);
           setLogoUrl(res.data.accountInfo.logo);

@@ -642,26 +642,37 @@ const Waiting = () => {
             </div>
 
             <div className="grid grid-cols-3 text-center border-b-1 border-stone-300">
-              <div className="col-span-2 grid-rows-3 p-4">
-                <div className="text-sm text-stone-600 ">Your Number</div>
+              {accountInfo.businessType !== "RESTAURANT" && (
+                <div className="col-span-5 grid-rows-3 p-4">
+                  <div className="text-sm text-stone-600 ">Your Number</div>
 
-                <div className="text-5xl row-span-2 font-bold">
-                  {customerPosition || "N/A"}
+                  <div className="text-5xl row-span-2 font-bold">
+                    {customerPosition || "N/A"}
+                  </div>
                 </div>
-              </div>
-
+              )}
               {/* PAX Update */}
+              {accountInfo.businessType === "RESTAURANT" && (
+                <>
+                  <div className="col-span-2 grid-rows-3 p-4">
+                    <div className="text-sm text-stone-600 ">Your Number</div>
 
-              <div
-                className=" grid grid-rows-3 border-stone-300 border-l-1 p-4 cursor-pointer "
-                onClick={paxUpdate}
-              >
-                <div className="text-sm text-stone-600 ">PAX</div>
+                    <div className="text-5xl row-span-2 font-bold">
+                      {customerPosition || "N/A"}
+                    </div>
+                  </div>
+                  <div
+                    className=" grid grid-rows-3 border-stone-300 border-l-1 p-4 cursor-pointer "
+                    onClick={paxUpdate}
+                  >
+                    <div className="text-sm text-stone-600 ">PAX</div>
 
-                <div className="text-5xl row-span-2 font-bold text-primary-light-green hover:text-primary-dark-green transition ease-in-out duration-600">
-                  {pax}
-                </div>
-              </div>
+                    <div className="text-5xl row-span-2 font-bold text-primary-light-green hover:text-primary-dark-green transition ease-in-out duration-600">
+                      {pax}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Estimated Wait Time */}

@@ -1,6 +1,7 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import useLSContext from "../hooks/useLSContext";
 import { useEffect, useState } from "react";
+import Loading from "./Loading";
 
 const LocalStorageCheck = () => {
   const { activeQueueSession, isQueueSessionLoading, queueItemId } =
@@ -27,18 +28,22 @@ const LocalStorageCheck = () => {
   }, [location.pathname]);
 
   if (isQueueSessionLoading) {
-    return <div>Checking for active queue session...</div>;
+    return (
+      <Loading
+        title={"Queue session"}
+        paragraph={"Checking for existing queue session"}
+      />
+    );
   }
 
   if (activeQueueSession && !isWaitingPage) {
     return (
       <div className="fixed top-20 right-5 z-50">
-        {JSON.stringify(activeQueueSession)}
         <button
           onClick={handleGoToWaitingPage}
           className="bg-primary-cream hover:bg-primary-dark-green text-primary-green hover:text-white ease-in pointer-cursor transition font-bold py-2 px-4 rounded-full shadow-lg"
         >
-          Click to go to waiting page
+          Click to go to Waiting Page
         </button>
       </div>
     );

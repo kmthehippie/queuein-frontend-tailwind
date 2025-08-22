@@ -173,7 +173,7 @@ const OutletLanding = () => {
         <div className="grid grid-cols-2 w-full max-w-md bg-primary-cream rounded-lg shadow justify-self-center">
           <div className="p-4 text-center border-r-1 border-b-1 border-stone-300 grid grid-rows-2">
             <div className="text-sm text-stone-600 font-semibold">
-              Current Customers in Queue
+              Current # of Queuers in Queue
             </div>
             <div className="text-5xl font-bold text-primary-light-green">
               {queueItemsLength}

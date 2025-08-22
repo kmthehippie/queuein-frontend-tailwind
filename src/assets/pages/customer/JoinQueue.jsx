@@ -56,6 +56,7 @@ const JoinQueue = () => {
     try {
       const res = await api.get(`/customerForm/${acctSlug}/${queueId}`);
       if (res?.data) {
+        console.log("Res: ", res.data);
         setAccountInfo(res.data.accountInfo);
         setOutlet(res.data.queue.outlet);
       }
@@ -273,22 +274,23 @@ const JoinQueue = () => {
                 required
               />
             </div>
-
-            <div className="mb-1">
-              <label htmlFor="customer-pax" className={labelClass}>
-                PAX
-              </label>
-              <input
-                id="customer-pax"
-                type="number"
-                placeholder="How many people will be dining today?"
-                className={inputClass(!!customerPaxError)}
-                onChange={(e) => {
-                  setCustomerPax(e.target.value);
-                }}
-                required
-              />
-            </div>
+            {accountInfo.businessType === "RESTAURANT" && (
+              <div className="mb-1">
+                <label htmlFor="customer-pax" className={labelClass}>
+                  PAX
+                </label>
+                <input
+                  id="customer-pax"
+                  type="number"
+                  placeholder="How many people will be dining today?"
+                  className={inputClass(!!customerPaxError)}
+                  onChange={(e) => {
+                    setCustomerPax(e.target.value);
+                  }}
+                  required
+                />
+              </div>
+            )}
             <div className="flex items-center m-2 mt-3">
               <input
                 id="vip"
