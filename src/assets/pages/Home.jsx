@@ -403,7 +403,7 @@ const Home = () => {
                   subject
                 )}`}
               >
-                Email Us
+                Email Me
               </a>
             </p>
           </div>

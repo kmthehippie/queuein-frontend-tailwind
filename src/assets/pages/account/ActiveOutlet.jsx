@@ -8,6 +8,7 @@ import useAuth from "../../hooks/useAuth";
 import AuthorisedUser from "./AuthorisedUser";
 import useToast from "../../hooks/useToast";
 import PermissionNotification from "../../components/PermissionNotification";
+import NotificationModal from "../../components/NotificationModal";
 
 const ActiveOutlet = () => {
   const { socket, isConnected } = useContext(SocketContext);
@@ -28,6 +29,7 @@ const ActiveOutlet = () => {
   const [errors, setErrors] = useState("");
   const [currentTime, setCurrentTime] = useState(moment());
 
+  const [openNotifModal, setOpenNotifModal] = useState(false);
   const [userInteracted, setUserInteracted] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState(
     Notification.permission
@@ -90,7 +92,7 @@ const ActiveOutlet = () => {
     if (staffInfo) {
       console.log("Staff info has been set: ", staffInfo);
     }
-
+    setOpenNotifModal(true);
     const activeQueueItems = async () => {
       try {
         const res = await apiPrivate.get(`activeQueue/${params.queueId}`);
@@ -385,6 +387,7 @@ const ActiveOutlet = () => {
     setShowAuthModal(false);
     //Navigate -1 ?
   };
+
   const handleEndQueue = useCallback(() => {
     setErrors("");
     setShowAuthModal(true);
@@ -431,6 +434,18 @@ const ActiveOutlet = () => {
     },
     [apiPrivate, socket, params.queueId]
   );
+
+  if (openNotifModal) {
+    return (
+      <NotificationModal
+        title={`Hi ${staffInfo.staffName}!`}
+        paragraph={`You have successfully logged in.`}
+        onClose={() => {
+          setOpenNotifModal(false);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="">
