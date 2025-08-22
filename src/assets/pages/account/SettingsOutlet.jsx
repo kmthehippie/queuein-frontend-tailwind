@@ -34,14 +34,15 @@ const SettingsOutlet = () => {
     const fetchAllOutlets = async () => {
       try {
         const res = await apiPrivate.get(`/alloutlets/${accountId}`);
-        if (res.data.length > 0) {
-          const sorted = alphabeticalSort(res.data);
+        console.log("Fetching all outlets: ", res.data.outlets);
+        const outlets = res.data.outlets;
+        if (outlets.length > 0) {
+          const sorted = alphabeticalSort(outlets);
           setAllOutlets(sorted);
           const initialOutlet =
             sorted.find((o) => o.id.toString() === outletId) || sorted[0];
           setSelectedOutletId(initialOutlet.id);
           setSelectedOutlet(initialOutlet);
-          // Perform all initial state updates in one logical block
         }
       } catch (error) {
         console.log(error);
