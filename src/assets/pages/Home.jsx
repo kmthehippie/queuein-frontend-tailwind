@@ -256,24 +256,6 @@ const Home = () => {
               </span>
               <div className="">
                 <span className="font-semibold text-sm">
-                  Scan the following to get to a sample queue
-                </span>
-              </div>
-            </div>
-            <div className="ml-10">
-              <img
-                src="https://res.cloudinary.com/dv9llxfzi/image/upload/v1755606290/QueueIn/QRCode/4d714b9b-c2de-4987-b82f-b5cc8aab16b9-qr-2.png"
-                alt="Sample QR Code for TTDI 1 NLBH"
-                className=""
-              />
-            </div>
-            <br />
-            <div className="text-gray-800 flex items-center">
-              <span className="flex-shrink-0 w-6 h-6 bg-primary-green rounded-full flex items-center justify-center text-white mr-3 mt-1">
-                <i className="fa-solid fa-screwdriver  text-white"></i>{" "}
-              </span>
-              <div className="">
-                <span className="font-semibold text-sm">
                   Want to make an account?
                 </span>{" "}
                 <br />
@@ -293,20 +275,50 @@ const Home = () => {
                 <i className="fa-solid fa-screwdriver  text-white"></i>{" "}
               </span>
               <div className="">
-                <span className="font-semibold text-sm">Or try it out!</span>{" "}
-                <br />A sample account you can{" "}
+                <span className="font-semibold text-sm">
+                  Want to see how joining a queue looks like?
+                </span>
+                <br />
+                Scan the following to get to a sample queue
+              </div>
+            </div>
+            <div className="ml-10">
+              <img
+                src="https://res.cloudinary.com/dv9llxfzi/image/upload/v1755606290/QueueIn/QRCode/4d714b9b-c2de-4987-b82f-b5cc8aab16b9-qr-2.png"
+                alt="Sample QR Code for TTDI 1 NLBH"
+                className=""
+              />
+            </div>
+            <br />
+            <div className="text-gray-800 flex items-center">
+              <span className="flex-shrink-0 w-6 h-6 bg-primary-green rounded-full flex items-center justify-center text-white mr-3 mt-1">
+                <i className="fa-solid fa-screwdriver  text-white"></i>{" "}
+              </span>
+              <div className="">
+                <span className="font-semibold text-sm">
+                  Want to see how the host end looks like?{" "}
+                </span>{" "}
+                <br />
+                The sample account you can{" "}
                 <button
                   className="text-primary-green hover:text-primary-light-green italic font-semibold"
                   onClick={handleNavLogin}
                 >
                   login
                 </button>{" "}
-                <br />
+                <p className="text-xs">
+                  The Host side that matches with the QR code you scanned
+                </p>
                 <div className="text-xs mt-1">
                   LOGIN DETAILS:
-                  <div>email: general@nlbh.com pw: 123123</div>
+                  <div className="text-primary-dark-green">
+                    email: general@nlbh.com pw: 123123
+                  </div>
                   STAFF DETAILS:
-                  <div> staff: A Cool Dude pw: 123123</div>
+                  <div className="text-primary-dark-green">
+                    {" "}
+                    staff: A Cool Dude pw: 123123
+                  </div>
                 </div>
               </div>
             </div>
