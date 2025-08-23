@@ -188,7 +188,7 @@ const SettingsAccount = () => {
 
       if (res.status === 201) {
         console.log("Res status 201", res.data);
-        refresh();
+
         setIsLoading(false);
         setChangesExist(false);
         setCompanyName(res.data.companyName);
@@ -198,6 +198,7 @@ const SettingsAccount = () => {
         setImgFile("");
         setAccount(res.data);
         setShowAuthModal(false);
+        refresh();
         setReloadNav();
       }
     } catch (error) {

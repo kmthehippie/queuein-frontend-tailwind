@@ -1,14 +1,14 @@
-import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
-import OutletUpdateModal from "../../components/UpdateOutletModal";
 
 const Settings = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { accountId } = useAuth();
+  const emailAddress = import.meta.env.VITE_FEEDBACK_EMAIL_ADDRESS;
 
+  const { accountId, outletText } = useAuth();
+  const subject = `Feedback for ${accountId}`;
   //Tailwind Classes
   const activeButton = `bg-primary-light-green font-semibold `;
   const buttonClass = `bg-primary-cream py-2 text-sm cursor-pointer hover:bg-primary-light-green hover:text-white hover:px-6 transition delay-100 duration-300 ease-in-out px-4 `;
@@ -54,7 +54,7 @@ const Settings = () => {
           }`}
           onClick={handleNavigateOutlet}
         >
-          Outlet
+          {outletText}
         </div>
       </div>
 
@@ -70,7 +70,15 @@ const Settings = () => {
             improved.
           </p>
           <small className="text-primary-green">
-            Email me at: kmthehippie+queuein@gmail.com
+            Email me at:{" "}
+            <a
+              href={`mailto:${emailAddress}?subject=${encodeURIComponent(
+                subject
+              )}`}
+            >
+              {" "}
+              {emailAddress}{" "}
+            </a>
           </small>
 
           <div className="text-sm flex justify-center items-center">
@@ -83,9 +91,7 @@ const Settings = () => {
           <div className="text-sm flex justify-center items-center">
             <i className="fa-solid fa-fire"></i>
             <p className="pl-3 pt-5">
-              Option to change from restaurant to basic or clinic. This will
-              have a form that will allow you to change the PAX to IC Number or
-              remove the input altogether.
+              Estimate wait time algorithm to average wait time data
             </p>
           </div>
           <div className="text-sm flex justify-center items-center">

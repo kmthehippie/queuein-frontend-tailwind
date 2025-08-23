@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { minsToMs } from "../../utils/timeConverter";
 import { useNavigate, useParams } from "react-router-dom";
 import useApiPrivate from "../../hooks/useApiPrivate";
@@ -9,7 +9,7 @@ const NewOutlet = () => {
   const { accountId } = useParams();
   const navigate = useNavigate();
   const apiPrivate = useApiPrivate();
-  const { setReloadNav, businessType } = useAuth();
+  const { setReloadNav, outletText } = useAuth();
   //DATA TO SET
   const [name, setName] = useState(""); // Initialize with empty string
   const [location, setLocation] = useState("");
@@ -30,7 +30,6 @@ const NewOutlet = () => {
   const [phoneError, setPhoneError] = useState(false);
   const [hoursError, setHoursError] = useState(false);
   const [imgUrlError, setImgUrlError] = useState(false);
-  const [outletText, setOutletText] = useState("");
 
   //Tailwind Classes
   const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800`;
@@ -54,19 +53,7 @@ const NewOutlet = () => {
       setImgUrl(null);
     }
   };
-  const handleOutletText = (type) => {
-    if (type === "RESTAURANT") {
-      setOutletText("Outlet");
-    } else if (type === "CLINIC") {
-      setOutletText("Clinic");
-    } else if (type === "BASIC") {
-      setOutletText("Event Location");
-    }
-  };
 
-  useEffect(() => {
-    handleOutletText(businessType);
-  }, [businessType]);
   const handleCreate = async (e) => {
     e.preventDefault();
     setErrors({});

@@ -10,7 +10,7 @@ const Register = () => {
   const [companyNameErr, setCompanyNameErr] = useState("");
   const [companyEmail, setCompanyEmail] = useState("");
   const [companyEmailErr, setCompanyEmailErr] = useState("");
-  const [businessType, setBusinessType] = useState("BASIC");
+  const [businessType, setBusinessType] = useState("");
   const [businessTypeError, setBusinessTypeError] = useState(false);
   const [companyPassword, setCompanyPassword] = useState("");
   const [passwordCompanyError, setPasswordCompanyError] = useState("");

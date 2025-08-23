@@ -16,7 +16,9 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [account, setAccount] = useState(null);
   const [accountId, setAccountId] = useState(null);
-  const [businessType, setBusinessType] = useState("BASIC");
+  const [businessType, setBusinessType] = useState("BASIC"); //Kinda useless but let's just keep it for now
+
+  const [outletText, setOutletText] = useState("");
   const [authLoading, setAuthLoading] = useState(true);
   const [reloadNav, setReloadNav] = useState(false);
   const navigate = useNavigate();
@@ -24,6 +26,16 @@ export const AuthProvider = ({ children }) => {
 
   const refresh = useCallback(async () => {
     console.log("Trying to refresh within auth context: ", location.pathname);
+
+    const handleOutletText = (type) => {
+      if (type === "RESTAURANT") {
+        setOutletText("Outlet");
+      } else if (type === "CLINIC") {
+        setOutletText("Clinic");
+      } else if (type === "BASIC") {
+        setOutletText("Event Location");
+      }
+    };
     if (location.pathname.includes("/register")) {
       return null;
     }
@@ -37,6 +49,7 @@ export const AuthProvider = ({ children }) => {
         setAccount(response.data.accountId);
         setIsAuthenticated(true);
         setAccountId(response.data.accountId);
+        handleOutletText(response.data.businessType);
         return response.data.accessToken;
       } else {
         console.log(
@@ -110,7 +123,7 @@ export const AuthProvider = ({ children }) => {
   const contextValue = useMemo(
     () => ({
       accessToken,
-      businessType,
+      outletText,
       login,
       logout,
       refresh,

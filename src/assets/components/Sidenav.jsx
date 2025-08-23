@@ -1,16 +1,16 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import useApiPrivate from "../hooks/useApiPrivate";
-import { numericalSort, alphabeticalSort } from "../utils/sortList";
+import { alphabeticalSort } from "../utils/sortList";
 
 const Sidenav = () => {
   const [outlets, setOutlets] = useState([]);
   const [showSideNav, setShowSideNav] = useState(false);
-  const [outletText, setOutletText] = useState("");
+
   const sideNavRef = useRef(null);
   const params = useParams();
-  const { isAuthenticated, accountId, reloadNav, businessType } = useAuth();
+  const { isAuthenticated, accountId, reloadNav, outletText } = useAuth();
   const apiPrivate = useApiPrivate();
   const navigate = useNavigate();
 
@@ -49,22 +49,13 @@ const Sidenav = () => {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    const handleOutletText = (type) => {
-      if (type === "RESTAURANT") {
-        setOutletText("Outlet");
-      } else if (type === "CLINIC") {
-        setOutletText("Clinic");
-      } else if (type === "BASIC") {
-        setOutletText("Event Location");
-      }
-    };
+
     const fetchOutlets = async () => {
       try {
         const response = await apiPrivate.get(`/sidenav/${accountId}`);
         if (response?.data) {
           const sort = alphabeticalSort(response.data);
           setOutlets(sort);
-          handleOutletText(businessType);
         } else if (response?.status === 404) {
           setOutlets([]);
         }
@@ -73,7 +64,7 @@ const Sidenav = () => {
       }
     };
     fetchOutlets();
-  }, [accountId, reloadNav, setOutlets, businessType]);
+  }, [accountId, reloadNav, setOutlets]);
 
   return (
     <div

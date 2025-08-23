@@ -4,14 +4,12 @@ import useApiPrivate from "../../hooks/useApiPrivate";
 import UpdateOutletModal from "../../components/UpdateOutletModal";
 import AuditLogs from "./AuditLogs";
 import { alphabeticalSort } from "../../utils/sortList";
-import { useNavigate, useParams } from "react-router-dom";
-import NotificationModal from "../../components/NotificationModal";
-import AllOutlets from "./AllOutlets";
+import { useNavigate, useParams, Link } from "react-router-dom";
 
 //TODO: SELF NOTES: HOW ABOUT CREATING A COMPONENT THAT TAKES IN NAME OF FIELD, DATA TO DISPLAY, AND ETC. THAT WAY WE CAN JUST CREATE COMPONENT FOR EVERY DIV INSTEAD OF SO MUCH REPEATED CODE.
 
 const SettingsOutlet = () => {
-  const { accountId } = useAuth();
+  const { accountId, outletText } = useAuth();
   const apiPrivate = useApiPrivate();
   const { outletId } = useParams();
 
@@ -80,7 +78,16 @@ const SettingsOutlet = () => {
 
   //TODO: NEED TO EDIT THE DIV TO LOOK NICE
   if (allOutlets.length === 0) {
-    return <div>Nothing here</div>;
+    return (
+      <div className=" lg:max-h-[55vh] h-full gap-1 flex flex-col items-center justify-center p-10">
+        <div className="">Nothing here</div>{" "}
+        <Link to={`/db/${accountId}/outlets/new`}>
+          <p className="text-xs text-primary-green hover:text-primary-light-green">
+            Please create {outletText}.
+          </p>
+        </Link>
+      </div>
+    );
   }
 
   return (
