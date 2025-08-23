@@ -17,6 +17,11 @@ const featuresData = [
       "Customers can join the queue instantly by scanning a QR code.",
   },
   {
+    title: "Business Types",
+    description:
+      "You can set your business type to Restaurant, Clinic, or Basic. This changes key terminology in your account to match your business needs, like changing Customer to Patient for clinics.",
+  },
+  {
     title: "Real-time updates.",
     description:
       "Get instant alerts and highlights when a customer changes their pax count.",
@@ -241,7 +246,7 @@ const Home = () => {
                 >
                   sample page
                 </button>{" "}
-                that your customers would be looking at
+                that your customers/visitors/patients would be looking at
               </div>
             </div>
             <br />
