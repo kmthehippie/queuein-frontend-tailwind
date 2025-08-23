@@ -96,6 +96,18 @@ const Login = () => {
           <small className="block mb-4 text-gray-600">
             Enter your credentials to access your account.
           </small>
+          <div className="block mb-4 text-sm bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md m-1 ">
+            <h2 className="font-semibold">
+              Are you just testing the app out?{" "}
+            </h2>
+            <p className="text-gray-600 font-light">
+              Login with the following details and try it out!
+            </p>
+            <p className="font-semibold text-xs mt-1">LOGIN DETAILS:</p>
+            <p className="text-primary-dark-green">
+              email: general@nlbh.com pw: 123123
+            </p>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className={labelClass}>

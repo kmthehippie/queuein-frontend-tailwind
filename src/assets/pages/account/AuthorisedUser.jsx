@@ -73,14 +73,21 @@ const AuthorizedUser = ({
   return (
     <div>
       <h1 className="pb-1">This is a security measure.</h1>
-
       <p className="text-sm font-semibold pb-2">
         Please let us know who you are
       </p>
       <small className="text-xs font-light italic">
         The action which you intend to perform requires a security check.
       </small>
-
+      <div className="block mb-4 text-sm bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md m-1 ">
+        <p className="font-semibold">SAMPLE STAFF DETAILS:</p>
+        <div className="text-primary-dark-green">
+          staff: A Cool Dude pw: 123123
+        </div>
+        <small className="italic ">
+          This will only work for the sample account
+        </small>
+      </div>
       <form onSubmit={handleSubmit} className="space-y-4 mt-2">
         <div>
           <label htmlFor="staff_name" className={labelClass}>

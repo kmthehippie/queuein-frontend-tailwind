@@ -258,7 +258,7 @@ const Home = () => {
                 <br />
                 This is a{" "}
                 <button
-                  className="text-primary-green hover:text-primary-light-green italic font-semibold"
+                  className="text-primary-green hover:text-primary-light-green italic font-semibold border-1 border-primary-light-green px-3 rounded-lg"
                   onClick={handleNavNLBH}
                 >
                   sample page
@@ -278,7 +278,7 @@ const Home = () => {
                 <br />
                 Head on over to{" "}
                 <button
-                  className="text-primary-green hover:text-primary-light-green italic font-semibold"
+                  className="text-primary-green hover:text-primary-light-green italic font-semibold border-1 border-primary-light-green px-3 rounded-lg"
                   onClick={handleNavRegister}
                 >
                   register
@@ -316,27 +316,16 @@ const Home = () => {
                   Want to see how the host end looks like?{" "}
                 </span>{" "}
                 <br />
-                The sample account you can{" "}
+                Sample account you can{" "}
                 <button
-                  className="text-primary-green hover:text-primary-light-green italic font-semibold"
+                  className="text-primary-green hover:text-primary-light-green italic font-semibold border-1 border-primary-light-green px-3 rounded-lg"
                   onClick={handleNavLogin}
                 >
                   login
                 </button>{" "}
                 <p className="text-xs">
-                  The Host side that matches with the QR code you scanned
+                  Host side that matches with the QR code you scanned
                 </p>
-                <div className="text-xs mt-1">
-                  LOGIN DETAILS:
-                  <div className="text-primary-dark-green">
-                    email: general@nlbh.com pw: 123123
-                  </div>
-                  STAFF DETAILS:
-                  <div className="text-primary-dark-green">
-                    {" "}
-                    staff: A Cool Dude pw: 123123
-                  </div>
-                </div>
               </div>
             </div>
           </div>
