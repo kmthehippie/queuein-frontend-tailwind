@@ -36,14 +36,6 @@ export const AuthProvider = ({ children }) => {
         setAccessToken(response.data.accessToken);
         setAccount(response.data.accountId);
         setIsAuthenticated(true);
-        console.log(
-          "Refresh token successfully updated access token: ",
-          response.data.accessToken
-        );
-        console.log(
-          "AuthContext -> refresh -> account id? ",
-          response.data.accountId
-        );
         setAccountId(response.data.accountId);
         return response.data.accessToken;
       } else {

@@ -219,7 +219,7 @@ const Home = () => {
                 <span className="font-semibold">free</span> as it is still in
                 the alpha phase!
                 <p className="text-xs">
-                  We might have to start charge a small fee to pay for servers
+                  I might have to start charge a small fee to pay for servers
                   and hosting at a later date.
                 </p>
               </div>

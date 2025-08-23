@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { minsToMs } from "../../utils/timeConverter";
 import { useNavigate, useParams } from "react-router-dom";
 import useApiPrivate from "../../hooks/useApiPrivate";
@@ -9,7 +9,7 @@ const NewOutlet = () => {
   const { accountId } = useParams();
   const navigate = useNavigate();
   const apiPrivate = useApiPrivate();
-  const { setReloadNav } = useAuth();
+  const { setReloadNav, businessType } = useAuth();
   //DATA TO SET
   const [name, setName] = useState(""); // Initialize with empty string
   const [location, setLocation] = useState("");
@@ -30,6 +30,7 @@ const NewOutlet = () => {
   const [phoneError, setPhoneError] = useState(false);
   const [hoursError, setHoursError] = useState(false);
   const [imgUrlError, setImgUrlError] = useState(false);
+  const [outletText, setOutletText] = useState("");
 
   //Tailwind Classes
   const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800`;
@@ -53,7 +54,19 @@ const NewOutlet = () => {
       setImgUrl(null);
     }
   };
+  const handleOutletText = (type) => {
+    if (type === "RESTAURANT") {
+      setOutletText("Outlet");
+    } else if (type === "CLINIC") {
+      setOutletText("Clinic");
+    } else if (type === "BASIC") {
+      setOutletText("Event Location");
+    }
+  };
 
+  useEffect(() => {
+    handleOutletText(businessType);
+  }, [businessType]);
   const handleCreate = async (e) => {
     e.preventDefault();
     setErrors({});
@@ -162,9 +175,9 @@ const NewOutlet = () => {
   }
   return (
     <div>
-      <div className=" rounded-2xl p-3 relative mx-3 md:mt-5 md:mx-5 bg-primary-cream/50 shadow-lg ">
+      <div className=" rounded-2xl p-3 relative mx-3 mt-2 md:mt-5 md:mx-5 bg-primary-cream/50 shadow-lg ">
         <h1 className="font-semibold text-2xl mb-3 text-center text-primary-dark-green">
-          Create a new outlet
+          Create a new {outletText}
         </h1>
         <div className="flex flex-row justify-center items-center ">
           <form
@@ -216,10 +229,10 @@ const NewOutlet = () => {
               {errors.googleMaps && (
                 <p className={errorClass}>{errors.googleMaps}</p>
               )}
-              <p className="text-xs">
+              {/* <p className="text-xs">
                 Not sure how to find your google maps url?{" "}
                 <span>Click This For Guide</span>
-              </p>
+              </p> */}
             </div>
             <div className={inputDivClass}>
               <label htmlFor="wazeMaps" className={labelClass}>
@@ -235,14 +248,15 @@ const NewOutlet = () => {
               {errors.wazeMaps && (
                 <p className={errorClass}>{errors.wazeMaps}</p>
               )}
-              <p className="text-xs">
+              {/* TODO! */}
+              {/* <p className="text-xs">
                 Not sure how to find your waze maps url?{" "}
                 <span>Click This For Guide</span>
-              </p>
+              </p> */}
             </div>
             <div className={inputDivClass}>
               <label htmlFor="imgUrl" className={labelClass}>
-                Upload the image of your store
+                Upload the image of your {outletText}
               </label>
 
               <div>
@@ -337,7 +351,7 @@ const NewOutlet = () => {
                   " bg-primary-green hover:bg-primary-dark-green mr-3"
                 }
               >
-                Submit New Outlet
+                Submit New {outletText}
               </button>
             </div>
           </form>

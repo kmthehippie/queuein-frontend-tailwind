@@ -8,7 +8,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { unescapeHtml } from "../../utils/unescapeHtml";
 
 const SettingsAccount = () => {
-  const { accountId, refresh } = useAuth();
+  const { accountId, refresh, setReloadNav } = useAuth();
   const navigate = useNavigate();
   const [account, setAccount] = useState({});
   const [companyName, setCompanyName] = useState("");
@@ -188,6 +188,7 @@ const SettingsAccount = () => {
 
       if (res.status === 201) {
         console.log("Res status 201", res.data);
+        refresh();
         setIsLoading(false);
         setChangesExist(false);
         setCompanyName(res.data.companyName);
@@ -197,7 +198,7 @@ const SettingsAccount = () => {
         setImgFile("");
         setAccount(res.data);
         setShowAuthModal(false);
-        refresh();
+        setReloadNav();
       }
     } catch (error) {
       setIsLoading(false);

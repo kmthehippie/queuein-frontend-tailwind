@@ -83,28 +83,19 @@ const OutletUpdateModal = ({
   }, [outletData]);
 
   const checkChange = () => {
-    console.log("New");
     const nameChanged = outletData.name !== name;
-    console.log("name", nameChanged);
     const locationChanged = outletData.location !== location;
-    console.log("location", locationChanged);
     const googleMapsChanged =
       outletData.googleMaps !== googleMaps && outletData.googleMaps !== null;
-    console.log("googleMaps", googleMapsChanged);
     const wazeMapsChanged =
       outletData.wazeMaps !== wazeMaps && outletData.wazeMaps !== null;
-    console.log("wazeMaps", wazeMapsChanged);
     const phoneChanged = outletData.phone !== phone;
-    console.log("phone", phoneChanged);
     const hoursChanged = outletData.hours !== hours;
-    console.log("hours", hoursChanged);
 
     const defaultWaitTimeInMinutes = msToMins(outletData.defaultEstWaitTime);
     const parsedWaitTime = parseFloat(defaultEstWaitTime);
     const waitTimeChanged = defaultWaitTimeInMinutes !== parsedWaitTime;
-    console.log("waitTimeChanged", waitTimeChanged);
     const imageChanged = imgFile !== null;
-    console.log("imageChanged", imageChanged);
 
     const anyChanges =
       nameChanged ||
@@ -209,7 +200,6 @@ const OutletUpdateModal = ({
 
     if (hasFileToUpload) {
       dataToSubmit = new FormData();
-
       dataToSubmit.append("outletImage", imgFile);
       if (outletData.name !== name) {
         dataToSubmit.append("name", name);
@@ -276,9 +266,6 @@ const OutletUpdateModal = ({
       }
     }
 
-    console.log("THis is the data to submit for payload: ", payload);
-    console.log("This is the data to submit for form data: ", dataToSubmit);
-
     const hasContent = hasFileToUpload
       ? [...dataToSubmit.entries()].length > 0
       : Object.keys(payload).length > 0;
@@ -289,7 +276,6 @@ const OutletUpdateModal = ({
     }
 
     try {
-      console.log("Trying to patch to :", accountId, outletData.id);
       setIsLoading(true);
       setShowImgUploadModal(false);
       let res;

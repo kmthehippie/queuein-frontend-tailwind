@@ -73,7 +73,7 @@ const Sidenav = () => {
       }
     };
     fetchOutlets();
-  }, [accountId, reloadNav, setOutlets]);
+  }, [accountId, reloadNav, setOutlets, businessType]);
 
   return (
     <div

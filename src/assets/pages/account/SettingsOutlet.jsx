@@ -5,6 +5,7 @@ import UpdateOutletModal from "../../components/UpdateOutletModal";
 import AuditLogs from "./AuditLogs";
 import { alphabeticalSort } from "../../utils/sortList";
 import { useNavigate, useParams } from "react-router-dom";
+import NotificationModal from "../../components/NotificationModal";
 import AllOutlets from "./AllOutlets";
 
 //TODO: SELF NOTES: HOW ABOUT CREATING A COMPONENT THAT TAKES IN NAME OF FIELD, DATA TO DISPLAY, AND ETC. THAT WAY WE CAN JUST CREATE COMPONENT FOR EVERY DIV INSTEAD OF SO MUCH REPEATED CODE.
@@ -34,7 +35,6 @@ const SettingsOutlet = () => {
     const fetchAllOutlets = async () => {
       try {
         const res = await apiPrivate.get(`/alloutlets/${accountId}`);
-        console.log("Fetching all outlets: ", res.data.outlets);
         const outlets = res.data.outlets;
         if (outlets.length > 0) {
           const sorted = alphabeticalSort(outlets);
@@ -61,20 +61,15 @@ const SettingsOutlet = () => {
     }
   }, [outletId, allOutlets]);
 
-  //TODO: NEED TO HANDLE CANCEL SELECTED OUTLET
   const handleCancel = () => {
-    console.log("Handling cancel");
+    console.log("Nothing happens ");
     console.log("selected outlet:", selectedOutlet);
-    //supposed to set pathnameEndsWithAuditLogs to false...i mean since we are no longer there, it should auto...
   };
 
   const handleUpdateSuccess = (updatedOutlet) => {
-    console.log("Updated Outlet", updatedOutlet);
-    console.log("All outlets: ", allOutlets);
     const outletIndex = allOutlets.findIndex(
       (outlet) => outlet.id === updatedOutlet.id
     );
-    console.log("outlet index: ", outletIndex);
     if (outletIndex !== -1) {
       const newAllOutlets = [...allOutlets];
       newAllOutlets[outletIndex] = updatedOutlet;
@@ -82,6 +77,11 @@ const SettingsOutlet = () => {
     }
     setSelectedOutlet(updatedOutlet);
   };
+
+  //TODO: NEED TO EDIT THE DIV TO LOOK NICE
+  if (allOutlets.length === 0) {
+    return <div>Nothing here</div>;
+  }
 
   return (
     <div className="">
@@ -118,8 +118,8 @@ const SettingsOutlet = () => {
           <div className="lg:col-span-4 p-3">
             <UpdateOutletModal
               show={true}
-              onClose={handleCancel} // Pass toggleEdit as the close handler (Nothing really happens bc ours is component not modal)
-              outletData={selectedOutlet} // Pass the full outlet object
+              onClose={handleCancel}
+              outletData={selectedOutlet}
               accountId={accountId}
               onUpdateSuccess={handleUpdateSuccess}
               view={"full"}
