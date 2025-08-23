@@ -204,14 +204,31 @@ const Home = () => {
             </button>
           </div>
         </div>
+        <br />
         <div className="font-light max-w-2xl mx-auto ">
-          <div className="flex mt-3 mb-5 items-center justify-center">
-            <i className="fa-solid fa-screwdriver text-[50px]  text-primary-dark-green"></i>{" "}
-            <h2 className="font-extralight text-2xl mt-10 text-center">
-              Please don't mind the mess, this app is still under development!
-            </h2>
-            <i className="fa-solid fa-hammer text-[50px]  text-primary-dark-green rotate-y-180"></i>
+          <div className=" bg-primary-cream/80 hover:shadow-2xl p-5 rounded-lg shadow-md m-1">
+            <div className="flex mb-5 items-center justify-center">
+              <i className="fa-solid fa-screwdriver text-[50px]  text-primary-dark-green"></i>{" "}
+              <h2 className="font-extralight text-2xl  text-center">
+                Please don't mind the mess, this app is still under development!
+              </h2>
+              <i className="fa-solid fa-hammer text-[50px]  text-primary-dark-green rotate-y-180"></i>
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-semibold">
+                It might take awhile (usually 1-2 minutes) when loading into the
+                sample page.
+              </p>
+              <small className="text-xs text-primary-dark-green italic">
+                App is still on free tier servers. With enough positive
+                response, I'll move the app to a paid service.
+              </small>
+            </div>
           </div>
+          <br />
+          <h2 className="font-extralight text-2xl text-center">
+            Give it a whirl!
+          </h2>
           <div className="bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md m-1">
             <div className="text-gray-800 flex items-center">
               <span className="flex-shrink-0 w-6 h-6 bg-primary-green rounded-full flex items-center justify-center text-white mr-3 mt-1">
