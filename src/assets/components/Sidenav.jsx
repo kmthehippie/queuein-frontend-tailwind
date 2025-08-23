@@ -68,7 +68,7 @@ const Sidenav = () => {
 
   return (
     <div
-      className="lg:relative absolute top-0 left-0 h-[85vh] lg:col-span-1 print:hidden"
+      className="  bg-primary-cream lg:relative absolute top-0 left-0 h-[85vh] lg:col-span-1 print:hidden"
       ref={sideNavRef}
     >
       <p
@@ -79,7 +79,8 @@ const Sidenav = () => {
       </p>
       {/* Need to fix the nav so that it fixes on the page */}
       <div
-        className={`pt-3 h-full
+        className={`
+         pt-3 h-full
           fixed top-0 left-0
           w-[300px]
           lg:sticky lg:h-fit lg:w-full md:pl-2  z-10
