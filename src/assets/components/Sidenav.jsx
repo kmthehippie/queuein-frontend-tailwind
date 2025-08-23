@@ -79,8 +79,7 @@ const Sidenav = () => {
       </p>
       {/* Need to fix the nav so that it fixes on the page */}
       <div
-        className={`
-          bg-primary-cream pt-3 h-full
+        className={`pt-3 h-full
           fixed top-0 left-0
           w-[300px]
           lg:sticky lg:h-fit lg:w-full md:pl-2  z-10
