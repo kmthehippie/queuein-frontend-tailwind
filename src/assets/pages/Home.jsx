@@ -107,7 +107,28 @@ const Home = () => {
     setFeatureText(!featureText);
   };
   return (
-    <div>
+    <div className="">
+      <div className=" z-10 sticky top-0 mx-auto max-w-3xl flex justify-center md:justify-end gap-5 py-2 bg-primary-cream px-5 flex-end md:rounded-lg ">
+        {" "}
+        <button
+          className="text-primary-green bg-primary-cream/90 hover:text-primary-light-green italic font-semibold  px-4 py-1 "
+          onClick={handleNavRegister}
+        >
+          REGISTER
+        </button>
+        <button
+          className="text-primary-green bg-primary-cream/90 hover:text-primary-light-green italic font-semibold  px-4 py-1 "
+          onClick={handleNavLogin}
+        >
+          LOGIN
+        </button>
+        <button
+          className="text-primary-green bg-primary-cream/90 hover:text-primary-light-green italic font-semibold  px-4 py-1 "
+          onClick={handleNavNLBH}
+        >
+          SAMPLE
+        </button>
+      </div>
       <div className="flex flex-col items-center justify-center ">
         <div className="font-light max-w-2xl mx-auto">
           <h1 className="font-extralight text-4xl mt-10 text-center">
@@ -227,6 +248,99 @@ const Home = () => {
           </div>
           <br />
           <h2 className="font-extralight text-2xl text-center">
+            A quick walkthrough
+          </h2>
+          <div className="bg-primary-cream hover:shadow-2xl p-4 rounded-lg shadow-md m-1">
+            <div className="m md:gap-10 md:flex md:flex-row md:items-center flex flex-col justify-center items-center text-center md:bg-none shadow-2xl rounded-2xl bg-primary-cream/70 p-6 mb-5">
+              <div className="w-4/5 mb-4">
+                <h3 class="text-xl font-semibold mb-2">
+                  What your customers see
+                </h3>
+                <p class="text-primary-dark-green text-sm">
+                  A beautiful landing page for your brand, providing instant
+                  access to your queue.
+                </p>
+              </div>
+              <img
+                src="https://res.cloudinary.com/dv9llxfzi/image/upload/v1756007308/1_feamuy.png"
+                alt="sample of a customer view"
+                className="rounded-xl object-cover md:w-2/5 mb-4 md:skew-y-11 w-3/5 p-3 md:p-0 shadow-2xl"
+              />
+            </div>
+            <div className="m md:gap-10 md:flex md:flex-row md:items-center flex flex-col justify-center items-center text-center md:bg-none shadow-2xl rounded-2xl bg-primary-cream/70 p-6 mb-5">
+              <img
+                src="https://res.cloudinary.com/dv9llxfzi/image/upload/v1756009230/2_mdnlfn.png"
+                alt="sample of a customer view"
+                className="rounded-xl object-cover md:w-2/5 mb-4 md:-skew-y-11 w-3/5 p-3 md:p-0 shadow-2xl"
+              />
+              <div className="w-4/5 mb-4">
+                <h3 class="text-xl font-semibold mb-2">
+                  Joining a queue has never been easier
+                </h3>
+                <p class="text-primary-dark-green text-sm">
+                  Customers can join with a simple QR code scan, reducing wait
+                  times and improving their experience.
+                </p>
+              </div>
+            </div>
+            <div className="m md:gap-10 md:flex md:flex-row md:items-center flex flex-col justify-center items-center text-center md:bg-none shadow-2xl rounded-2xl bg-primary-cream/70 p-6 mb-5">
+              <div className="w-4/5 mb-4">
+                <h3 class="text-xl font-semibold mb-2">Manage your queue</h3>
+                <p class="text-primary-dark-green text-sm">
+                  Take control with real-time updates, call next in line, and
+                  manage wait times efficiently.
+                </p>
+              </div>
+              <div className="relative md:w-[3/5] flex flex-col items-center md:block ">
+                <img
+                  src="https://res.cloudinary.com/dv9llxfzi/image/upload/v1756007303/5_njxfc5.png"
+                  alt="sample of a customer view"
+                  className="rounded-xl object-cover mb-4 md:skew-y-11 shadow-2xl"
+                />
+                <img
+                  src="https://res.cloudinary.com/dv9llxfzi/image/upload/v1756010525/8_agfrqn.png"
+                  alt="sample of a customer view"
+                  className="rounded-xl object-cover mb-4 md:absolute md:top-0 md:right-0 md:w-[170px] w-[200px] md:skew-y-11 shadow-2xl"
+                />
+              </div>
+            </div>
+            <div className="md:gap-10 md:flex md:flex-row md:items-center flex flex-col justify-center items-center text-center md:bg-none shadow-2xl rounded-2xl bg-primary-cream/70 p-6 mb-5">
+              <img
+                src="https://res.cloudinary.com/dv9llxfzi/image/upload/v1756007309/3_ll5ncj.png"
+                alt="sample of a customer view"
+                className="rounded-xl object-cover md:w-2/5 mb-4 md:-skew-y-11  p-3 md:p-0 shadow-2xl"
+              />
+              <div className="w-4/5 mb-4">
+                <h3 class="text-xl font-semibold mb-2">A Simple Dashboard</h3>
+                <p class="text-primary-dark-green text-sm">
+                  Easily access and manage all your restaurant, clinic or event
+                  location from one centralized dashboard.
+                </p>
+              </div>
+            </div>
+            <div className="m md:gap-10 md:flex md:flex-row md:items-center flex flex-col justify-center items-center text-center md:bg-none shadow-2xl rounded-2xl bg-primary-cream/70 p-6 mb-5">
+              <div className="w-4/5 mb-4">
+                <h3 class="text-xl font-semibold mb-2">Manage your queue</h3>
+                <p class="text-primary-dark-green text-sm">
+                  Take control with real-time updates, call next in line, and
+                  manage wait times efficiently.
+                </p>
+              </div>
+              <div className="relative md:w-[3/5] flex flex-col items-center md:block ">
+                <img
+                  src="https://res.cloudinary.com/dv9llxfzi/image/upload/v1756007302/7_zyczlr.png"
+                  alt="sample of a customer view"
+                  className="rounded-xl object-cover mb-4 md:skew-y-11 shadow-2xl"
+                />
+                <img
+                  src="https://res.cloudinary.com/dv9llxfzi/image/upload/v1756007302/4_cs7p4g.png"
+                  alt="sample of a customer view"
+                  className="rounded-xl object-cover mb-4 md:absolute md:top-0 md:right-0 md:w-[170px] w-[200px] md:skew-y-11 shadow-2xl"
+                />
+              </div>
+            </div>
+          </div>
+          <h2 className="font-extralight text-2xl mt-10 text-center">
             Give it a whirl!
           </h2>
           <div className="bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md m-1">
@@ -252,16 +366,14 @@ const Home = () => {
                 <i className="fa-solid fa-screwdriver  text-white"></i>{" "}
               </span>
               <div className="">
-                <span className="font-semibold text-sm">
-                  Want to have a look at the customer POV?
-                </span>{" "}
+                <span className="font-semibold text-sm">A landing page</span>{" "}
                 <br />
                 This is a{" "}
                 <button
                   className="text-primary-green hover:text-primary-light-green italic font-semibold border-1 border-primary-light-green px-3 rounded-lg"
                   onClick={handleNavNLBH}
                 >
-                  sample page
+                  Sample Landing Page
                 </button>{" "}
                 that your customers/visitors/patients would be looking at
               </div>
@@ -273,7 +385,7 @@ const Home = () => {
               </span>
               <div className="">
                 <span className="font-semibold text-sm">
-                  Want to make an account?
+                  Try for yourself! Create an account
                 </span>{" "}
                 <br />
                 Head on over to{" "}
@@ -281,7 +393,7 @@ const Home = () => {
                   className="text-primary-green hover:text-primary-light-green italic font-semibold border-1 border-primary-light-green px-3 rounded-lg"
                   onClick={handleNavRegister}
                 >
-                  register
+                  Register
                 </button>{" "}
                 an account
               </div>
@@ -293,10 +405,10 @@ const Home = () => {
               </span>
               <div className="">
                 <span className="font-semibold text-sm">
-                  Want to see how joining a queue looks like?
+                  Enter sample queue!
                 </span>
                 <br />
-                Scan the following to get to a sample queue
+                Scan the following QR Code
               </div>
             </div>
             <div className="ml-10">
@@ -313,122 +425,124 @@ const Home = () => {
               </span>
               <div className="">
                 <span className="font-semibold text-sm">
-                  Want to see how the host end looks like?{" "}
+                  Owner or event host POV:{" "}
                 </span>{" "}
                 <br />
-                Sample account you can{" "}
                 <button
                   className="text-primary-green hover:text-primary-light-green italic font-semibold border-1 border-primary-light-green px-3 rounded-lg"
                   onClick={handleNavLogin}
                 >
-                  login
+                  Login
                 </button>{" "}
+                to the sample account.
                 <p className="text-xs">
-                  Host side that matches with the QR code you scanned
+                  Note: This matches with the QR code you scanned
                 </p>
               </div>
             </div>
           </div>
-        </div>
-        <div className="font-light  max-w-2xl mx-auto">
-          <h2 className="font-extralight text-2xl mt-10 text-center">
-            Features
-          </h2>
-          <ul className="list-none space-y-4 bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md max-w-200 m-1 text-xs">
-            {visibleFeatures.map((feature, index) => (
-              <li className="flex items-center" key={index}>
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white mr-3">
-                  ✓
-                </span>
-                <p className="text-gray-800">
-                  <span className="font-semibold text-sm">{feature.title}</span>
-                  <br /> {feature.description}
-                </p>
-              </li>
-            ))}
-
-            {featureText && (
-              <>
-                {hiddenFeatures.map((feature, index) => (
-                  <li className="flex items-center" key={index}>
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white mr-3">
-                      ✓
-                    </span>
-                    <p className="text-gray-800">
-                      <span className="font-semibold text-sm">
-                        {feature.title}
-                      </span>
-                      <br /> {feature.description}
-                    </p>
-                  </li>
-                ))}
-              </>
-            )}
-
-            <li className="flex items-center justify-center">
-              <button
-                onClick={toggleFeatureText}
-                className="w-full text-primary-green hover:text-primary-light-green px-3 py-2 flex items-center justify-center"
-              >
-                <i
-                  className={`fa-solid fa-caret-down text-2xl mr-2 transform transition-transform duration-300 ${
-                    featureText ? "rotate-180" : ""
-                  }`}
-                ></i>
-                <span className="text-sm font-medium">
-                  {featureText
-                    ? "Show Less Features..."
-                    : "Show More Features..."}
-                </span>
-              </button>
-            </li>
-          </ul>
-        </div>
-
-        <div className="font-light max-w-2xl mx-auto mb-10">
-          <h2 className="font-extralight text-2xl mt-10 text-center">
-            Future features
-          </h2>
-          <div className="bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md m-1">
-            <p className="text-xs mb-4">
-              As this is just the first iteration of queuein, you can be sure
-              that there will be many improvements and additional features to
-              come. The following are some examples of what is to come.
-            </p>
-            <ul className="list-none space-y-4 text-xs">
-              {futureFeaturesData.map((feature, index) => (
-                <li className="flex items-start" key={index}>
-                  <span className="flex-shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white mr-3 mt-1">
-                    ★
+          <div className="font-light  max-w-2xl mx-auto">
+            <h2 className="font-extralight text-2xl mt-10 text-center">
+              Features
+            </h2>
+            <ul className="list-none space-y-4 bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md max-w-200 m-1 text-xs">
+              {visibleFeatures.map((feature, index) => (
+                <li className="flex items-center" key={index}>
+                  <span className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white mr-3">
+                    ✓
                   </span>
-                  <div className="text-gray-800">
+                  <p className="text-gray-800">
                     <span className="font-semibold text-sm">
                       {feature.title}
                     </span>
-                    {feature.description && <br />}
-                    {feature.description}
-                    {feature.sublist && (
-                      <ul className="list-disc ml-6 mt-2 space-y-1">
-                        {feature.sublist.map((item, subIndex) => (
-                          <li key={subIndex}>{item}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
+                    <br /> {feature.description}
+                  </p>
                 </li>
               ))}
+
+              {featureText && (
+                <>
+                  {hiddenFeatures.map((feature, index) => (
+                    <li className="flex items-center" key={index}>
+                      <span className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white mr-3">
+                        ✓
+                      </span>
+                      <p className="text-gray-800">
+                        <span className="font-semibold text-sm">
+                          {feature.title}
+                        </span>
+                        <br /> {feature.description}
+                      </p>
+                    </li>
+                  ))}
+                </>
+              )}
+
+              <li className="flex items-center justify-center">
+                <button
+                  onClick={toggleFeatureText}
+                  className="w-full text-primary-green hover:text-primary-light-green px-3 py-2 flex items-center justify-center"
+                >
+                  <i
+                    className={`fa-solid fa-caret-down text-2xl mr-2 transform transition-transform duration-300 ${
+                      featureText ? "rotate-180" : ""
+                    }`}
+                  ></i>
+                  <span className="text-sm font-medium">
+                    {featureText
+                      ? "Show Less Features..."
+                      : "Show More Features..."}
+                  </span>
+                </button>
+              </li>
             </ul>
-            <p className="text-sm mt-4 text-center">
-              Do you have more ideas? Or maybe something's broken! <br />
-              Please send me feedback via email:{" "}
-              <a
-                href={`mailto:${emailAddress}?subject=${encodeURIComponent(
-                  subject
-                )}`}
-              >
-                Email Me
-              </a>
-            </p>
+          </div>
+
+          <div className="font-light max-w-2xl mx-auto mb-10">
+            <h2 className="font-extralight text-2xl mt-10 text-center">
+              Future features
+            </h2>
+            <div className="bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md m-1">
+              <p className="text-xs mb-4">
+                As this is just the first iteration of queuein, you can be sure
+                that there will be many improvements and additional features to
+                come. The following are some examples of what is to come.
+              </p>
+              <ul className="list-none space-y-4 text-xs">
+                {futureFeaturesData.map((feature, index) => (
+                  <li className="flex items-start" key={index}>
+                    <span className="flex-shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white mr-3 mt-1">
+                      ★
+                    </span>
+                    <div className="text-gray-800">
+                      <span className="font-semibold text-sm">
+                        {feature.title}
+                      </span>
+                      {feature.description && <br />}
+                      {feature.description}
+                      {feature.sublist && (
+                        <ul className="list-disc ml-6 mt-2 space-y-1">
+                          {feature.sublist.map((item, subIndex) => (
+                            <li key={subIndex}>{item}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-sm mt-4 text-center">
+                Do you have more ideas? Or maybe something's broken! <br />
+                Please send me feedback via email:{" "}
+                <a
+                  href={`mailto:${emailAddress}?subject=${encodeURIComponent(
+                    subject
+                  )}`}
+                >
+                  Email Me
+                </a>
+              </p>
+            </div>
           </div>
         </div>
       </div>
