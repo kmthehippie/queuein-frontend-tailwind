@@ -62,14 +62,7 @@ const futureFeaturesData = [
       "Monthly queue analysis that includes average of all the data",
     ],
   },
-  {
-    title: "Option to create queues for basic usage or clinic usage",
-    description: "Not running a restaurant but still need a queue?",
-    sublist: [
-      "Queues for taking turns to speak at meetings or events",
-      "Queues for clinics that have first in first serve policies",
-    ],
-  },
+
   {
     title: "Upgrade estimate waiting time",
     description: "Calculating estimate waiting time based on average",
@@ -539,7 +532,7 @@ const Home = () => {
                     subject
                   )}`}
                 >
-                  Email Me
+                  {emailAddress}
                 </a>
               </p>
             </div>
