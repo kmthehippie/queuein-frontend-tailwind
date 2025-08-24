@@ -313,10 +313,12 @@ const Home = () => {
             </div>
             <div className="m md:gap-10 md:flex md:flex-row md:items-center flex flex-col justify-center items-center text-center md:bg-none shadow-2xl rounded-2xl bg-primary-cream/70 p-6 mb-5">
               <div className="w-4/5 mb-4">
-                <h3 class="text-xl font-semibold mb-2">Manage your queue</h3>
+                <h3 class="text-xl font-semibold mb-2">
+                  Check out who did what last
+                </h3>
                 <p class="text-primary-dark-green text-sm">
-                  Take control with real-time updates, call next in line, and
-                  manage wait times efficiently.
+                  Keep a clear record of all staff actions to ensure
+                  accountability and monitor activity.
                 </p>
               </div>
               <div className="relative md:w-[3/5] flex flex-col items-center md:block ">
