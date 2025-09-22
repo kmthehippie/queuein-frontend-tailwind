@@ -7,6 +7,7 @@ import QRCode from "./QRCodeButton";
 import AuthorisedUser from "../pages/account/AuthorisedUser";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
+import { replaceEscaped } from "../utils/replaceRegex";
 
 const OutletUpdateModal = ({
   show,
@@ -137,17 +138,9 @@ const OutletUpdateModal = ({
   if (!show || !outletData) {
     return null;
   }
+  // New handleUpdate function with validation
   const handleUpdate = async (e) => {
     e.preventDefault();
-    setErrors("");
-    setShowAuthModal(true);
-  };
-  const handleAuthModalClose = () => {
-    setErrors({ general: "Forbidden" });
-    setShowAuthModal(false);
-  };
-  const updateOutletAllowed = async (staffInfo) => {
-    console.log("Update allowed! ", staffInfo);
     setErrors({});
     setDefaultEstWaitTimeError(false);
     setNameError(false);
@@ -156,43 +149,60 @@ const OutletUpdateModal = ({
     setHoursError(false);
     setImgUrlError(false);
 
+    let hasError = false;
+    let currentErrors = {};
+
     // Validation
     if (name.length < 2) {
-      setErrors({ general: "Name must be longer than 2 characters" });
+      currentErrors.name = "Name must be longer than 2 characters";
       setNameError(true);
-      return;
+      hasError = true;
     }
     if (location.length === 0) {
-      setErrors({ general: "Address can't be empty" });
+      currentErrors.general = "Address can't be empty";
       setLocationError(true);
-      return;
+      hasError = true;
     }
     if (phone.length < 10) {
-      setErrors({ general: "Contact number must be at least 10 numbers long" });
+      currentErrors.general = "Contact number must be at least 10 numbers long";
       setPhoneError(true);
-      return;
+      hasError = true;
     }
     if (hours.length < 1) {
-      setErrors({ general: "Hours must be entered" });
+      currentErrors.general = "Hours must be entered";
       setHoursError(true);
+      hasError = true;
+    }
+
+    const parsedDefaultEstWaitTime = parseFloat(defaultEstWaitTime);
+    if (isNaN(parsedDefaultEstWaitTime)) {
+      currentErrors.general = "Estimated wait time must be a number";
+      setDefaultEstWaitTimeError(true);
+      hasError = true;
+    } else if (parsedDefaultEstWaitTime < 0) {
+      currentErrors.general = "Estimated wait time cannot be negative";
+      setDefaultEstWaitTimeError(true);
+      hasError = true;
+    } else {
+      const time = minsToMs(parsedDefaultEstWaitTime);
+      setDefaultEstWaitTimeMS(time);
+    }
+
+    if (hasError) {
+      setErrors(currentErrors);
       return;
     }
 
-    // Default Estimate Wait Time changes
-    const parsedDefaultEstWaitTime = parseFloat(defaultEstWaitTime);
-    if (isNaN(parsedDefaultEstWaitTime)) {
-      setErrors({ general: "Estimated wait time must be a number" });
-      setDefaultEstWaitTimeError(true);
-      return;
-    } else if (parsedDefaultEstWaitTime < 0) {
-      setErrors({ general: "Estimated wait time cannot be negative" });
-      setDefaultEstWaitTimeError(true);
-      return;
-    } else {
-      const time = minsToMs(parsedDefaultEstWaitTime);
-      console.log("Was there a change in default estimate wait time? ", time);
-      setDefaultEstWaitTimeMS(time);
-    }
+    // If validation passes, show the auth modal
+    setShowAuthModal(true);
+  };
+  const handleAuthModalClose = () => {
+    setErrors({ general: "Forbidden" });
+    setShowAuthModal(false);
+  };
+  // Updated updateOutletAllowed function (validation removed)
+  const updateOutletAllowed = async (staffInfo) => {
+    console.log("Update allowed! ", staffInfo);
 
     let payload = {};
     const hasFileToUpload = imgFile !== null;
@@ -217,13 +227,10 @@ const OutletUpdateModal = ({
           dataToSubmit.append("wazeMaps", wazeMaps);
         }
       }
+      const parsedDefaultEstWaitTime = parseFloat(defaultEstWaitTime);
       if (
         msToMins(outletData.defaultEstWaitTime) !== parsedDefaultEstWaitTime
       ) {
-        console.log(
-          "This is what we are sending:defaultEstWaitTime ",
-          defaultEstWaitTimeMS
-        );
         dataToSubmit.append("defaultEstWaitTime", defaultEstWaitTimeMS);
       }
       if (outletData.hours !== hours) {
@@ -249,13 +256,10 @@ const OutletUpdateModal = ({
           payload.wazeMaps = wazeMaps;
         }
       }
+      const parsedDefaultEstWaitTime = parseFloat(defaultEstWaitTime);
       if (
         msToMins(outletData.defaultEstWaitTime) !== parsedDefaultEstWaitTime
       ) {
-        console.log(
-          "This is what we are sending:defaultEstWaitTime ",
-          defaultEstWaitTimeMS
-        );
         payload.defaultEstWaitTime = defaultEstWaitTimeMS;
       }
       if (outletData.hours !== hours) {
@@ -295,7 +299,7 @@ const OutletUpdateModal = ({
           payload
         );
       }
-      console.log(res.status);
+
       if (res?.status === 201 || res?.status === 200) {
         console.log("Outlet updated successfully:", res.data);
         setIsLoading(false);
@@ -396,7 +400,7 @@ const OutletUpdateModal = ({
                   onSuccess={updateOutletAllowed}
                   onFailure={handleAuthModalClose}
                   actionPurpose="Update Outlet Data" // Changed actionPurpose for clarity
-                  minimumRole="MANAGER"
+                  minimumRole="TIER_2"
                   outletId={outletData.id}
                 />
               </div>
@@ -430,7 +434,7 @@ const OutletUpdateModal = ({
                 id="location"
                 type="text"
                 className={inputClass(locationError) + " w-full "}
-                value={location}
+                value={replaceEscaped(location)}
                 onChange={(e) => setLocation(e.target.value)}
               />
               {locationError && errors.location && (
@@ -637,7 +641,7 @@ const OutletUpdateModal = ({
                 onSuccess={updateOutletAllowed}
                 onFailure={handleAuthModalClose}
                 actionPurpose="Update Outlet Data" // Changed actionPurpose for clarity
-                minimumRole="MANAGER"
+                minimumRole="TIER_2"
                 outletId={outletData.id}
               />
             </div>
@@ -702,7 +706,7 @@ const OutletUpdateModal = ({
               id="location"
               type="text"
               className={inputClass(locationError) + " w-full "}
-              value={location}
+              value={replaceEscaped(location)}
               onChange={(e) => setLocation(e.target.value)}
             />
             {locationError && errors.location && (

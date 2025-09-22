@@ -14,39 +14,38 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [account, setAccount] = useState(null);
   const [accountId, setAccountId] = useState(null);
   const [businessType, setBusinessType] = useState("BASIC"); //Kinda useless but let's just keep it for now
-
+  const [acctSlug, setAcctSlug] = useState("");
   const [outletText, setOutletText] = useState("");
   const [authLoading, setAuthLoading] = useState(true);
   const [reloadNav, setReloadNav] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-
+  const handleOutletText = (type) => {
+    if (type === "RESTAURANT") {
+      setOutletText("Outlet");
+    } else if (type === "CLINIC") {
+      setOutletText("Clinic");
+    } else if (type === "BASIC") {
+      setOutletText("Event Location");
+    }
+  };
   const refresh = useCallback(async () => {
     console.log("Trying to refresh within auth context: ", location.pathname);
 
-    const handleOutletText = (type) => {
-      if (type === "RESTAURANT") {
-        setOutletText("Outlet");
-      } else if (type === "CLINIC") {
-        setOutletText("Clinic");
-      } else if (type === "BASIC") {
-        setOutletText("Event Location");
-      }
-    };
     if (location.pathname.includes("/register")) {
       return null;
     }
+
     try {
       const response = await apiPrivate.post("/refresh");
       setAuthLoading(true);
-      if (response.data?.accessToken) {
-        console.log("Res in context", response.data);
+      console.log("Response in refresh: ", response);
+      if (response.data.accessToken) {
         setBusinessType(response.data.businessType);
         setAccessToken(response.data.accessToken);
-        setAccount(response.data.accountId);
+        setAcctSlug(response.data.acctSlug);
         setIsAuthenticated(true);
         setAccountId(response.data.accountId);
         handleOutletText(response.data.businessType);
@@ -60,6 +59,7 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
     } catch (error) {
+      console.log("No access token");
       console.error("Error during refresh token request:", error);
       logout();
       navigate("/db/login", { replace: true });
@@ -69,16 +69,12 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = useCallback((newAccessToken, accountId, businessType) => {
-    console.log(
-      "Logging in in auth context: setting accesstoken & acct id ",
-      newAccessToken,
-      accountId
-    );
-    setAccessToken(newAccessToken);
-    setAccount({ id: accountId });
-    setBusinessType(businessType);
-    setAccountId(accountId);
+  const login = useCallback((data) => {
+    setAccessToken(data.accessToken);
+    setBusinessType(data.businessType);
+    handleOutletText(data.businessType);
+    setAccountId(data.accountId);
+    setAcctSlug(data.acctSlug);
     setIsAuthenticated(true);
   }, []);
 
@@ -94,11 +90,11 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsAuthenticated(false);
       setAccessToken(null);
-      setAccount(null);
+      setBusinessType("");
+      setOutletText("");
       setAccountId(null);
-      navigate("/db/login");
     }
-    //empty out the accesstoken and refreshtoken in cookies (Done in backend)
+   
   }, [navigate]);
 
   useEffect(() => {
@@ -124,19 +120,28 @@ export const AuthProvider = ({ children }) => {
     () => ({
       accessToken,
       outletText,
+      acctSlug,
+      businessType,
       login,
       logout,
       refresh,
       isAuthenticated,
-      account,
       accountId,
       updateAccessToken: setAccessToken,
       updateIsAuthenticated: setIsAuthenticated,
-      updateAccount: setAccount,
+      updateAccount: setAccountId,
       reloadNav,
       setReloadNav: () => setReloadNav((prev) => !prev),
     }),
-    [accessToken, isAuthenticated, account, login, logout, accountId, reloadNav]
+    [
+      accessToken,
+      isAuthenticated,
+      login,
+      logout,
+      accountId,
+      reloadNav,
+      acctSlug,
+    ]
   );
   if (authLoading) {
     return (

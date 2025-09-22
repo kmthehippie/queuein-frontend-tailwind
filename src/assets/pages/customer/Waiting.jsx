@@ -81,6 +81,7 @@ const Waiting = () => {
   useEffect(() => {
     if (queueData && !isLoadingSession) {
       setOpenNotifModal(true);
+      console.log("Queue data: ", queueData);
       setAccountInfo(queueData.accountInfo);
       setOutlet(queueData.outlet);
       setQueueItem(queueData.queueItem);
@@ -251,10 +252,6 @@ const Waiting = () => {
         }
       };
 
-      // socket.on("host_called_cust", handleCalledUpdate);
-      // socket.on("host_seated_cust", handleSeatedUpdate);
-      // socket.on("host_noShow_cust", handleNoShowUpdate);
-
       socket.on("queueitem_update", (data) => {
         if (data.action === "seated") {
           handleSeatedUpdate(data);
@@ -422,6 +419,15 @@ const Waiting = () => {
       <NotificationModal
         title={`Hi ${queueItem.name}!`}
         paragraph={`You are at position ${customerPosition}.`}
+        content={
+          <div className="max-w-[250px] my-3">
+            <p className="italic font-light text-sm">
+              <i className="fa-solid fa-volume-high pr-3"></i>Please keep your
+              audio <span className="font-bold text-lg">UP</span> so that you
+              can hear when we notify your turn!
+            </p>
+          </div>
+        }
         onClose={() => {
           setOpenNotifModal(false);
         }}
@@ -600,7 +606,7 @@ const Waiting = () => {
         <div className="bg-primary-ultra-dark-green/35 min-w-full min-h-full absolute top-0 left-0 z-5">
           <div className="bg-primary-cream z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/2 left-1/2 -translate-1/2 p-10 md:min-w-md">
             <h1 className="text-primary-light-green font-semibold text-4xl">
-              {`Unfortunately, ${queueItem.name || customer.name}`}
+              {`Sorry, ${queueItem.name || customer.name}`}
             </h1>
             <br />
             <p className="text-2xl">
@@ -610,10 +616,9 @@ const Waiting = () => {
             <p>{`You have been removed from the queue at ${outlet.name}`} </p>
             <br />
             <p className="italic text-stone-400">
-              {JSON.stringify(calledTimeElapsed)}
-              We could not reach you for {calledTimeElapsed}. We had to give up
-              your spot for another waiting customer. Please rejoin the queue if
-              you are still hungry!
+              We could not reach you since {calledTimeElapsed}. We had to give
+              up your spot for another waiting customer. Please rejoin the queue
+              if you are still hungry!
             </p>
           </div>
         </div>

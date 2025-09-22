@@ -1,8 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import AuthorisedUser from "./AuthorisedUser";
+import NotificationModal from "../../components/NotificationModal";
 import useApiPrivate from "../../hooks/useApiPrivate";
 import useAuth from "../../hooks/useAuth";
+
+const roleData = (
+  <div className=" ">
+    <h3 className="font-semibold">TIER 1: Full Access</h3>
+    <p className="text-sm font-light italic mb-3">
+      This tier gives a user complete control over all app functions, including
+      creating, editing, and deleting accounts, outlets, and other users. This
+      is the equivalent of an Owner of the store or app.
+    </p>
+    <h3 className="font-semibold">TIER 2: Management Access</h3>
+    <p className="text-sm font-light italic mb-3">
+      Users in this tier can manage and edit outlet-level data, such as changing
+      business types, updating company logos, and overseeing staff. They have
+      broad control but do not have the highest-level account-management
+      permissions.
+    </p>
+    <h3 className="font-semibold">TIER 3: Operational Access</h3>
+    <p className="text-sm font-light italic mb-3">
+      This tier is for staff who need to operate the queue day-to-day. They can
+      start and end a queue, add new customers, and call parties. They cannot
+      make changes to the account or outlet settings.
+    </p>
+    <h3 className="font-semibold">TIER 4: View-Only Access</h3>
+    <p className="text-sm font-light italic mb-3">
+      This is the most basic tier. Users are restricted from sensitive data
+      access.
+    </p>
+  </div>
+);
 
 const StaffManagement = () => {
   const [viewModal, setViewModal] = useState(false);
@@ -22,6 +52,7 @@ const StaffManagement = () => {
   const [staffToDeleteId, setStaffDeleteId] = useState(null);
   const [staffToUpdateId, setStaffUpdateId] = useState(null);
   const [updateViewModal, setUpdateViewModal] = useState(false);
+  const [roleInfo, setRoleInfo] = useState(false);
 
   //USE HOOKS
   const params = useParams();
@@ -55,7 +86,11 @@ const StaffManagement = () => {
   const handleRoleChange = (e) => {
     setSelectedRole(e.target.value);
   };
-
+  const handleRoleInfo = (e) => {
+    e.preventDefault();
+    console.log("Try to set role true", roleInfo);
+    setRoleInfo(true);
+  };
   useEffect(() => {
     //Get all existing staff
     if (!isAuthenticated) return;
@@ -354,9 +389,25 @@ const StaffManagement = () => {
                   />
                 </div>
                 <div className="">
-                  <label htmlFor="role" className={labelClass}>
+                  <label htmlFor="role" className={labelClass + " pr-5"}>
                     Staff Role
                   </label>
+                  <button
+                    className="font-semibold text-xs cursor-pointer mb-3"
+                    onClick={(e) => handleRoleInfo(e)}
+                  >
+                    <i className="fa-solid fa-circle-info pr-3"></i>More info
+                    about roles
+                  </button>
+                  {roleInfo && (
+                    <NotificationModal
+                      title={"Information about roles:"}
+                      paragraph={""}
+                      content={roleData}
+                      onClose={() => setRoleInfo(false)}
+                    />
+                  )}
+
                   <br />
                   <select
                     id="role"
@@ -369,17 +420,12 @@ const StaffManagement = () => {
                       Select a Role
                     </option>
                     <optgroup label="Allowed to perform sensitive functions">
-                      <option value="OWNER">Owner</option>
-                      <option value="MANAGER">Manager</option>
-                      <option value="ASSISTANT_MANAGER">
-                        Assistant Manager
-                      </option>
-                      <option value="HOST">Host</option>
+                      <option value="TIER_1">TIER 1: Full Access</option>
+                      <option value="TIER_2">TIER 2: Management Access</option>
                     </optgroup>
                     <optgroup label="Allowed to perform basic functions">
-                      <option value="Server">Server</option>
-                      <option value="CASHIER">Cashier</option>
-                      <option value="BARISTA">Barista</option>
+                      <option value="TIER_3">TIER 3: Operational Access</option>
+                      <option value="TIER_4">TIER 4: View-Only Access</option>
                     </optgroup>
                   </select>
                   <div className="text-xs leading-3 italic text-stone-500 my-2">
@@ -444,7 +490,6 @@ const StaffManagement = () => {
       {viewModal && (
         <div className="bg-primary-cream p-5 rounded-2xl m-2 w-md relative ">
           <h3 className="text-xl pb-2 text-center">Create a new staff</h3>
-
           <p
             className="absolute top-0 right-0 text-red-700 pr-5 pt-2 hover:text-red-950 transition ease-in active:text-red-950 font-bold cursor-pointer"
             onClick={() => toggleModal(false)}
@@ -504,20 +549,33 @@ const StaffManagement = () => {
                     Select a Role
                   </option>
                   <optgroup label="Allowed to perform sensitive functions">
-                    <option value="MANAGER">Manager</option>
-                    <option value="ASSISTANT_MANAGER">Assistant Manager</option>
-                    <option value="HOST">Host</option>
+                    <option value="TIER_1">TIER 1: Full Access</option>
+                    <option value="TIER_2">TIER 2: Management Access</option>
                   </optgroup>
                   <optgroup label="Allowed to perform basic functions">
-                    <option value="Server">Server</option>
-                    <option value="CASHIER">Cashier</option>
-                    <option value="BARISTA">Barista</option>
+                    <option value="TIER_3">TIER 3: Operational Access</option>
+                    <option value="TIER_4">TIER 4: View-Only Access</option>
                   </optgroup>
                 </select>
                 <small className="text-xs italic text-stone-500">
                   If you do not choose a role, it will default to Host.
                 </small>
               </div>
+              <button
+                className="font-semibold text-xs cursor-pointer"
+                onClick={(e) => handleRoleInfo(e)}
+              >
+                <i className="fa-solid fa-circle-info pr-3"></i>More info about
+                roles
+              </button>
+              {roleInfo && (
+                <NotificationModal
+                  title={"Information about roles:"}
+                  paragraph={""}
+                  content={roleData}
+                  onClose={() => setRoleInfo(false)}
+                />
+              )}
               <div className={``}>
                 <label htmlFor="password" className={labelClass}>
                   Staff Password
@@ -554,7 +612,7 @@ const StaffManagement = () => {
                 />
               </div>
               <button
-                className={buttonClass + " bg-primary-green text-white"}
+                className={buttonClass + " bg-primary-green text-white mt-3"}
                 onClick={handleCreateNewStaff}
               >
                 Submit New Staff
@@ -571,8 +629,7 @@ const StaffManagement = () => {
               Staff Onboard
             </h1>
           </div>
-
-          <div className="flex justify-center">
+          <div className="flex flex-col justify-center">
             <button
               className={
                 buttonClass +
@@ -582,7 +639,23 @@ const StaffManagement = () => {
             >
               Create New Staff +
             </button>
+            <button
+              className="font-semibold text-xs cursor-pointer mb-3"
+              onClick={(e) => handleRoleInfo(e)}
+            >
+              <i className="fa-solid fa-circle-info pr-3"></i>More info about
+              roles
+            </button>
+            {roleInfo && (
+              <NotificationModal
+                title={"Information about roles:"}
+                paragraph={""}
+                content={roleData}
+                onClose={() => setRoleInfo(false)}
+              />
+            )}{" "}
           </div>
+
           <div className="bg-primary-cream mx-3">
             {staffList.length > 0 && (
               <div className="grid grid-cols-8 w-full text-primary-dark-green font-semibold">
@@ -673,7 +746,7 @@ const StaffManagement = () => {
                 onSuccess={handleAuthSuccess}
                 onFailure={handleAuthModalClose}
                 actionPurpose="Create New Staff"
-                minimumRole="ASSISTANT_MANAGER"
+                minimumRole="TIER_2"
               />
             )}
             {pendingAction === "delete" && (
@@ -681,7 +754,7 @@ const StaffManagement = () => {
                 onSuccess={handleAuthSuccess}
                 onFailure={handleAuthModalClose}
                 actionPurpose="Delete Staff"
-                minimumRole="MANAGER"
+                minimumRole="TIER_2"
               />
             )}
             {pendingAction === "update" && (
@@ -689,7 +762,7 @@ const StaffManagement = () => {
                 onSuccess={handleAuthSuccess}
                 onFailure={handleAuthModalClose}
                 actionPurpose="Update Staff"
-                minimumRole="MANAGER"
+                minimumRole="TIER_2"
               />
             )}
 

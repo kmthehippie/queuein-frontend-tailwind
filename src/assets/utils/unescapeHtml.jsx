@@ -1,5 +1,8 @@
-export const unescapeHtml = (html) => {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
-  return doc.body.textContent;
+export const noUnescapedHtml = (string) => {
+  const unescapedHtmlRegex = (?<!\\)(?:(\\\\)*)[*];
+
+  if (string.includes(unescapedHtmlRegex)) {
+    return false;
+  }
+  return true;
 };

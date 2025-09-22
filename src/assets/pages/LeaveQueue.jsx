@@ -21,7 +21,7 @@ const LeaveQueue = () => {
           href={`mailto:${emailAddress}?subject=${encodeURIComponent(subject)}`}
         >
           <div className="font-light text-primary-cream bg-primary-dark-green px-5 py-2">
-            Email Us
+            {emailAddress}
           </div>
         </a>
       </div>

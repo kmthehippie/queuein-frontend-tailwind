@@ -27,6 +27,7 @@ const Register = () => {
   const [emailSame, setEmailSame] = useState(false);
   const [passwordSame, setPasswordSame] = useState(false);
   const [capslockOn, setCapslockOn] = useState(false);
+  const [showBusinessType, setShowBusinessType] = useState(false);
 
   const [loading, setLoading] = useState(false);
   //Use hooks imported
@@ -189,6 +190,9 @@ const Register = () => {
     }
   };
 
+  const handleInfo = () => {
+    setShowBusinessType(!showBusinessType);
+  };
   if (loading) {
     return (
       <Loading
@@ -201,14 +205,12 @@ const Register = () => {
   }
   return (
     <div className="flex lg:h-full lg:items-center ">
-      <div className="lg:flex-4/5 w-full flex items-center lg:items-start my-10 py-3 lg:py-5 lg:my-0 justify-center overflow-auto ">
+      <div className="lg:flex-4/5 w-full flex items-center lg:items-start mt-2 mb-10 py-3 lg:py-5 lg:my-0 justify-center overflow-auto ">
         <div className="bg-white/50 p-10 rounded-xl shadow-md w-4/5 flex-row md:pb-5 md:pt-5 min-h-full h-auto items-center justify-center">
           <h1 className="text-3xl font-semibold mb-2 font-poppins">
             Great Choice!
           </h1>
-          <small className="block mb-4 text-gray-600">
-            Enter your credentials to create your account.
-          </small>
+          <small className="block mb-4 text-gray-600">Let's get started.</small>
           <form onSubmit={handleSubmit} className="space-y-4 lg:flex lg:h-full">
             <div className="flex-row p-1">
               <div>
@@ -245,7 +247,7 @@ const Register = () => {
                 />
               </div>
 
-              <div className="flex items-center m-2">
+              <div className="flex items-center m-2 mb-2">
                 <input
                   id="email-same-checkbox"
                   type="checkbox"
@@ -257,13 +259,16 @@ const Register = () => {
                 />
                 <label
                   htmlFor="email-same-checkbox"
-                  className="ms-2 text-xs font-light text-gray-600"
+                  className="ms-2 text-xs font-light text-primary-dark-green"
                 >
                   Owner's email is the same as Company email
                 </label>
               </div>
-              <div className="text-sm text-gray-600">
-                <label htmlFor="business-type" className={labelClass}>
+              <div className="text-sm text-gray-600 mb-2">
+                <label
+                  htmlFor="business-type"
+                  className={labelClass + " mr-10 "}
+                >
                   Business Type
                 </label>
                 <select
@@ -282,6 +287,47 @@ const Register = () => {
                   <option value="RESTAURANT">Restaurant</option>
                   <option value="CLINIC">Clinic</option>
                 </select>
+                <br />
+
+                <div className="cursor-pointer pt-1">
+                  {" "}
+                  {!showBusinessType && (
+                    <div onClick={handleInfo}>
+                      <i className="fa-solid fa-caret-right pr-5"></i> More
+                      Info...
+                    </div>
+                  )}
+                  {showBusinessType && (
+                    <div onClick={handleInfo}>
+                      <i className="fa-solid fa-caret-down pr-5"></i>More
+                      Info...
+                    </div>
+                  )}
+                </div>
+                {showBusinessType && (
+                  <div className=" text-primary-green mt-2 pl-5 py-2 border-1">
+                    <small>
+                      <span className="text-primary-dark-green font-semibold">
+                        Basic
+                      </span>
+                      : No pax and you are using us for events.
+                    </small>
+                    <br />
+                    <small>
+                      <span className="text-primary-dark-green font-semibold">
+                        Clinic
+                      </span>
+                      : Healthcare facility.
+                    </small>
+                    <br />
+                    <small>
+                      <span className="text-primary-dark-green font-semibold">
+                        Restaurants
+                      </span>
+                      : Restaurant usage. (Has Pax).
+                    </small>
+                  </div>
+                )}
               </div>
               <div>
                 <label htmlFor="company-password" className={labelClass}>
@@ -339,7 +385,7 @@ const Register = () => {
                 />
                 <label
                   htmlFor="password-same-checkbox"
-                  className="ms-2 text-xs font-light text-gray-600 "
+                  className="ms-2 text-xs font-light text-primary-dark-green "
                 >
                   Owner's password is the same as Company password
                 </label>
@@ -400,6 +446,7 @@ const Register = () => {
               </div>
             </div>
           </form>
+
           {errors && <p className={errorClass}>{errors.general}</p>}
           <button type="button" className={buttonClass} onClick={handleSubmit}>
             Register

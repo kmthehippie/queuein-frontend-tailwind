@@ -4,8 +4,8 @@ import { apiPrivate, interceptedApiPrivate } from "../../api/axios";
 import useAuth from "../../hooks/useAuth";
 import AuthorisedUser from "../../pages/account/AuthorisedUser";
 import Loading from "../../components/Loading";
-import { Outlet, useNavigate } from "react-router-dom";
-import { unescapeHtml } from "../../utils/unescapeHtml";
+import { Outlet, replace, useNavigate } from "react-router-dom";
+import { replaceEscaped } from "../../utils/replaceRegex";
 
 const SettingsAccount = () => {
   const { accountId, refresh, setReloadNav } = useAuth();
@@ -26,7 +26,7 @@ const SettingsAccount = () => {
 
   const [slugError, setSlugError] = useState(false);
   const [companyNameError, setCompanyNameError] = useState(false);
-  const [errors, setErrors] = useState();
+  const [errors, setErrors] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const emailAddress = import.meta.env.VITE_FEEDBACK_EMAIL_ADDRESS;
   const subject = `Feedback ${companyName} account issue`;
@@ -43,7 +43,7 @@ const SettingsAccount = () => {
       console.log(response);
       if (response.data) {
         setAccount(response.data);
-        const name = unescapeHtml(response.data.companyName);
+        const name = replaceEscaped(response.data.companyName);
         setCompanyName(name);
         setCompanyEmail(response.data.companyEmail);
         setBusinessType(response.data.businessType);
@@ -56,6 +56,7 @@ const SettingsAccount = () => {
         setCreatedAt(formattedTime);
         setLogo(response.data.logo);
         setSlug(response.data.slug);
+        setErrors("");
       }
     } catch (error) {
       console.error(error);
@@ -80,7 +81,7 @@ const SettingsAccount = () => {
     });
   };
   const checkChange = () => {
-    const name = unescapeHtml(account.companyName);
+    const name = account.companyName;
     const nameChanged = name !== companyName;
     const btChanged = account.businessType !== businessType;
     const slugChanged = account.slug !== slug;
@@ -265,7 +266,7 @@ const SettingsAccount = () => {
               onSuccess={updateAccountAllowed}
               onFailure={handleAuthModalClose}
               actionPurpose="Update Account Data" // Changed actionPurpose for clarity
-              minimumRole="MANAGER"
+              minimumRole="TIER_2"
               outletId={null}
             />
           </div>

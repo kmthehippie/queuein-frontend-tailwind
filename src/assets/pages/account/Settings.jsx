@@ -81,22 +81,22 @@ const Settings = () => {
             </a>
           </small>
 
-          <div className="text-sm flex justify-center items-center">
+          <div className="text-sm flex justify-center items-center ">
             <i className="fa-solid fa-fire"></i>
-            <p className="pl-3 pt-5">
+            <p className="pl-3 pt-5  w-full">
               Automatically open or close of store so that customers know that
-              the store is opened or closed.
+              the store is opened or closed in the Customer Viewing Page.
             </p>
           </div>
-          <div className="text-sm flex justify-center items-center">
+          <div className="text-sm flex justify-center items-center ">
             <i className="fa-solid fa-fire"></i>
-            <p className="pl-3 pt-5">
+            <p className="pl-3 pt-5 w-full">
               Estimate wait time algorithm to average wait time data
             </p>
           </div>
           <div className="text-sm flex justify-center items-center">
             <i className="fa-solid fa-fire"></i>
-            <p className="pl-3 pt-5">
+            <p className="pl-3 pt-5  w-full">
               Option to allow accounts to add notes to a customer. Egs. Need 1
               baby chair, Complained of tenderness in shin, Request for Ms Lily,
               Request full mani and pedicure.

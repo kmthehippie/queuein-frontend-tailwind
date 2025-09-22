@@ -49,7 +49,6 @@ const IndividualOutlet = () => {
                 outletData: currentOutletData,
                 queueData: currentQueueData,
               });
-
               navigate(
                 `/db/${params.accountId}/outlet/${params.outletId}/active/${currentQueueData.id}`,
                 {
@@ -163,7 +162,7 @@ const IndividualOutlet = () => {
                   onSuccess={showAuthModalState.onSuccess} // <--- Pass the captured handler here
                   onFailure={handleAuthModalClose}
                   actionPurpose="Enter active queue"
-                  minimumRole="HOST"
+                  minimumRole="TIER_3"
                   outletId={params.outletId}
                 />
               </div>

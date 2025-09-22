@@ -32,6 +32,13 @@ const InactiveOutlet = lazy(() =>
 const ActiveOutlet = lazy(() =>
   import("./assets/pages/account/ActiveOutlet.jsx")
 );
+const KioskView = lazy(() => import("./assets/pages/customer/KioskView.jsx"));
+const KioskSuccess = lazy(() =>
+  import("./assets/pages/customer/KioskSuccess.jsx")
+);
+const KioskWaiting = lazy(() =>
+  import("./assets/pages/customer/KioskWaiting.jsx")
+);
 const IndividualOutlet = lazy(() =>
   import("./assets/pages/account/IndividualOutlet.jsx")
 );
@@ -54,25 +61,48 @@ const Waiting = lazy(() => import("./assets/pages/customer/Waiting.jsx"));
 import ProtectedRoutes from "./assets/components/ProtectedRoutes";
 import Sidenav from "./assets/components/Sidenav.jsx";
 import LocalStorageCheck from "./assets/components/LocalStorageCheck.jsx";
-import AuthCheck from "./assets/components/AuthCheck.jsx";
+import Loading from "./assets/components/Loading.jsx";
+import HeaderNav from "./assets/components/HeaderNav.jsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: (
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense
+        fallback={
+          <Loading
+            title={"App "}
+            paragraph={"Sorry, it might take awhile for the app to wake up. "}
+          />
+        }
+      >
         <Layout />
       </Suspense>
     ),
     children: [
+      //home
       {
         path: "/",
         element: (
-          <Suspense fallback={<div>Loading...</div>}>
-            <Home />
+          <Suspense
+            fallback={
+              <Loading
+                title={"App "}
+                paragraph={
+                  "Sorry, it might take awhile for the app to wake up. "
+                }
+              />
+            }
+          >
+            {" "}
+            <div className="">
+              <HeaderNav />
+              <Home />
+            </div>
           </Suspense>
         ),
       },
+      //customer facing
       {
         path: ":acctSlug",
         element: (
@@ -85,7 +115,16 @@ const router = createBrowserRouter([
           {
             index: true,
             element: (
-              <Suspense fallback={<div>Loading...</div>}>
+              <Suspense
+                fallback={
+                  <Loading
+                    title={"App "}
+                    paragraph={
+                      "Sorry, it might take awhile for the app to wake up. "
+                    }
+                  />
+                }
+              >
                 <AccountLanding />
               </Suspense>
             ),
@@ -93,16 +132,49 @@ const router = createBrowserRouter([
           {
             path: "outlet/:outletId",
             element: (
-              <Suspense fallback={<div>Loading...</div>}>
+              <Suspense
+                fallback={
+                  <Loading
+                    title={"App "}
+                    paragraph={
+                      "Sorry, it might take awhile for the app to wake up. "
+                    }
+                  />
+                }
+              >
                 <OutletLanding />
               </Suspense>
             ),
-            //element: OutletLandingPage -- landing page for customer to join queue and view queue data
+            children: [{ path: "kiosk/:queueId", element: <KioskView /> }],
+          },
+          {
+            path: "kiosk/:queueItem",
+            children: [
+              {
+                path: "success",
+                // This path is still within the kiosk
+                element: <KioskSuccess />,
+              },
+              {
+                path: "qrScanned",
+                // This path is for when the customer has scanned the qr code to get to their waiting page
+                element: <KioskWaiting />,
+              },
+            ],
           },
           {
             path: "join/:queueId",
             element: (
-              <Suspense fallback={<div>Loading...</div>}>
+              <Suspense
+                fallback={
+                  <Loading
+                    title={"App "}
+                    paragraph={
+                      "Sorry, it might take awhile for the app to wake up. "
+                    }
+                  />
+                }
+              >
                 <JoinQueue />
               </Suspense>
             ),
@@ -111,7 +183,16 @@ const router = createBrowserRouter([
             path: "queueItem/:queueItem",
             element: (
               <SocketProvider>
-                <Suspense fallback={<div>Loading...</div>}>
+                <Suspense
+                  fallback={
+                    <Loading
+                      title={"App "}
+                      paragraph={
+                        "Sorry, it might take awhile for the app to wake up. "
+                      }
+                    />
+                  }
+                >
                   <Waiting />
                 </Suspense>
               </SocketProvider>
@@ -120,7 +201,16 @@ const router = createBrowserRouter([
           {
             path: "leftQueue/:queueItem",
             element: (
-              <Suspense fallback={<div>Loading...</div>}>
+              <Suspense
+                fallback={
+                  <Loading
+                    title={"App "}
+                    paragraph={
+                      "Sorry, it might take awhile for the app to wake up. "
+                    }
+                  />
+                }
+              >
                 <LeaveQueue />
               </Suspense>
             ),
@@ -128,11 +218,21 @@ const router = createBrowserRouter([
           { path: "seated/:queueItem", element: <Waiting /> },
         ],
       },
+      //account facing
       {
         path: "/db",
         element: (
           <AuthProvider>
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense
+              fallback={
+                <Loading
+                  title={"App "}
+                  paragraph={
+                    "Sorry, it might take awhile for the app to wake up. "
+                  }
+                />
+              }
+            >
               <Outlet />
             </Suspense>
           </AuthProvider>
@@ -140,18 +240,22 @@ const router = createBrowserRouter([
         children: [
           {
             path: "register",
-            element: <Register />,
+            element: (
+              <div className="">
+                <HeaderNav />
+                <Register />
+              </div>
+            ),
           },
-
           {
             path: "login",
             element: (
-              <AuthCheck>
+              <div className="">
+                <HeaderNav />
                 <Login />
-              </AuthCheck>
+              </div>
             ),
           },
-
           //TODO: forgotpassword,
           {
             path: ":accountId",
@@ -195,7 +299,16 @@ const router = createBrowserRouter([
                 path: "settings",
                 element: (
                   <SocketProvider>
-                    <Suspense fallback={<div>Loading...</div>}>
+                    <Suspense
+                      fallback={
+                        <Loading
+                          title={"App "}
+                          paragraph={
+                            "Sorry, it might take awhile for the app to wake up. "
+                          }
+                        />
+                      }
+                    >
                       <Settings />
                     </Suspense>
                   </SocketProvider>
@@ -238,7 +351,16 @@ const router = createBrowserRouter([
                     path: "active/:queueId",
                     element: (
                       <SocketProvider>
-                        <Suspense fallback={<div>Loading...</div>}>
+                        <Suspense
+                          fallback={
+                            <Loading
+                              title={"App "}
+                              paragraph={
+                                "Sorry, it might take awhile for the app to wake up. "
+                              }
+                            />
+                          }
+                        >
                           <ActiveOutlet />
                         </Suspense>
                       </SocketProvider>

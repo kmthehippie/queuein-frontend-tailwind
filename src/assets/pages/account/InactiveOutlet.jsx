@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import moment from "moment";
 import AuthorisedUser from "./AuthorisedUser";
 import useApiPrivate from "../../hooks/useApiPrivate";
+import Loading from "../../components/Loading";
 
 const InactiveOutlet = () => {
   const params = useParams();
@@ -96,6 +97,12 @@ const InactiveOutlet = () => {
     //Navigate -1 ?
   };
 
+  if (loading) {
+    return (
+      <Loading title={"Previous Data"} paragraph={"Previous data is loading"} />
+    );
+  }
+
   return (
     <div>
       <form className="bg-primary-cream p-3 rounded-2xl">
@@ -135,7 +142,7 @@ const InactiveOutlet = () => {
               onSuccess={startQueueAllowed}
               onFailure={handleAuthModalClose}
               actionPurpose="Start New Queue"
-              minimumRole="HOST"
+              minimumRole="TIER_3"
               outletId={params.outletId}
             />
           </div>
@@ -190,6 +197,7 @@ const InactiveOutlet = () => {
           )}
         </div>
       </div>
+      {error && <div>ERROR: {JSON.stringify(error)}</div>}
     </div>
   );
 };

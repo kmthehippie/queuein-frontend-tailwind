@@ -1,77 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-const featuresData = [
-  {
-    title: "Automated notifications.",
-    description:
-      "Customers with notifications enabled will hear a loud bell ring when it's their turn.",
-  },
-  {
-    title: "Built-in privacy.",
-    description:
-      "Customers who don't opt into VIP have their contact numbers automatically deleted within 24 hours.",
-  },
-  {
-    title: "Easy QR code check-in.",
-    description:
-      "Customers can join the queue instantly by scanning a QR code.",
-  },
-  {
-    title: "Business Types",
-    description:
-      "You can set your business type to Restaurant, Clinic, or Basic. This changes key terminology in your account to match your business needs, like changing Customer to Patient for clinics.",
-  },
-  {
-    title: "Real-time updates.",
-    description:
-      "Get instant alerts and highlights when a customer changes their pax count.",
-  },
-  {
-    title: "Optional VIP management.",
-    description:
-      "Save VIP customers' contact information for future use and easy queue joining.",
-  },
-  {
-    title: "Multiple staff accounts.",
-    description:
-      "Create and manage multiple staff accounts to help run your queue.",
-  },
-  {
-    title: "Detailed audit logs.",
-    description: "Track who started, ended, or made any changes to your queue.",
-  },
-  {
-    title: "Multi-outlet support.",
-    description:
-      "Manage multiple outlets from a single account and on multiple devices.",
-  },
-];
-const futureFeaturesData = [
-  {
-    title: "VIP Customer data page",
-    description: "VIP Customers data",
-    sublist: ["VIP Customers' contact data", "VIP Customers' visit frequency"],
-  },
-  {
-    title: "Queue data analysis",
-    description: "Includes information such as:",
-    sublist: [
-      "How many customers were seated queue",
-      "How many customers left queue",
-      "How many customers were a no show",
-      "Monthly queue analysis that includes average of all the data",
-    ],
-  },
+import { featuresData, futureFeaturesData } from "../Data/FeaturesData";
 
-  {
-    title: "Upgrade estimate waiting time",
-    description: "Calculating estimate waiting time based on average",
-    sublist: [
-      "After a few weeks of data, an average waiting time will be calculated",
-      "You can choose to use it or otherwise set it manually in settings",
-    ],
-  },
-];
 const Home = () => {
   const navigate = useNavigate();
   const emailAddress = import.meta.env.VITE_FEEDBACK_EMAIL_ADDRESS;
@@ -85,7 +15,6 @@ const Home = () => {
   const handleNavNLBH = () => {
     navigate("/nasi-lemak-burung-hantu");
   };
-
   const handleNavRegister = () => {
     navigate("/db/register");
   };
@@ -101,27 +30,6 @@ const Home = () => {
   };
   return (
     <div className="">
-      <div className=" z-10 sticky top-0 mx-auto max-w-3xl flex justify-center md:justify-end gap-5 py-2 bg-primary-cream px-5 flex-end md:rounded-lg ">
-        {" "}
-        <button
-          className="text-primary-green bg-primary-cream/90 hover:text-primary-light-green italic font-semibold  px-4 py-1 "
-          onClick={handleNavRegister}
-        >
-          REGISTER
-        </button>
-        <button
-          className="text-primary-green bg-primary-cream/90 hover:text-primary-light-green italic font-semibold  px-4 py-1 "
-          onClick={handleNavLogin}
-        >
-          LOGIN
-        </button>
-        <button
-          className="text-primary-green bg-primary-cream/90 hover:text-primary-light-green italic font-semibold  px-4 py-1 "
-          onClick={handleNavNLBH}
-        >
-          SAMPLE
-        </button>
-      </div>
       <div className="flex flex-col items-center justify-center ">
         <div className="font-light max-w-2xl mx-auto">
           <h1 className="font-extralight text-4xl mt-10 text-center">
@@ -246,12 +154,12 @@ const Home = () => {
           <div className="bg-primary-cream hover:shadow-2xl p-4 rounded-lg shadow-md m-1">
             <div className="m md:gap-10 md:flex md:flex-row md:items-center flex flex-col justify-center items-center text-center md:bg-none shadow-2xl rounded-2xl bg-primary-cream/70 p-6 mb-5">
               <div className="w-4/5 mb-4">
-                <h3 class="text-xl font-semibold mb-2">
+                <h3 className="text-xl font-semibold mb-2">
                   What your customers see
                 </h3>
-                <p class="text-primary-dark-green text-sm">
-                  A beautiful landing page for your brand, providing instant
-                  access to your queue.
+                <p className="text-primary-dark-green text-sm">
+                  A simple landing page for your brand, providing instant access
+                  to your queue.
                 </p>
               </div>
               <img
@@ -267,10 +175,10 @@ const Home = () => {
                 className="rounded-xl object-cover md:w-2/5 mb-4 md:-skew-y-11 w-3/5 p-3 md:p-0 shadow-2xl"
               />
               <div className="w-4/5 mb-4">
-                <h3 class="text-xl font-semibold mb-2">
+                <h3 className="text-xl font-semibold mb-2">
                   Joining a queue has never been easier
                 </h3>
-                <p class="text-primary-dark-green text-sm">
+                <p className="text-primary-dark-green text-sm">
                   Customers can join with a simple QR code scan, reducing wait
                   times and improving their experience.
                 </p>
@@ -278,8 +186,10 @@ const Home = () => {
             </div>
             <div className="m md:gap-10 md:flex md:flex-row md:items-center flex flex-col justify-center items-center text-center md:bg-none shadow-2xl rounded-2xl bg-primary-cream/70 p-6 mb-5">
               <div className="w-4/5 mb-4">
-                <h3 class="text-xl font-semibold mb-2">Manage your queue</h3>
-                <p class="text-primary-dark-green text-sm">
+                <h3 className="text-xl font-semibold mb-2">
+                  Manage your queue
+                </h3>
+                <p className="text-primary-dark-green text-sm">
                   Take control with real-time updates, call next in line, and
                   manage wait times efficiently.
                 </p>
@@ -304,8 +214,10 @@ const Home = () => {
                 className="rounded-xl object-cover md:w-2/5 mb-4 md:-skew-y-11  p-3 md:p-0 shadow-2xl"
               />
               <div className="w-4/5 mb-4">
-                <h3 class="text-xl font-semibold mb-2">A Simple Dashboard</h3>
-                <p class="text-primary-dark-green text-sm">
+                <h3 className="text-xl font-semibold mb-2">
+                  A Simple Dashboard
+                </h3>
+                <p className="text-primary-dark-green text-sm">
                   Easily access and manage all your restaurant, clinic or event
                   location from one centralized dashboard.
                 </p>
@@ -313,10 +225,10 @@ const Home = () => {
             </div>
             <div className="m md:gap-10 md:flex md:flex-row md:items-center flex flex-col justify-center items-center text-center md:bg-none shadow-2xl rounded-2xl bg-primary-cream/70 p-6 mb-5">
               <div className="w-4/5 mb-4">
-                <h3 class="text-xl font-semibold mb-2">
+                <h3 className="text-xl font-semibold mb-2">
                   Check out who did what last
                 </h3>
-                <p class="text-primary-dark-green text-sm">
+                <p className="text-primary-dark-green text-sm">
                   Keep a clear record of all staff actions to ensure
                   accountability and monitor activity.
                 </p>

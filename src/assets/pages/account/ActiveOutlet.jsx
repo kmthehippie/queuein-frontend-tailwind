@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useContext } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import CreateCustomer from "../../components/CreateCustomer";
 import moment from "moment";
 import SocketContext from "../../context/SocketContext";
@@ -12,9 +12,10 @@ import NotificationModal from "../../components/NotificationModal";
 
 const ActiveOutlet = () => {
   const { socket, isConnected } = useContext(SocketContext);
-  const { isAuthenticated, businessType } = useAuth();
+  const { isAuthenticated, businessType, accountId, acctSlug } = useAuth();
   const params = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const apiPrivate = useApiPrivate();
   const toast = useToast();
   const { staffInfo } = location.state || {}; // Ensure it's an object, even if empty
@@ -91,6 +92,10 @@ const ActiveOutlet = () => {
     if (!isAuthenticated) return;
     if (staffInfo) {
       console.log("Staff info has been set: ", staffInfo);
+      setShowAuthModal(false);
+    } else {
+      //When user has left off
+      navigate(`/db/${accountId}/outlet/${params.outletId}`, { replace: true });
     }
     setOpenNotifModal(true);
     const activeQueueItems = async () => {
@@ -106,6 +111,7 @@ const ActiveOutlet = () => {
     };
     activeQueueItems();
   }, [isAuthenticated, params.queueId, apiPrivate]);
+
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
     const handleMediaQueryChange = (e) => setLg(e.matches);
@@ -339,7 +345,6 @@ const ActiveOutlet = () => {
     },
     [apiPrivate, socket, params.queueId]
   );
-
   const handleSeated = useCallback(
     async (e, id) => {
       const newSeatedStatus = e.target.checked;
@@ -387,7 +392,6 @@ const ActiveOutlet = () => {
     setShowAuthModal(false);
     //Navigate -1 ?
   };
-
   const handleEndQueue = useCallback(() => {
     setErrors("");
     setShowAuthModal(true);
@@ -434,6 +438,12 @@ const ActiveOutlet = () => {
     },
     [apiPrivate, socket, params.queueId]
   );
+
+  const handleNavKioskView = useCallback((e) => {
+    e.preventDefault();
+    console.log("This is the account slug", acctSlug);
+    navigate(`/${acctSlug}/outlet/${params.outletId}/kiosk/${params.queueId}`);
+  }, []);
 
   if (openNotifModal) {
     return (
@@ -509,18 +519,30 @@ const ActiveOutlet = () => {
             </div>
           )}
           {errors && <p className={errorClass}>{errors.general}</p>}
-          <button
-            className={
-              buttonClass +
-              "  bg-primary-green hover:bg-primary-dark-green mr-3 border-1 border-primary-light-green px-15"
-            }
-            onClick={(e) => {
-              handleAddCustomer(e);
-            }}
-          >
-            Add Queuer
-          </button>
-
+          <div className="flex gap-2">
+            <button
+              className={
+                buttonClass +
+                "  bg-primary-green hover:bg-primary-dark-green border-1 border-primary-light-green"
+              }
+              onClick={(e) => {
+                handleAddCustomer(e);
+              }}
+            >
+              + Add Queuer
+            </button>
+            <button
+              className={
+                buttonClass +
+                "  bg-primary-green hover:bg-primary-dark-green  border-1 border-primary-light-green"
+              }
+              onClick={(e) => {
+                handleNavKioskView(e);
+              }}
+            >
+              Kiosk View
+            </button>
+          </div>
           {/* PORTRAIT */}
           {!lg && queueItems.length > 0 && (
             <div className="">
@@ -558,6 +580,7 @@ const ActiveOutlet = () => {
                               </div>
                             </div>
                           </div>
+
                           {businessType === "RESTAURANT" && (
                             <div className={`grid grid-cols-3 border-b-1`}>
                               <div className="col-span-1 flex items-center p-1 border-r-1">
@@ -592,6 +615,22 @@ const ActiveOutlet = () => {
                             </div>
                           )}
 
+                          {businessType !== "RESTAURANT" && (
+                            <div className="flex items-center p-1 border-b-1">
+                              <div className={activeTableHeader}>
+                                <i className="fa-solid fa-clock"></i> Waited
+                              </div>
+                              <div
+                                className={
+                                  activeTableAnswer +
+                                  " text-xs" +
+                                  getWaitingTimeClass(item.createdAt)
+                                }
+                              >
+                                {convertedTime(item.createdAt)}
+                              </div>
+                            </div>
+                          )}
                           <div className="flex items-center p-1 border-b-1">
                             <div className={activeTableHeader}>
                               <i className="fa-solid fa-phone"></i> Queuer

@@ -3,9 +3,10 @@ import { Link } from "react-router-dom";
 import { apiPrivate } from "../../api/axios";
 import useAuth from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import Loading from "../../components/Loading";
 
 const Login = () => {
-  const { login } = useAuth();
+  const { login, isAuthenticated, accountId } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,6 +15,8 @@ const Login = () => {
   const [emailError, setEmailError] = useState(""); // Add state for email error
   const [errors, setErrors] = useState(""); // Changed from errors to generalError
   const [capslockOn, setCapslockOn] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800`;
   const inputClass = (
     hasError // Changed inputClass to be a function
@@ -49,15 +52,71 @@ const Login = () => {
     };
 
     try {
+      setLoading(true);
       const res = await apiPrivate.post("/login", {
         ...credentials,
       });
-      console.log("Response after post to login: ", res?.data);
+      console.log("Response after post to login: ", res?.data, res?.status);
 
-      if (res.status === 201 && res.data.accessToken && res.data.accountId) {
-        const accessToken = res.data?.accessToken;
-        const accountId = res.data?.accountId;
-        login(accessToken, accountId);
+      if (
+        res.status === 201 &&
+        res.data.accessToken &&
+        res.data.accountId &&
+        res.data.businessType &&
+        res.data.acctSlug
+      ) {
+        console.log("This is after checking", res.data);
+        const data = res?.data;
+        login(data);
+        setErrors({});
+        setTimeout(() => {
+          setLoading(false);
+          navigate(`/db/${accountId}/outlets/all`);
+        }, 1500);
+      } else {
+        setLoading(false);
+        console.error("Unexpected success response:", res.data);
+        setErrors({
+          general:
+            "Login successful, but unable to redirect. Please try again.",
+        });
+      }
+    } catch (err) {
+      if (err.response?.data?.errors) {
+        setErrors(err.response.data.errors);
+      } else if (err.response?.data) {
+        setErrors({ general: err.response.data });
+      } else {
+        setErrors({
+          general: "An unexpected error occurred. Please try again.",
+        });
+      }
+      console.error("Axios error: ", err);
+    }
+  };
+
+  const testNavigate = async () => {
+    const credentials = {
+      email: "general@nlbh.com",
+      password: "123123",
+      rememberDevice: false,
+    };
+    try {
+      const res = await apiPrivate.post("/login", {
+        ...credentials,
+      });
+      console.log("Response after post to login: ", res?.data, res?.status);
+
+      if (
+        res.status === 201 &&
+        res.data.accessToken &&
+        res.data.accountId &&
+        res.data.businessType &&
+        res.data.acctSlug
+      ) {
+        console.log("This is after checking", res.data);
+        const data = res?.data;
+        login(data);
         setErrors({});
         setTimeout(() => {
           navigate(`/db/${accountId}/outlets/all`);
@@ -83,6 +142,20 @@ const Login = () => {
     }
   };
 
+  const handleNavOutletsAll = () => {
+    navigate(`/db/${accountId}/outlets/all`);
+  };
+  const handleViewTesting = () => {
+    setTesting(!testing);
+  };
+  if (loading) {
+    return (
+      <Loading
+        title={"Loading in"}
+        paragraph={"Please wait while we log you in"}
+      />
+    );
+  }
   return (
     <div className="flex h-full">
       <div className="flex-1/3  h-full hidden lg:flex justify-center items-center">
@@ -96,18 +169,36 @@ const Login = () => {
           <small className="block mb-4 text-gray-600">
             Enter your credentials to access your account.
           </small>
-          <div className="block mb-4 text-sm bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md m-1 ">
-            <h2 className="font-semibold">
-              Are you just testing the app out?{" "}
-            </h2>
-            <p className="text-gray-600 font-light">
-              Login with the following details and try it out!
-            </p>
-            <p className="font-semibold text-xs mt-1">LOGIN DETAILS:</p>
-            <p className="text-primary-dark-green">
-              email: general@nlbh.com pw: 123123
-            </p>
-          </div>
+          {isAuthenticated && !testing && !loading && (
+            <div className="flex flex-col mb-4 bg-primary-cream/80 hover:shadow-2xl p-2 rounded-lg shadow-md items-center">
+              <h2 className="text-primary-green font-semibold text-sm mb-2">
+                You are still logged in
+              </h2>
+              <p className="italic text-gray-600 font-light text-xs text-center ">
+                Would you like to head back to your home page?
+              </p>
+              <button
+                className="bg-primary-green text-white px-3 py-1 rounded-lg mt-3"
+                onClick={handleNavOutletsAll}
+              >
+                Yes
+              </button>
+            </div>
+          )}
+
+          {!isAuthenticated && (
+            <div className="" onClick={handleViewTesting}>
+              <h1 className="text-xs font-semibold mb-3 text-primary-green hover:text-primary-dark-green">
+                <i className="fa-solid fa-circle-info text-primary-dark-green"></i>{" "}
+                Just testing?
+              </h1>
+            </div>
+          )}
+          {testing && (
+            <div className="block mb-4 text-sm bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md m-1 ">
+              <button onClick={testNavigate}> Click to enter test page </button>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className={labelClass}>

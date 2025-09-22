@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import useApiPrivate from "../hooks/useApiPrivate";
 import { alphabeticalSort } from "../utils/sortList";
+import { replaceEscaped } from "../utils/replaceRegex";
 
 const Sidenav = () => {
   const [outlets, setOutlets] = useState([]);
@@ -120,7 +121,9 @@ const Sidenav = () => {
                 key={outlet.id}
                 onClick={() => handleNav(outlet.id)} // Close sidenav on link click
               >
-                <div className={sideNavButtonClass}>{outlet.name}</div>
+                <div className={sideNavButtonClass}>
+                  {replaceEscaped(outlet.name)}
+                </div>
               </div>
             ))}
           </div>

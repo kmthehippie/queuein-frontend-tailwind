@@ -41,7 +41,7 @@ const AccountLanding = () => {
   if (loading) {
     return (
       <Loading
-        title={`${companyName} `}
+        title={`${companyName || "The app "} `}
         paragraph={"Please wait while our servers wake up"}
       />
     );

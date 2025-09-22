@@ -6,8 +6,8 @@ import useApiPrivate from "../../hooks/useApiPrivate";
 import AuthorisedUser from "./AuthorisedUser";
 import useAuth from "../../hooks/useAuth";
 import QRCode from "../../components/QRCodeButton";
-import { unescapeHtml } from "../../utils/unescapeHtml";
 import { numericalSort } from "../../utils/sortList";
+import { replaceEscaped } from "../../utils/replaceRegex";
 
 const AllOutlets = () => {
   // Functional States
@@ -23,7 +23,6 @@ const AllOutlets = () => {
   const [acctName, setAcctName] = useState("");
   const [selectedOutletData, setSelectedOutletData] = useState(null);
   const [logo, setLogo] = useState("");
-  const [businessType, setBusinessType] = useState("");
   const [outletText, setOutletText] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(false);
 
@@ -41,7 +40,7 @@ const AllOutlets = () => {
     setShowModal(!showModal);
   };
 
-  const handleUpdateSuccess = (updatedOutlet) => {
+  const handleUpdateSuccess = () => {
     setRefreshTrigger((prev) => !prev);
     setReloadNav(!reloadNav);
     setShowModal(!showModal);
@@ -103,15 +102,12 @@ const AllOutlets = () => {
     const fetchOutlets = async () => {
       try {
         const res = await apiPrivate.get(`/allOutlets/${accountId}`);
-        console.log("Res from all outlets: ", res.data);
         if (res?.data) {
-          console.log("Res from all outlets: ", res.data);
           const sort = numericalSort(res.data.outlets);
           setOutlets(sort);
           setLogo(res.data.accountInfo.logo);
-          const name = unescapeHtml(res.data.accountInfo.companyName);
+          const name = replaceEscaped(res.data.accountInfo.companyName);
           setAcctName(name);
-          setBusinessType(res.data.accountInfo.businessType);
           handleOutletText(res.data.accountInfo.businessType);
         }
       } catch (error) {
@@ -139,7 +135,7 @@ const AllOutlets = () => {
               onSuccess={deleteOutletAllowed}
               onFailure={handleAuthModalClose}
               actionPurpose="Delete Outlet"
-              minimumRole="MANAGER"
+              minimumRole="TIER_2"
               outletId={selectedOutletData.id}
             />
           </div>
@@ -238,7 +234,9 @@ const AllOutlets = () => {
             {outlet.location !== null && (
               <div className="z-10 pt-1 border-1 border-transparent">
                 <p className="text-xs font-semibold">Location </p>
-                <p className="font-light text-xs">{outlet.location}</p>
+                <p className="font-light text-xs">
+                  {replaceEscaped(outlet.location)}
+                </p>
               </div>
             )}
             {outlet.googleMaps !== null && (
@@ -260,13 +258,17 @@ const AllOutlets = () => {
             {outlet.phone && (
               <div className="z-10 pt-1 border-1 border-transparent">
                 <p className="text-xs font-semibold">Contact Number: </p>
-                <p className="font-light text-sm">{outlet.phone}</p>
+                <p className="font-light text-sm">
+                  {replaceEscaped(outlet.phone)}
+                </p>
               </div>
             )}
             {outlet.hours && (
               <div className="z-10 pt-1 border-1 border-transparent">
                 <p className="text-xs font-semibold">Opening Hours:</p>
-                <p className="font-light text-sm">{outlet.hours}</p>
+                <p className="font-light text-sm">
+                  {replaceEscaped(outlet.hours)}
+                </p>
               </div>
             )}
             <div className="flex justify-center">

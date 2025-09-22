@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import useApiPrivate from "../../hooks/useApiPrivate";
 import Loading from "../../components/Loading";
 import useAuth from "../../hooks/useAuth";
+import AuthorizedUser from "./AuthorisedUser";
 
 const NewOutlet = () => {
   const { accountId } = useParams();
@@ -21,6 +22,7 @@ const NewOutlet = () => {
   const [phone, setPhone] = useState("");
   const [hours, setHours] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   //Errors
   const [errors, setErrors] = useState({});
@@ -40,7 +42,17 @@ const NewOutlet = () => {
     `border-1 border-gray-400 rounded-lg bg-transparent appearance-none block py-3 px-4 text-gray-700 text-sm leading-tight focus:outline-none focus:border-black peer active:border-black  ${
       hasError ? "border-red-500" : ""
     }`;
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    setShowAuthModal(true);
+  };
 
+  const handleAuthFailure = () => {
+    setShowAuthModal(false);
+    setErrors({
+      general: "Authorization failed. Please try again with valid credentials.",
+    });
+  };
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -53,9 +65,7 @@ const NewOutlet = () => {
       setImgUrl(null);
     }
   };
-
-  const handleCreate = async (e) => {
-    e.preventDefault();
+  const createAccountAllowed = async () => {
     setErrors({});
     setDefaultEstWaitTimeError(false);
     setNameError(false);
@@ -73,6 +83,7 @@ const NewOutlet = () => {
       setNameError(true);
       hasError = true;
     }
+
     if (location.length === 0) {
       currentErrors.location = "Address can't be empty";
       setLocationError(true);
@@ -124,11 +135,10 @@ const NewOutlet = () => {
     dataToSubmit.append("hours", hours);
     dataToSubmit.append("phone", phone);
 
-    console.log("This is the data to submit: ", dataToSubmit);
-
     try {
       console.log("Trying to post to new outlet ", accountId);
       setIsLoading(true);
+      // Authorised User
       const res = await apiPrivate.post(
         `/newOutlet/${accountId}/outlet_image`,
         dataToSubmit,
@@ -142,7 +152,6 @@ const NewOutlet = () => {
       if (res?.status === 201) {
         setIsLoading(false);
         setReloadNav();
-        console.log("Successfully created NEW outlet!", res.data);
         navigate(`/db/${accountId}/outlets/all`);
       } else {
         setIsLoading(false);
@@ -155,13 +164,28 @@ const NewOutlet = () => {
   if (isLoading) {
     return (
       <Loading
-        title={"Creating New Outlet!"}
+        title={"Create New Outlet"}
         paragraph={"Do Not Navigate Away. Please Wait. "}
       />
     );
   }
   return (
     <div>
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
+            <button onClick={handleAuthFailure}>&times;</button>
+            <AuthorizedUser
+              onSuccess={createAccountAllowed}
+              onFailure={handleAuthFailure}
+              actionPurpose="Create New Outlet"
+              minimumRole="TIER_2"
+              outletId={null}
+            />
+          </div>
+        </div>
+      )}
+
       <div className=" rounded-2xl p-3 relative mx-3 mt-2 md:mt-5 md:mx-5 bg-primary-cream/50 shadow-lg ">
         <h1 className="font-semibold text-2xl mb-3 text-center text-primary-dark-green">
           Create a new {outletText}
@@ -332,7 +356,7 @@ const NewOutlet = () => {
             )}
             <div className="flex justify-center">
               <button
-                type="submit"
+                onClick={(e) => handleCreate(e)}
                 className={
                   buttonClass +
                   " bg-primary-green hover:bg-primary-dark-green mr-3"

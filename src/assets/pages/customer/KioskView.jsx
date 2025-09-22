@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+  useNavigate,
+  useOutletContext,
+  useParams,
+  useLocation,
+} from "react-router-dom";
 import api from "../../api/axios";
 import Error from "../Error";
-import { setWithExpiry } from "../../utils/localStorage";
-import useLSContext from "../../hooks/useLSContext";
+import Loading from "../../components/Loading";
 
-//! +Customer must be on mobile.
-const JoinQueue = () => {
-  //States
+const KioskView = () => {
   const [customerName, setCustomerName] = useState("");
   const [customerNameErr, setCustomerNameErr] = useState("");
   const [number, setNumber] = useState("");
@@ -17,17 +19,17 @@ const JoinQueue = () => {
   const [customerPaxError, setCustomerPaxError] = useState("");
   const [vip, setVIP] = useState(true);
   const [warning, setWarning] = useState(false);
-  const [accountInfo, setAccountInfo] = useState("");
-  const [outlet, setOutlet] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(null);
   const [validationError, setValidationError] = useState("");
 
   const [shouldPost, setShouldPost] = useState(false);
   const { acctSlug, queueId } = useParams();
+  const { outletId, businessType } = useOutletContext();
+
   const navigate = useNavigate();
-  const { checkSession } = useLSContext();
-  const localStorageExpiry = parseInt(import.meta.env.VITE_QUEUEITEMLS_EXPIRY);
+
   //Helper function
   const extractNumerals = (numberString) => {
     return numberString.replace(/\D/g, "");
@@ -48,30 +50,9 @@ const JoinQueue = () => {
   ${hasError ? "border-red-500" : ""}`;
   const errorClass = `text-red-600 text-center`;
   const checkBoxClass = `w-6 h-6 rounded-lg accent-primary-green hover:accent-primary-light-green text-primary-green focus:ring-2 ring-primary-light-green border-primary-dark-green`;
-  const buttonClass = `bg-primary-green mt-3 hover:bg-primary-dark-green w-full transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline`;
+  const buttonClass = `bg-primary-green mb-5 hover:bg-primary-dark-green transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline`;
 
-  const fetchFormData = async () => {
-    setLoading(true);
-    setErrors("");
-    try {
-      const res = await api.get(`/customerForm/${acctSlug}/${queueId}`);
-      if (res?.data) {
-        console.log("Res: ", res.data);
-        setAccountInfo(res.data.accountInfo);
-        setOutlet(res.data.queue.outlet);
-      }
-      setLoading(false);
-    } catch (err) {
-      console.error("Error fetching customer form ", err);
-      setLoading(false);
-      console.error(err);
-      setErrors({
-        message: err.response.data.message || "Error with queue page.",
-        statusCode: err.response?.status || 500,
-      });
-    }
-  };
-  const handleSubmit = async (e) => {
+  const handleSubmitKiosk = async (e) => {
     e.preventDefault();
     setValidationError("");
     setCustomerNameErr(false);
@@ -127,7 +108,6 @@ const JoinQueue = () => {
     //! ADD 2 FACTOR AUTHENTICATION TO JOIN QUEUE. Once they hit submit, they need to 2FA. Then once authenticated, pass to back end.
   };
 
-  //This useEffect is to POST to backend
   useEffect(() => {
     const data = {
       customerName: customerName,
@@ -138,28 +118,27 @@ const JoinQueue = () => {
 
     const postCustomerForm = async () => {
       try {
+        console.log("Trying to send post");
         const res = await api.post(
-          `/customerForm/${acctSlug}/${outlet.id}/${queueId}`,
+          `/kiosk/${acctSlug}/${outletId}/${queueId}`,
           data
         );
 
         if (res.status === 201 || res.status === 200) {
-          const data = { ...res.data, accountInfo, outlet };
           const queueItem = res.data.queueItem;
-          const storeToLocalStorage = {
-            queueItemId: queueItem.id,
-            queueId: queueItem.queueId,
-            acctSlug: acctSlug,
+          const data = {
+            ...res.data,
+            outletId,
           };
-          setWithExpiry("queueItemLS", storeToLocalStorage, localStorageExpiry);
-          checkSession();
-          navigate(`/${acctSlug}/queueItem/${queueItem.id}`, {
+          console.log(res.data);
+          navigate(`/${acctSlug}/kiosk/${queueItem.id}/success`, {
             state: { data: data },
           });
+          console.log("Successfully joined queue");
         }
       } catch (err) {
         setLoading(false);
-        console.error(err.status, err);
+        console.error(err.status, JSON.stringify(err));
 
         setErrors({
           message:
@@ -173,51 +152,23 @@ const JoinQueue = () => {
     if (shouldPost) {
       postCustomerForm();
     }
-  }, [
-    shouldPost,
-    navigate,
-    setLoading,
-    setErrors,
-    acctSlug,
-    outlet,
-    queueId,
-    accountInfo,
-  ]);
-
-  useEffect(() => {
-    fetchFormData();
-  }, [queueId]);
+  }, [shouldPost]);
 
   if (errors) {
     return <Error error={errors} />;
   }
   if (loading) {
-    return <div>Loading Information...</div>;
+    return (
+      <Loading
+        title={"Kiosk View "}
+        paragraph={"Please wait for the kiosk view to load."}
+      />
+    );
   }
-  return (
-    <div className="p-3 md:p-5">
-      {warning && (
-        <div className="bg-primary-ultra-dark-green/85 min-w-full min-h-full absolute top-0 left-0 z-5"></div>
-      )}
 
-      <Link
-        to={`/${accountInfo.slug}`}
-        className="flex items-center pb-3 border-b-1 border-stone-400
-        justify-center "
-      >
-        <img
-          src={accountInfo.logo}
-          alt={`${accountInfo.companyName} logo`}
-          className="w-20"
-        />
-        <h1 className="font-bold pl-3 text-2xl sm:text-4xl sm:pl-6 lg:text-6xl ">
-          {accountInfo.companyName}
-        </h1>
-      </Link>
-      <h1 className="font-light text-3xl text-center text-stone-600 mt-5 lg:text-4xl mb-2">
-        {outlet.name}
-      </h1>
-      <div className="bg-white/50 p-10 rounded-xl shadow-md w-4/5 flex-row md:pt-5 md:pb-5 justify-self-center relative">
+  return (
+    <div>
+      <div className=" flex-row md:pt-5 md:pb-5 justify-self-center relative">
         {warning && (
           <div className="bg-primary-cream z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/3 left-1/2 -translate-1/2 p-10 md:min-w-md">
             <h1 className="text-red-900">Notice:</h1>
@@ -237,10 +188,7 @@ const JoinQueue = () => {
           </div>
         )}
         <form>
-          <h1 className="text-center text-xl font-extralight">
-            Enter the queue:
-          </h1>
-          <div className="flex-row p-1 ">
+          <div className="flex-row pt-5 max-w-xs">
             <div className="mb-1">
               <label htmlFor="customer-name" className={labelClass}>
                 Name
@@ -274,7 +222,7 @@ const JoinQueue = () => {
                 required
               />
             </div>
-            {accountInfo.businessType === "RESTAURANT" && (
+            {businessType === "RESTAURANT" && (
               <div className="mb-1">
                 <label htmlFor="customer-pax" className={labelClass}>
                   PAX
@@ -291,7 +239,7 @@ const JoinQueue = () => {
                 />
               </div>
             )}
-            <div className="flex items-center m-2 mt-3">
+            <div className="flex items-center mb-1 mt-3">
               <input
                 id="vip"
                 type="checkbox"
@@ -312,17 +260,20 @@ const JoinQueue = () => {
                 to send you exclusive offers and updates.
               </label>
             </div>
+
+            {validationError && (
+              <p className={errorClass}>{validationError.general}</p>
+            )}
+            <div className="flex w-full justify-center pt-2 ">
+              <div className={buttonClass} onClick={handleSubmitKiosk}>
+                Join Queue
+              </div>
+            </div>
           </div>
         </form>
-        {validationError && (
-          <p className={errorClass}>{validationError.general}</p>
-        )}
-        <button type="button" className={buttonClass} onClick={handleSubmit}>
-          Sign In
-        </button>
       </div>
     </div>
   );
 };
 
-export default JoinQueue;
+export default KioskView;
