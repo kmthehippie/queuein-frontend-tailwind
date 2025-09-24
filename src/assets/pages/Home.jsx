@@ -35,96 +35,6 @@ const Home = () => {
           <h1 className="font-extralight text-4xl mt-10 text-center">
             Welcome to Queue in
           </h1>
-          <div className="mt-8 p-6 bg-gradient-to-br from-primary-cream/80 to-primary-cream/60 rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl mx-1">
-            <p className="mt-4 text-center text-lg">
-              Hi, I'm KM. I built this app with hopes to make queueing a little
-              more tolerable for everyone.
-            </p>
-            {introText && (
-              <div className="mt-8 p-6 bg-gradient-to-br from-primary-cream/80 to-primary-cream/60 rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl text-sm">
-                <div className="lg:grid lg:grid-cols-4 lg:gap-5">
-                  <div className="col-span-2 justify-center hidden lg:flex">
-                    <img
-                      src="Img1.jpg"
-                      alt="Queue Photo by Krizjohn Rosales:"
-                      className="rounded-lg shadow-md h-full object-cover"
-                    />
-                  </div>
-
-                  <div className="grid col-span-2">
-                    <h2 className="font-semibold text-2xl  mb-4">
-                      I was frustrated...
-                    </h2>
-                    <p className="text-gray-800 leading-relaxed mb-4">
-                      The idea for this app was born on a hot and humid
-                      afternoon, while I was waiting in a line that seemed to
-                      have no end. I was at my favorite restaurant, and the sun
-                      was beating down on me and the dozens of people waiting
-                      for a table.
-                    </p>
-                    <p className="text-gray-800 leading-relaxed mb-4">
-                      I was stuck just standing there for nearly 30 minutes,
-                      surrounded by a crowd of people and the constant chatter.
-                      All I could think about was how much I'd love to grab a
-                      cold drink from the convenience store across the street,
-                      but I was afraid of losing my spot in the queue.
-                    </p>
-                  </div>
-                </div>
-                <div className="w-full flex justify-center my-6">
-                  <img
-                    src="Img1.jpg"
-                    alt="Queue Photo by PROSPER MBEMBA KOUTIHOU"
-                    className="rounded-lg shadow-md lg:hidden h-80 object-cover"
-                  />
-                </div>
-
-                <h2 className="font-semibold text-2xl mb-4">
-                  But it wasn't just me...
-                </h2>
-
-                <div className="text-gray-800 leading-relaxed mb-4">
-                  The restaurant was swamped. The single host was trying to
-                  manage the chaos with nothing more than a clipboard and a
-                  crumpled piece of paper. He would call out names over the
-                  noise, trying to make sure everyone heard their turn, but I
-                  could see the stress on his face.
-                </div>
-                <div className="flex justify-center ">
-                  <img
-                    src="Img2.jpg"
-                    alt="Clip Board Photo by Burst:"
-                    className="rounded-lg shadow-md object-cover h-50 w-full "
-                  />
-                </div>
-
-                <p className="text-gray-800 leading-relaxed mt-5">
-                  That's when it hit me: there has to be a better way. I
-                  realized that the time I spent standing there, bored and
-                  thirsty, was a problem that could be solved with a simple
-                  solution. This app is designed to eliminate that wait,
-                  allowing people to check in, run their errands, and get a
-                  notification the moment their table is ready.
-                </p>
-              </div>
-            )}
-
-            <button
-              onClick={toggleIntroText}
-              className="w-full text-primary-green hover:text-primary-light-green px-3 py-2 flex items-center justify-center"
-            >
-              <i
-                className={`fa-solid fa-caret-down text-2xl mr-2 transform transition-transform duration-300 ${
-                  introText ? "rotate-180" : ""
-                }`}
-              ></i>
-              <span className="text-sm font-medium">
-                {introText
-                  ? "Read Less..."
-                  : "Story Time! Read about how this app came about..."}
-              </span>
-            </button>
-          </div>
         </div>
         <br />
         <div className="font-light max-w-2xl mx-auto ">
@@ -246,6 +156,29 @@ const Home = () => {
                 />
               </div>
             </div>
+            <div className="md:gap-10 md:flex md:flex-row md:items-center flex flex-col justify-center items-center text-center md:bg-none shadow-2xl rounded-2xl bg-primary-cream/70 p-6 mb-5">
+              <div className="relative md:w-[3/5] flex flex-col items-center md:block ">
+                <img
+                  src="https://res.cloudinary.com/dv9llxfzi/image/upload/v1758712304/kiosksuccess_piumwl.png"
+                  alt="sample of kiosk success"
+                  className="rounded-xl object-cover mb-4 md:-skew-y-11 shadow-2xl"
+                />
+                <img
+                  src="https://res.cloudinary.com/dv9llxfzi/image/upload/v1758712079/QueueIn/OutletImages/kioskview-1758712077603.png"
+                  alt="sample of a kiosk view"
+                  className="rounded-xl object-cover mb-4 md:absolute md:top-10 md:-right-8 md:w-[280px] w-[300px] md:-skew-y-11 shadow-2xl "
+                />
+              </div>
+              <div className="w-4/5 mb-4">
+                <h3 className="text-xl font-semibold mb-2">
+                  Kiosk Style Available
+                </h3>
+                <p className="text-primary-dark-green text-sm">
+                  If you have a spare tablet, you can set it up so that your
+                  customers can join queue at the store using your tablet!
+                </p>
+              </div>
+            </div>
           </div>
           <h2 className="font-extralight text-2xl mt-10 text-center">
             Give it a whirl!
@@ -320,8 +253,8 @@ const Home = () => {
             </div>
             <div className="ml-10">
               <img
-                src="https://res.cloudinary.com/dv9llxfzi/image/upload/v1755606290/QueueIn/QRCode/4d714b9b-c2de-4987-b82f-b5cc8aab16b9-qr-2.png"
-                alt="Sample QR Code for TTDI 1 NLBH"
+                src="https://res.cloudinary.com/dv9llxfzi/image/upload/v1758517262/QueueIn/QRCode/a3828b86-1b7c-4a03-9b9a-8fd2509de373-qr-1.png"
+                alt="Sample QR Code for NLBH Sample"
                 className=""
               />
             </div>
@@ -450,6 +383,96 @@ const Home = () => {
                 </a>
               </p>
             </div>
+          </div>
+          <div className="mt-8 p-6 bg-gradient-to-br from-primary-cream/80 to-primary-cream/60 rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl mx-1">
+            <p className="mt-4 text-center text-lg">
+              Hi, I'm KM. I built this app with hopes to make queueing a little
+              more tolerable for everyone.
+            </p>
+            {introText && (
+              <div className="mt-8 p-6 bg-gradient-to-br from-primary-cream/80 to-primary-cream/60 rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl text-sm">
+                <div className="lg:grid lg:grid-cols-4 lg:gap-5">
+                  <div className="col-span-2 justify-center hidden lg:flex">
+                    <img
+                      src="Img1.jpg"
+                      alt="Queue Photo by Krizjohn Rosales:"
+                      className="rounded-lg shadow-md h-full object-cover"
+                    />
+                  </div>
+
+                  <div className="grid col-span-2">
+                    <h2 className="font-semibold text-2xl  mb-4">
+                      I was frustrated...
+                    </h2>
+                    <p className="text-gray-800 leading-relaxed mb-4">
+                      The idea for this app was born on a hot and humid
+                      afternoon, while I was waiting in a line that seemed to
+                      have no end. I was at my favorite restaurant, and the sun
+                      was beating down on me and the dozens of people waiting
+                      for a table.
+                    </p>
+                    <p className="text-gray-800 leading-relaxed mb-4">
+                      I was stuck just standing there for nearly 30 minutes,
+                      surrounded by a crowd of people and the constant chatter.
+                      All I could think about was how much I'd love to grab a
+                      cold drink from the convenience store across the street,
+                      but I was afraid of losing my spot in the queue.
+                    </p>
+                  </div>
+                </div>
+                <div className="w-full flex justify-center my-6">
+                  <img
+                    src="Img1.jpg"
+                    alt="Queue Photo by PROSPER MBEMBA KOUTIHOU"
+                    className="rounded-lg shadow-md lg:hidden h-80 object-cover"
+                  />
+                </div>
+
+                <h2 className="font-semibold text-2xl mb-4">
+                  But it wasn't just me...
+                </h2>
+
+                <div className="text-gray-800 leading-relaxed mb-4">
+                  The restaurant was swamped. The single host was trying to
+                  manage the chaos with nothing more than a clipboard and a
+                  crumpled piece of paper. He would call out names over the
+                  noise, trying to make sure everyone heard their turn, but I
+                  could see the stress on his face.
+                </div>
+                <div className="flex justify-center ">
+                  <img
+                    src="Img2.jpg"
+                    alt="Clip Board Photo by Burst:"
+                    className="rounded-lg shadow-md object-cover h-50 w-full "
+                  />
+                </div>
+
+                <p className="text-gray-800 leading-relaxed mt-5">
+                  That's when it hit me: there has to be a better way. I
+                  realized that the time I spent standing there, bored and
+                  thirsty, was a problem that could be solved with a simple
+                  solution. This app is designed to eliminate that wait,
+                  allowing people to check in, run their errands, and get a
+                  notification the moment their table is ready.
+                </p>
+              </div>
+            )}
+
+            <button
+              onClick={toggleIntroText}
+              className="w-full text-primary-green hover:text-primary-light-green px-3 py-2 flex items-center justify-center"
+            >
+              <i
+                className={`fa-solid fa-caret-down text-2xl mr-2 transform transition-transform duration-300 ${
+                  introText ? "rotate-180" : ""
+                }`}
+              ></i>
+              <span className="text-sm font-medium">
+                {introText
+                  ? "Read Less..."
+                  : "Story Time! Read about how this app came about..."}
+              </span>
+            </button>
           </div>
         </div>
       </div>

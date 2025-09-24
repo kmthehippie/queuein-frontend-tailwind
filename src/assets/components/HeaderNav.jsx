@@ -8,7 +8,7 @@ const HeaderNav = () => {
     { text: "SAMPLE", path: "/nasi-lemak-burung-hantu-sample" },
   ];
   return (
-    <div className="z-10 sticky top-0 w-auto flex justify-center md:justify-end gap-5 py-2 bg-primary-cream px-5 flex-end mb-5">
+    <div className="z-10 sticky top-0 w-auto flex justify-center md:justify-end md:gap-5 py-2 bg-primary-cream px-5 flex-end mb-5">
       {navButtons.map((button) => (
         <NavButton key={button.text} text={button.text} path={button.path} />
       ))}

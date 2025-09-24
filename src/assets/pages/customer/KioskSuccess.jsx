@@ -47,6 +47,7 @@ const KioskSuccess = () => {
               <span className="font-light text-gray-800 text-2xl">Scan</span>{" "}
               <br /> QR code below to view your real-time queue status on your
               phone.
+              {JSON.stringify(kioskWaitingPageUrl)}
             </p>
             <div className="p-5 bg-white rounded shadow-lg max-w-[240px]">
               <QRCode value={kioskWaitingPageUrl} size={200} />
