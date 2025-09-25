@@ -160,14 +160,13 @@ const Register = () => {
         const accessToken = res.data?.accessToken;
         const accountId = res.data?.accountId;
         const businessType = res.data?.businessType;
-        setLoading(false);
         login(accessToken, accountId, businessType);
         setErrors({});
 
         setTimeout(() => {
           setLoading(false);
           navigate(`/db/${res.data.accountId}/outlets/all`);
-        }, 1500);
+        }, 2000);
       } else {
         console.error("Unexpected success response:", res.data);
         setErrors({

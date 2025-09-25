@@ -6,6 +6,7 @@ export const replaceEscaped = (string) => {
       "&gt;": ">",
       "&quot;": '"',
       "&#039;": "'",
+      "&#x27;": "'",
       "&apos;": "'",
       "&#x2F;": "/",
     };

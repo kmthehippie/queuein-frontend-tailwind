@@ -19,7 +19,7 @@ const KioskSuccess = () => {
     navigate(kioskViewPageUrl, { replace: true });
   };
   useEffect(() => {
-    console.log(data.data);
+    console.log("Data from kioskSuccess", data.data);
     if (data.data.queueItem.length > 0) {
       //When data sent from Lost Waiting Page Button
       setQueueItem(data.data.queueItem[0]);
@@ -36,7 +36,7 @@ const KioskSuccess = () => {
         setFromNewJoined(true);
       }
     }
-  }, []);
+  }, [queueItem]);
   return (
     <div className=" relative text-center flex justify-center">
       <div className="flex flex-col  items-center justify-center p-5 lg:p-10 bg-primary-cream lg:max-w-2/3 rounded-2xl mt-5 lg:mt-15">

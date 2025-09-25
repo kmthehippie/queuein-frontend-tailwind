@@ -360,7 +360,7 @@ const Waiting = () => {
     } catch (error) {
       //* If error, we need to kick user out of queue and redirect to left queue page still.
       // as long as user hits this button, we kick them out
-      console.error(error);
+      console.error(JSON.stringify(error));
     }
   };
   const paxUpdate = (e) => {
@@ -557,12 +557,12 @@ const Waiting = () => {
       )}
       <Link
         to={`/${accountInfo.slug}`}
-        className="flex items-center pb-3 border-b-2 border-stone-400 "
+        className="flex items-center pb-3 border-b-2 border-stone-400 justify-center"
       >
         <img
           src={accountInfo.logo || null}
           alt={`${accountInfo.companyName || null} logo`}
-          className="w-20"
+          className="w-10 sm:w-15 md:w-20"
         />
 
         <h1 className="font-bold pl-3 text-2xl sm:text-4xl sm:pl-6 lg:text-6xl ">

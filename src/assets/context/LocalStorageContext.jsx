@@ -16,6 +16,7 @@ export const LocalStorageProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const checkSession = useCallback(async () => {
+    console.log("Checking session");
     setIsLoading(true);
     const storedSession = getWithExpiry("queueItemLS");
     if (storedSession === null) {

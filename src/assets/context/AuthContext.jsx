@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }) => {
         console.log("Logout successfully.");
       }
     } catch (error) {
-      console.error("Error logging out: ", error);
+      console.error("Error logging out: ", JSON.stringify(error));
     } finally {
       setIsAuthenticated(false);
       setAccessToken(null);
@@ -94,7 +94,6 @@ export const AuthProvider = ({ children }) => {
       setOutletText("");
       setAccountId(null);
     }
-   
   }, [navigate]);
 
   useEffect(() => {

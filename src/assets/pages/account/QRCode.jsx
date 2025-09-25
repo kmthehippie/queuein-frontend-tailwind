@@ -123,12 +123,12 @@ const QRCode = () => {
         </span>
       </div>
 
-      <button
+      {/* <button
         onClick={handleGenerateQRCode}
         className=" hover:text-primary-dark-green cursor-pointer text-gray-700 font-light py-2 px-4 rounded-2xl print:hidden"
       >
         Generate a QRCode
-      </button>
+      </button> */}
     </div>
   );
 };

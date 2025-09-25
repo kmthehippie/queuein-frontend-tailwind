@@ -99,24 +99,29 @@ const JoinQueue = () => {
       });
       return;
     }
-    if (customerPax === 0 || customerPax === null) {
-      setCustomerPaxError(true);
-      setShouldPost(false);
-      setValidationError({
-        general:
-          "Please enter a valid number of people who will be joining us today.",
-      });
-      return;
+    if (accountInfo.businessType === "RESTAURANT") {
+      if (customerPax === 0 || customerPax === null) {
+        setCustomerPaxError(true);
+        setShouldPost(false);
+        setValidationError({
+          general:
+            "Please enter a valid number of people who will be joining us today.",
+        });
+        return;
+      }
+      if (customerPax > 12) {
+        setWarning(true);
+        isValid = false;
+        setValidationError({
+          general: "For bigger groups, please meet with our host.",
+        });
+        return;
+      }
     }
-    if (customerPax > 12) {
-      setWarning(true);
-      isValid = false;
-      setValidationError({
-        general: "For bigger groups, please meet with our host.",
-      });
-      return;
+    if (accountInfo.businessType !== "RESTAURANT") {
+      setCustomerPax(1);
     }
-    if (!customerName || !number || !customerPax) {
+    if (!customerName || !number) {
       isValid = false;
       setValidationError({ general: "Please fill out the fields" });
       return;
@@ -159,7 +164,7 @@ const JoinQueue = () => {
         }
       } catch (err) {
         setLoading(false);
-        console.error(err.status, err);
+        console.error(err.status, JSON.stringify(err));
 
         setErrors({
           message:

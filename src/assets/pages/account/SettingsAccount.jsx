@@ -199,6 +199,7 @@ const SettingsAccount = () => {
         setImgFile("");
         setAccount(res.data);
         setShowAuthModal(false);
+        setErrors("");
         refresh();
         setReloadNav();
       }

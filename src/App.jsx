@@ -3,7 +3,6 @@ import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import { AuthProvider } from "./assets/context/AuthContext.jsx";
 import { SocketProvider } from "./assets/context/SocketContext.jsx";
-import { LocalStorageProvider } from "./assets/context/LocalStorageContext.jsx";
 
 //Import Pages
 const Layout = lazy(() => import("./assets/pages/Layout"));
@@ -106,10 +105,10 @@ const router = createBrowserRouter([
       {
         path: ":acctSlug",
         element: (
-          <LocalStorageProvider>
+          <div className="">
             <LocalStorageCheck />
             <Outlet />
-          </LocalStorageProvider>
+          </div>
         ),
         children: [
           {

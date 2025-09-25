@@ -77,7 +77,7 @@ const OutletLanding = () => {
   useEffect(() => {
     console.log("Fetch data again! ");
     fetchOutletData();
-  }, []);
+  }, [fetchOutletData, outlet]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
