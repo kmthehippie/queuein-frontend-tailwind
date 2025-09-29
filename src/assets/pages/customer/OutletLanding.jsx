@@ -29,7 +29,7 @@ const OutletLanding = () => {
     return moment(date).fromNow();
   };
 
-  const fetchOutletData = async () => {
+  const fetchOutletData = useCallback(async () => {
     setAccountInfo("");
     setOutlet("");
     setQueue("");
@@ -66,7 +66,7 @@ const OutletLanding = () => {
         statusCode: err.response?.status || err?.status,
       });
     }
-  };
+  }, []);
 
   //TODO: LOGIC: ADD PAGE NAV FOR CUSTOMER TO ADD NAME AND NUMBER TO GET THEIR WAITING PAGE
   const handleNavigateQRCode = () => {
@@ -77,7 +77,7 @@ const OutletLanding = () => {
   useEffect(() => {
     console.log("Fetch data again! ");
     fetchOutletData();
-  }, [fetchOutletData, outlet]);
+  }, [fetchOutletData]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
