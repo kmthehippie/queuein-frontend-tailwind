@@ -40,7 +40,7 @@ const Home = () => {
           </h1>
         </div>
         <br />
-        <div className="font-light max-w-2xl mx-auto ">
+        <div className={`font-light max-w-2xl mx-auto text-stone-700`}>
           <div className=" bg-primary-cream/80 hover:shadow-2xl p-5 rounded-lg shadow-md m-1">
             <div className="flex mb-5 items-center justify-center">
               <i className="fa-solid fa-screwdriver text-[50px]  text-primary-dark-green"></i>{" "}
