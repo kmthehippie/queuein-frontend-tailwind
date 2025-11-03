@@ -205,8 +205,8 @@ const Register = () => {
   return (
     <div className="flex lg:h-full lg:items-center ">
       <div className="lg:flex-4/5 w-full flex items-center lg:items-start mt-2 mb-10 py-3 lg:py-5 lg:my-0 justify-center overflow-auto ">
-        <div className="bg-white/50 p-10 rounded-xl shadow-md w-4/5 flex-row md:pb-5 md:pt-5 min-h-full h-auto items-center justify-center">
-          <h1 className="text-3xl font-semibold mb-2 font-poppins">
+        <div className="bg-white/50 dark:bg-white/80 p-10 rounded-xl shadow-md w-4/5 flex-row md:pb-5 md:pt-5 min-h-full h-auto items-center justify-center">
+          <h1 className="text-3xl font-semibold mb-2 font-poppins text-stone-700">
             Great Choice!
           </h1>
           <small className="block mb-4 text-gray-600">Let's get started.</small>
