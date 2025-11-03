@@ -3,6 +3,7 @@ import api from "../../api/axios";
 import { Link, useParams } from "react-router-dom";
 import Error from "../Error";
 import Loading from "../../components/Loading";
+import { primaryTextClass } from "../../styles/tailwind_styles";
 
 const AccountLanding = () => {
   const [companyName, setCompanyName] = useState("");
@@ -58,11 +59,15 @@ const AccountLanding = () => {
           alt={companyName + " logo"}
           className="w-30"
         />
-        <h1 className="text-2xl font-bold tracking-wide sm:text-3xl md:text-4xl lg:text-5xl">
-          {companyName.toUpperCase()}
+        <h1
+          className={`text-2xl font-bold tracking-wide sm:text-3xl md:text-4xl lg:text-5xl uppercase ${primaryTextClass}`}
+        >
+          {companyName}
         </h1>
       </div>
-      <h2 className="text-3xl text-stone-600 mt-4 shadow-[0_4px_6px_-6px_black] px-5 pb-2 pt-4">
+      <h2
+        className={`text-3xl ${primaryTextClass} mt-4 shadow-[0_4px_6px_-6px_black] dark:shadow-[0_4px_6px_-6px_white] px-5 pb-2 pt-4`}
+      >
         Our locations:
       </h2>
       {/* Outlets here */}
@@ -70,7 +75,7 @@ const AccountLanding = () => {
         {outlets.length > 0 ? (
           outlets.map((outlet) => (
             <div
-              className="p-5 flex-row lg:flex justify-center-safe items-center"
+              className={`p-5 flex-row lg:flex justify-center-safe items-center ${primaryTextClass}`}
               key={outlet.id}
             >
               {outlet.imgUrl && (
@@ -85,7 +90,9 @@ const AccountLanding = () => {
                 </div>
               )}
               <div className=" flex-row lg:pl-10 pt-3 lg:pt-0">
-                <h3 className="text-xl text-stone-600 font-bold pb-2 hover:text-primary-green">
+                <h3
+                  className={`text-xl ${primaryTextClass} font-bold pb-2 hover:text-primary-green`}
+                >
                   <Link to={`outlet/${outlet.id}`}>{outlet.name}</Link>
                 </h3>
                 {outlet.location && <p className="pb-1 ">{outlet.location}</p>}
@@ -153,7 +160,7 @@ const AccountLanding = () => {
                               Busy
                             </span>
                           ) : (
-                            <span className="text-primary-green hover:text-primary-dark-green transition ease-in">
+                            <span className="text-primary-green dark:text-primary-light-green hover:text-primary-dark-green transition ease-in">
                               Short Queue
                             </span>
                           )}

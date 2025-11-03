@@ -1,5 +1,9 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import {
+  primaryBgClass,
+  primaryBgTransparentClass,
+} from "../styles/tailwind_styles";
 
 const Layout = () => {
   const pathname = useLocation().pathname;
@@ -13,7 +17,9 @@ const Layout = () => {
     }
   }, [pathname]);
   return (
-    <div className="relative w-screen h-screen overflow-hidden flex justify-center items-center ">
+    <div
+      className={`relative w-screen h-screen overflow-hidden flex justify-center items-center ${primaryBgClass}`}
+    >
       {!dbPath && (
         <Link to="/">
           <div className="absolute top-0 left-3 z-10 m-3 cursor-pointer block md:left-auto">
@@ -27,15 +33,24 @@ const Layout = () => {
         </Link>
       )}
 
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 bg-fixed ">
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 bg-fixed dark:hidden block">
         <img
           src="/BackgroundImage.jpg"
           alt="Background Image containing Leaves"
           className="absolute right-0 h-screen w-screen object-cover md:w-2/3 rounded-l-[5rem] print:hidden"
         />
       </div>
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 bg-fixed hidden dark:block">
+        <img
+          src="/BackgroundImageDark.jpg"
+          alt="Background Image containing Leaves"
+          className="absolute right-0 h-screen w-screen object-cover md:w-2/3 rounded-l-[5rem] print:hidden"
+        />
+      </div>
 
-      <div className="relative z-10 w-5/5 sm:w-4/5 h-[85vh] border-1 border-white overflow-y-auto lg:w-300 rounded-4xl shadow-2xl bg-white/65 print:h-dvh print:shadow-none">
+      <div
+        className={`relative z-10 w-5/5 sm:w-4/5 h-[85vh] border-1 border-white overflow-y-auto lg:w-300 rounded-4xl shadow-2xl ${primaryBgTransparentClass} print:h-dvh print:shadow-none`}
+      >
         <Outlet className="m-0 p-0" />
       </div>
     </div>

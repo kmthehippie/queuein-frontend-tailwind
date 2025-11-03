@@ -4,13 +4,16 @@ import "./index.css";
 import App from "./App.jsx";
 import { ToastProvider } from "./assets/context/ToastContext.jsx";
 import { LocalStorageProvider } from "./assets/context/LocalStorageContext.jsx";
+import { ThemeProvider } from "./assets/context/ThemeContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <ToastProvider>
-      <LocalStorageProvider>
-        <App />
-      </LocalStorageProvider>
-    </ToastProvider>
+    <ThemeProvider>
+      <ToastProvider>
+        <LocalStorageProvider>
+          <App />
+        </LocalStorageProvider>
+      </ToastProvider>
+    </ThemeProvider>
   </StrictMode>
 );

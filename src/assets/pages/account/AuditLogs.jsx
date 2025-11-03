@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { interceptedApiPrivate } from "../../api/axios";
+import { primaryBgClass, primaryTextClass } from "../../styles/tailwind_styles";
 
 const AuditLogs = ({ selectedId, outletName }) => {
-  const { accountId } = useParams();
+  const { accountId, outletId } = useParams();
   const [auditLogs, setAuditLogs] = useState([]);
   const navigate = useNavigate();
 
@@ -11,7 +12,7 @@ const AuditLogs = ({ selectedId, outletName }) => {
     console.log("Sending outletId through component: ", selectedId);
     try {
       const res = await interceptedApiPrivate(
-        `/settings/auditLogs/${accountId}/${selectedId}`
+        `/settings/auditLogs/${accountId}/${outletId}`
       );
       if (res.status === 200) {
         console.log("Response from audit logs", res.data);
@@ -47,14 +48,16 @@ const AuditLogs = ({ selectedId, outletName }) => {
 
   useEffect(() => {
     fetchAuditLogs();
-  }, [selectedId]);
+  }, [selectedId, outletId]);
 
   return (
     <div className="">
       <div className="flex flex-col items-center justify-center py-3">
         <h1 className="text-3xl font-extralight text-center ">Audit Logs</h1>
         <small className="text-center text-sm">{outletName}</small>
-        <div className="py-2.5 px-3 rounded-full lg:rounded-sm lg:p-2 text-sm font-light text-gray-500 border-1 border-primary-cream hover:border-primary-green hover:text-primary-dark-green transition ease-in w-max cursor-pointer bg-primary-cream mt-2 ">
+        <div
+          className={`py-2.5 px-3 rounded-full lg:rounded-sm lg:p-2 text-sm font-light ${primaryTextClass} border-1 border-primary-cream hover:border-primary-green hover:text-primary-dark-green transition ease-in w-max cursor-pointer ${primaryBgClass} mt-2 `}
+        >
           <button
             onClick={handleNavigateSettingsOutlet}
             className="hover:text-primary-green transition ease-in cursor-pointer flex justify-center items-center"
@@ -68,7 +71,9 @@ const AuditLogs = ({ selectedId, outletName }) => {
         <div className="p-3 ">
           {/* Table Headers for large screens */}
 
-          <div className="hidden lg:grid lg:grid-cols-3 font-bold text-gray-600 mb-2 text-center">
+          <div
+            className={`hidden lg:grid lg:grid-cols-3 font-bold ${primaryTextClass} mb-2 text-center`}
+          >
             <div>Created On</div>
             <div>Action Type</div>
             <div>Done By</div>
@@ -77,7 +82,7 @@ const AuditLogs = ({ selectedId, outletName }) => {
           {/* Audit Log entries */}
           {auditLogs.map((auditLog) => (
             <div
-              className="p-3 mb-3 lg:p-0 lg:m-0 lg:grid lg:grid-cols-3 border-3 lg:border-primary-cream even:bg-primary-cream odd:bg-secondary-gray hover:border-primary-light-green hover:border-3"
+              className="p-3 mb-3 lg:p-0 lg:m-0 lg:grid lg:grid-cols-3 border-3 lg:border-primary-cream even:bg-primary-cream odd:bg-secondary-gray even:text-stone-600 odd:text-stone-600 hover:border-primary-light-green hover:border-3"
               key={auditLog.id}
             >
               <div className="mb-1 lg:mb-1">

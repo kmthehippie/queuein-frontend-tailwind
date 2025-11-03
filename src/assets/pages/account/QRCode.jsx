@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiPrivate } from "../../api/axios";
+import {
+  primaryBgTransparentClass,
+  primaryTextClass,
+} from "../../styles/tailwind_styles";
+import { useBusinessType } from "../../hooks/useBusinessType";
 
 const QRCode = () => {
   const { accountId, outletId } = useParams();
@@ -8,6 +13,7 @@ const QRCode = () => {
   const [account, setAccount] = useState({});
   const [queueActive, setQueueActive] = useState(false);
   const [qrcode, setQrcode] = useState("");
+  const { config } = useBusinessType();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,7 +58,9 @@ const QRCode = () => {
     navigate(`/db/${accountId}/outlets/all`);
   };
   return (
-    <div className="bg-primary-cream/80 mt-15 mx-3 p-3 lg:size-5/6  lg:m-20 lg:p-5 rounded-3xl border border-primary-green">
+    <div
+      className={`${primaryBgTransparentClass} ${primaryTextClass} mt-15 mx-3 p-3 lg:size-5/6  lg:m-20 lg:p-5 rounded-3xl border border-primary-green `}
+    >
       <div className="flex justify-center text-3xl items-center print:text-4xl print:mt-10 mt-5 ">
         <img
           src={account.logo}
@@ -67,11 +75,11 @@ const QRCode = () => {
         </p>
       )}
       {queueActive && (
-        <p className="print:hidden text-center font-extralight mt-5">
+        <p className="print:hidden text-center font-semibold mt-5">
           FYI: There IS a queue active right now.
         </p>
       )}
-      <div className="flex justify-center items-center  mb-10 print:mb-0 border-1 print:border-0 border-primary-light-green p-3 mt-10 print:flex-col print:p-0 print:m-0 ">
+      <div className="flex justify-center items-center  mb-10 print:mb-0 border-1 print:border-0 border-primary-light-green p-3 mt-10 print:flex-col print:p-0 print:m-0 relative">
         <div className="">
           <img
             src={qrcode || "N/A"}
@@ -85,7 +93,7 @@ const QRCode = () => {
             Join the queue{" "}
           </p>
           <p className="text-xl font-extralight print:hidden italic print:pb-3">
-            This is the QR Code for:{" "}
+            This is the QR Code for {config.label}:{" "}
           </p>
           <div className="print:text-4xl print:font-black ">{outlet.name}</div>
         </div>
@@ -94,7 +102,7 @@ const QRCode = () => {
       <div className="flex flex-wrap justify-center mt-6 print:hidden items-center text-center ">
         <div className="">
           <button
-            className=" hover:text-primary-dark-green cursor-pointer text-gray-700 font-light py-2 px-4 rounded-2xl"
+            className=" hover:text-primary-dark-green cursor-pointer font-light py-2 px-4 rounded-2xl"
             onClick={handleNavigateSettings}
           >
             <i className="fa-solid fa-gear pr-3"></i>Settings
@@ -102,7 +110,7 @@ const QRCode = () => {
         </div>
         <div className="">
           <button
-            className=" hover:text-primary-dark-green cursor-pointer text-gray-700 font-light py-2 px-4 rounded-2xl"
+            className=" hover:text-primary-dark-green cursor-pointer font-light py-2 px-4 rounded-2xl"
             onClick={handleNavigateAllOutlets}
           >
             <i className="fa-solid fa-house pr-3"></i>Home
@@ -110,7 +118,7 @@ const QRCode = () => {
         </div>
         <button
           onClick={() => window.print()}
-          className=" hover:text-primary-dark-green cursor-pointer text-gray-700 font-light py-2 px-4 rounded-2xl"
+          className=" hover:text-primary-dark-green cursor-pointer font-light py-2 px-4 rounded-2xl"
         >
           <i className="fa-solid fa-print pr-3"></i>Print QR Code
         </button>

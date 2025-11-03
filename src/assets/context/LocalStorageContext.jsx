@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useMemo,
-  useEffect,
-  useState,
-  useCallback,
-} from "react";
+import React, { createContext, useMemo, useState, useCallback } from "react";
 import { getWithExpiry, removeLocalStorageItem } from "../utils/localStorage";
 import api from "../api/axios";
 
@@ -16,51 +10,47 @@ export const LocalStorageProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const checkSession = useCallback(async () => {
-    console.log("Checking session");
-    setIsLoading(true);
-    const storedSession = getWithExpiry("queueItemLS");
-    if (storedSession === null) {
-      setActiveQueueSession(false);
-      return;
-    }
-
-    if (storedSession) {
-      try {
-        const res = await api.post("customerVerifyLS", storedSession);
-
-        console.log(
-          "Inside local storage context, checking customer verify ls: ",
-          res
-        );
-        if (res.status === 200) {
-          setQueueItemId(res.data.queueItemId);
-          setActiveQueueSession(true);
-          setIsLoading(false);
-          return;
-        } else {
-          console.log("No res from customer verify local storage");
-          removeLocalStorageItem("queueItemLS");
-          setActiveQueueSession(false);
-          setIsLoading(false);
-          return;
-        }
-      } catch (error) {
-        console.error(
-          "Stored session customer verify local storage error",
-          error
-        );
-        removeLocalStorageItem("queueItemLS");
+    const runCheck = async () => {
+      console.log("Checking session");
+      setIsLoading(true);
+      const storedSession = getWithExpiry("queueItemLS");
+      if (storedSession === null) {
         setActiveQueueSession(false);
         setIsLoading(false);
-
         return;
       }
-    }
-  }, []);
 
-  useEffect(() => {
-    checkSession();
-  }, [checkSession]);
+      if (storedSession) {
+        console.log("There is a stored session");
+        try {
+          const res = await api.post("customerVerifyLS", storedSession);
+
+          console.log(
+            "Inside local storage context, checking customer verify ls: ",
+            res
+          );
+          if (res.status === 200) {
+            setQueueItemId(res.data.queueItemId);
+            setActiveQueueSession(true);
+          } else {
+            console.log("No res from customer verify local storage");
+            removeLocalStorageItem("queueItemLS");
+            setActiveQueueSession(false);
+          }
+        } catch (error) {
+          console.error(
+            "Stored session customer verify local storage error",
+            error
+          );
+          removeLocalStorageItem("queueItemLS");
+          setActiveQueueSession(false);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    runCheck();
+  }, []);
 
   const contextValue = useMemo(() => {
     return {

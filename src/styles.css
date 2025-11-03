@@ -1,29 +1,53 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --default-font-family: Poppins, san-serif;
-
   --color-primary-green: rgba(73, 123, 4, 1);
   --color-primary-light-green: rgba(143, 198, 34, 1);
   --color-primary-dark-green: rgba(38, 82, 8, 1);
   --color-primary-ultra-dark-green: rgba(15, 23, 10, 1);
   --color-primary-cream: rgba(254, 253, 251, 1);
   --color-secondary-gray: rgba(212, 208, 205, 1);
-  --angle: 0deg; /* Define the custom property for the angle */
+  --angle: 0deg;
 }
 
+/* Base body styles */
+body {
+  @apply bg-white dark:bg-stone-800 text-stone-800 dark:text-gray-100 transition-colors duration-200;
+}
+
+/* Light mode autofill */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
-input:-internal-autofill-selected, /* Add this line */
+input:-internal-autofill-selected,
 textarea:-webkit-autofill,
 textarea:-webkit-autofill:hover,
 textarea:-webkit-autofill:focus,
-textarea:-internal-autofill-selected, /* Add this line */
+textarea:-internal-autofill-selected,
 select:-webkit-autofill,
 select:-webkit-autofill:hover,
 select:-webkit-autofill:focus,
-select:-internal-autofill-selected /* Add this line */ {
+select:-internal-autofill-selected {
   -webkit-box-shadow: 0 0 0 1000px theme("colors.primary-cream") inset !important;
   -webkit-text-fill-color: #4b505a !important;
+}
+
+/* Dark mode autofill */
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark input:-internal-autofill-selected,
+.dark textarea:-webkit-autofill,
+.dark textarea:-webkit-autofill:hover,
+.dark textarea:-webkit-autofill:focus,
+.dark textarea:-internal-autofill-selected,
+.dark select:-webkit-autofill,
+.dark select:-webkit-autofill:hover,
+.dark select:-webkit-autofill:focus,
+.dark select:-internal-autofill-selected {
+  -webkit-box-shadow: 0 0 0 1000px rgb(54, 54, 54) inset !important;
+  -webkit-text-fill-color: #e5e7eb !important;
 }

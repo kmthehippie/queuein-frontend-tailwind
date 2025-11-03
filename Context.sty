@@ -1,0 +1,32 @@
+Context
+
+This application is a queue application. 
+
+1. The types of businesses that might use this app are: Restaurants (Require queue for dine-in), Cafes (Require queue for food or drink collection), Events (Require queue for taking turn to ask questions at an event), Clinics (Require patients to queue for their turn to consult the doctor)
+
+2. The idea of the application is to be a versatile app that can be used by any small business that may need the assistance of a queue app rather than using pen to paper systems. 
+
+3. There are 4 tiers of Role in order to limit the staff's usage. 
+//From schema.prisma in my backend folder
+  TIER_1 // Equivalent to OWNER
+  TIER_2 // Equivalent to MANAGER, ASSISTANT_MANAGER
+  TIER_3 // Equivalent to HOST
+  TIER_4 // Equivalent to everyone else (view-only)
+  
+4. All accounts login with the same company details: email and password.
+
+5. All staffs have to key in their name and password whenever doing a sensitive action.
+
+6. For each company, I assume the company may have more than 1 outlet. Like a chain of restaurant or multiple cafes run under the same company. 
+
+7. Each outlet will be able to start its own queue, end it's own queue, add new customer/patient/participant (depends on what type of business it is, the name varies, but the function is the same, it is a customer), set up a kiosk view that will be on their own company's tablet that allows customers to enter by keying in their data. Customer will need to scan the qr code produced when they have joined the queue OR acknowledge they will be waiting in the vicinity in order for the page to go back to the kiosk view again. Customers will be sent automatically to their Waiting.jsx page where they can view the queue length, the waiting time, etc. (Please have a look at Waiting.jsx). There are sockets from waiting to and from the host so that if they change the number of pax, host can be updated accordingly. Hosts can call, seat and mark a customer as no show. Customer can leave the queue as well.
+
+8. Right now I am in the midst of implementing the MAXQUEUEITEMS. A fixed amount of queuers allowed for the entirety of the queue day. This will be useful for clinics where a doctor can probably only see a set number of patients. I am now working on the sockets in which allows the maxQueueItems to be changed according to the nurse's decision. 
+
+9. Next, I was thinking about if the way that I have set up my active outlet where staff logs in to the active outlet, and closes the queue. What do I do with the active queue items? Should I block the staff from closing the queue if there are still active queue items? Or should I just end the queue and mark all active queue items as no show? Or should I let the staff decide what to do with the active queue items when they close the queue?
+
+10. For future iterations, I have been thinking about implementing a feature that allows the host to send a sms to the customer when they are 3rd in line. This will be useful for cafes where customers can go about their business and come back when they are 3rd in line.
+
+11. Next, I was thinking about further improving the feature that allows the host to see the analytics of the queue. Like the average waiting time, the average number of customers per day, etc. (inactive outlet: InactiveOutlet.jsx) The displayed information will need to be improved. Right now it is quite barebones.
+
+...More to come...

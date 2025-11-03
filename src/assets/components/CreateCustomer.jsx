@@ -1,12 +1,24 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { apiPrivate } from "../api/axios";
+import {
+  primaryButtonClass as buttonClass,
+  primaryInputClass as inputClass,
+  labelClass,
+  errorClass,
+  checkBoxClass,
+  primaryBgClass,
+  primaryTextClass,
+} from "../styles/tailwind_styles";
+import { useBusinessType } from "../hooks/useBusinessType";
 
 const CreateCustomer = ({
   onSuccess,
+  onFull,
   setModal,
   setNotice,
   setNotification,
+  showPax,
 }) => {
   const params = useParams();
   const [customerName, setCustomerName] = useState("");
@@ -15,13 +27,7 @@ const CreateCustomer = ({
   const [customerPax, setCustomerPax] = useState(null);
   const [vip, setVIP] = useState(true);
   const [validationError, setValidationError] = useState("");
-
-  const errorClass = `text-red-600 text-center`;
-  const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800 `;
-  const inputClass = `border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 text-xs leading-tight focus:outline-none focus:border-black peer active:border-black
- `;
-  const buttonClass = `bg-primary-green mt-3 hover:bg-primary-dark-green w-full transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline`;
-  const checkBoxClass = `w-6 h-6 rounded-lg accent-primary-green hover:accent-primary-light-green text-primary-green focus:ring-2 ring-primary-light-green border-primary-dark-green`;
+  const { config } = useBusinessType();
 
   //Helper function
   const extractNumerals = (numberString) => {
@@ -83,6 +89,10 @@ const CreateCustomer = ({
           setModal(false);
         }
       } catch (error) {
+        if (error.response.status === 406) {
+          onFull();
+          setModal(false);
+        }
         console.error(error);
       }
     };
@@ -90,7 +100,9 @@ const CreateCustomer = ({
   };
 
   return (
-    <div>
+    <div
+      className={`max-w-md relative ${primaryBgClass} ${primaryTextClass} p-6 rounded-lg shadow-xl`}
+    >
       <p
         className="absolute top-0 right-0 text-red-700 pr-5 pt-2 hover:text-red-950 transition ease-in active:text-red-950 font-bold cursor-pointer"
         onClick={() => {
@@ -100,15 +112,15 @@ const CreateCustomer = ({
         X
       </p>
 
-      <form>
-        <div className="">
+      <form className="">
+        <div>
           <label htmlFor="customer-name" className={labelClass}>
             Name
           </label>
           <input
             id="customer-name"
             type="text"
-            placeholder="Enter customer name"
+            placeholder={`Enter ${config.customerSingularLabel} Name`}
             className={inputClass}
             onChange={(e) => {
               setCustomerName(e.target.value);
@@ -124,7 +136,7 @@ const CreateCustomer = ({
           <input
             id="contact-number"
             type="text"
-            placeholder="Enter customer contact number"
+            placeholder={`Enter ${config.customerSingularLabel} contact number`}
             className={inputClass}
             onChange={(e) => {
               setNumber(e.target.value);
@@ -133,21 +145,25 @@ const CreateCustomer = ({
             required
           />
         </div>
-        <div className="mb-1">
-          <label htmlFor="customer-pax" className={labelClass}>
-            PAX
-          </label>
-          <input
-            id="customer-pax"
-            type="number"
-            placeholder="How many people will be dining today?"
-            className={inputClass}
-            onChange={(e) => {
-              setCustomerPax(e.target.value);
-            }}
-            required
-          />
 
+        <div className="mb-1">
+          {showPax && (
+            <div>
+              <label htmlFor="customer-pax" className={labelClass}>
+                PAX
+              </label>
+              <input
+                id="customer-pax"
+                type="number"
+                placeholder={`Number of ${config.customerLabel}?`}
+                className={inputClass}
+                onChange={(e) => {
+                  setCustomerPax(e.target.value);
+                }}
+                required
+              />{" "}
+            </div>
+          )}
           <div className="flex items-center m-2 mt-3">
             <input
               id="vip"
@@ -162,7 +178,7 @@ const CreateCustomer = ({
               htmlFor="vip"
               className="ms-2 text-sm font-light text-gray-600 pl-1 md:pl-3"
             >
-              VIP customer
+              VIP {config.customerSingularLabel}
             </label>
           </div>
         </div>
@@ -171,7 +187,7 @@ const CreateCustomer = ({
         <p className={errorClass}>{validationError.general}</p>
       )}
       <button type="button" className={buttonClass} onClick={handleSubmit}>
-        Create New Customer
+        Create New {config.customerSingularLabel}
       </button>
     </div>
   );

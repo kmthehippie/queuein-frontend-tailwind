@@ -4,8 +4,17 @@ import { apiPrivate, interceptedApiPrivate } from "../../api/axios";
 import useAuth from "../../hooks/useAuth";
 import AuthorisedUser from "../../pages/account/AuthorisedUser";
 import Loading from "../../components/Loading";
-import { Outlet, replace, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { replaceEscaped } from "../../utils/replaceRegex";
+import {
+  primaryButtonClass as buttonClass,
+  primaryTextClass,
+  primaryBgClass,
+  primaryInputClass,
+  labelClass,
+  errorClass,
+  xButtonClass,
+} from "../../styles/tailwind_styles";
 
 const SettingsAccount = () => {
   const { accountId, refresh, setReloadNav } = useAuth();
@@ -229,6 +238,7 @@ const SettingsAccount = () => {
   const pathname = window.location.pathname;
   const pathnameEndsWithAccountAuditLogs =
     pathname.endsWith("/account/auditlogs");
+
   useEffect(() => {
     //check first if the route includes auditlogs. if yes, then we show audit logs and hide the normal account stuff
     if (pathnameEndsWithAccountAuditLogs) {
@@ -237,14 +247,10 @@ const SettingsAccount = () => {
     }
     fetchAccountInfo();
   }, [pathname]);
+
   const inputDivClass = `px-3 py-1 lg:grid lg:grid-cols-4 items-center lg:pl-5 pb-4`;
-  const labelClass = `lg:col-span-1 text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800 pr-4`;
   const inputClass = (hasError) =>
-    `appearance-none block py-2 pl-1 text-gray-700 text-sm leading-tight focus:outline-none focus:border-b-1 border-gray-400 peer ${
-      hasError ? "border-red-500" : ""
-    }`;
-  const buttonClass = `mt-3 transition ease-in text-white font-light py-2 px-4 rounded-full focus:outline-none focus:shadow-outline min-w-20`;
-  const errorClass = `text-red-600 text-center`;
+    ` ${primaryInputClass} ${hasError ? "border-red-500" : ""}`;
 
   return (
     <div className="">
@@ -256,11 +262,10 @@ const SettingsAccount = () => {
       )}
       {showAuthModal && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
-            <button
-              onClick={handleAuthModalClose}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
-            >
+          <div
+            className={`${primaryBgClass}  p-6 rounded-lg shadow-xl relative max-w-sm w-full`}
+          >
+            <button onClick={handleAuthModalClose} className={xButtonClass}>
               &times;
             </button>
             <AuthorisedUser
@@ -279,12 +284,14 @@ const SettingsAccount = () => {
         </div>
       )}
       {!showAuditLogs && (
-        <div className="max-h-[63vh] lg:max-h-[55vh] h-full lg:h-auto overflow-y-auto">
+        <div className=" md:p-0">
           {emailModalInfo && (
             <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
-              <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
+              <div
+                className={`${primaryBgClass} ${primaryTextClass}  p-6 rounded-lg shadow-xl relative max-w-sm w-full`}
+              >
                 <div
-                  className="absolute top-1 right-2 text-red-600 hover:text-red-950 cursor-pointer"
+                  className={xButtonClass}
                   onClick={() => {
                     setEmailModalInfo(false);
                   }}
@@ -307,52 +314,67 @@ const SettingsAccount = () => {
           )}
           {slugModalInfo && (
             <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
-              <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
+              <div
+                className={`${primaryBgClass} ${primaryTextClass} p-6 rounded-lg shadow-xl relative max-w-sm w-full`}
+              >
                 <div
-                  className="absolute top-1 right-2 text-red-600 hover:text-red-950 cursor-pointer"
+                  className={xButtonClass}
                   onClick={() => {
                     setSlugModalInfo(false);
                   }}
                 >
                   <i className="fa-solid fa-x "></i>
                 </div>
-                <small className="text-red-800 italic p-0 ">
-                  <div className="">
-                    <p>What is a slug?</p>
-                    <p>This should be a modal</p>
-                    <p>It's how your customers will look for your shop!</p>
+
+                <div className={`text-center ${primaryTextClass}`}>
+                  <h1 className="text-2xl text-gray-700 dark:text-primary-cream mb-2 font-semibold">
+                    What is a slug?
+                  </h1>
+                  <div className="text-sm font-light mb-2">
+                    A slug is a unique identifier for your store's web address.
+                    It's how your store's name will appear in the URL.
                   </div>
-                </small>
+                  <div className="text-sm font-light">
+                    For example, if your slug is <b>"myshop"</b>,
+                    <br />
+                    your store's URL will be:{" "}
+                    <b>https://onrender.queuein.com/myshop</b>.
+                  </div>
+                </div>
               </div>
             </div>
           )}
           {changesExist && (
             <div
-              className="fixed p-2 bg-primary-cream/90 top-1/5 right-1/10 rounded-xl shadow-red-900 shadow-lg/30 cursor-pointer z-20 lg:top-1/4 lg:right-1/5"
+              className={`fixed p-2 bg-red-900 ${primaryTextClass} top-1/8 right-1/20 rounded-xl shadow-red-900 shadow-lg/30 cursor-pointer z-20 lg:top-1/5 lg:right-1/5`}
               onClick={scrollToBottom}
             >
               <div className="animate-ping bg-red-700 w-3 h-3 rounded-2xl absolute top-0 right-0"></div>
               Changes Exist
             </div>
           )}
-          <div className="text-sm overflow-y-auto lg:overflow-auto h-full lg:h-auto pb-10 relative">
+          <div
+            className={`overflow-y-auto h-auto max-h-[52vh] ${primaryTextClass}`}
+          >
             <div className="pl-5 lg:pl-10 mt-5">
               <div className=" text-md ">Welcome to your account settings</div>
               <div className="text-xs font-extralight italic ">
                 Your account was created on {createdAt}
               </div>
             </div>
-            <div className="py-2.5 px-3 rounded-full lg:rounded-sm lg:p-2 text-sm font-light text-gray-500 border-1 border-primary-cream hover:border-primary-green hover:text-primary-dark-green transition ease-in w-max cursor-pointer bg-primary-cream mt-2 absolute top-2 right-2">
+            <div
+              className={`py-2.5 px-3 rounded-full lg:rounded-sm lg:p-2 text-sm font-light ${primaryTextClass} md:border-1 md:border-primary-cream hover:border-primary-green hover:text-primary-dark-green transition ease-in w-max cursor-pointer ${primaryBgClass} mt-2 ml-5 md:ml-0 md:absolute md:top-2 md:right-2`}
+            >
               <button
                 onClick={handleNavigateAuditLog}
                 className="hover:text-primary-green transition ease-in cursor-pointer flex justify-center items-center"
               >
-                <i className="fa-solid fa-clipboard lg:pr-2"></i>
-                <span className={`hidden lg:block `}> Account Audit Logs</span>
+                <i className="fa-solid fa-clipboard pr-2"></i>
+                <span className={``}> Account Audit Logs</span>
               </button>
             </div>
 
-            <form className="mt-5 ">
+            <form className="mt-5 mb-5">
               <div className={inputDivClass}>
                 <label htmlFor="companyName" className={labelClass}>
                   Company Name:*
@@ -370,6 +392,12 @@ const SettingsAccount = () => {
               </div>
               <div className={inputDivClass}>
                 <label htmlFor="slug" className={labelClass}>
+                  <i
+                    className="fa-solid fa-circle-info pr-1 cursor-pointer "
+                    onClick={() => {
+                      setSlugModalInfo(!slugModalInfo);
+                    }}
+                  ></i>{" "}
                   Slug
                 </label>
                 <input
@@ -390,7 +418,7 @@ const SettingsAccount = () => {
                   id="businessType"
                   value={businessType}
                   onChange={(e) => setBusinessType(e.target.value)}
-                  className="border-none px-2 py-1"
+                  className={`border-none px-2 py-1 ${primaryTextClass}`}
                 >
                   <option value="BASIC">Basic</option>
                   <option value="RESTAURANT">Restaurant</option>
@@ -410,9 +438,7 @@ const SettingsAccount = () => {
                   Company Email:{" "}
                 </label>
                 <p
-                  className={
-                    "lg:col-span-3 appearance-none block pl-1 pt-2 text-gray-700 text-sm leading-tight border-gray-400 peer "
-                  }
+                  className={`lg:col-span-3 appearance-none block pl-1 pt-2 ${primaryTextClass} leading-tight border-gray-400 peer `}
                 >
                   {companyEmail}
                 </p>
@@ -428,7 +454,9 @@ const SettingsAccount = () => {
                   onChange={handleFileChange}
                 />
                 {logo && (
-                  <div className="flex flex-col items-center justify-center">
+                  <div
+                    className={`flex flex-col items-center justify-center ${primaryTextClass}`}
+                  >
                     <p className="text-xs font-light mt-3">
                       A sample of the image
                     </p>
@@ -444,7 +472,10 @@ const SettingsAccount = () => {
                   </div>
                 )}
               </div>
-              <div className="flex justify-center mt-5 " ref={bottomRef}>
+              <div
+                className="flex justify-center mt-5 lg:mx-10"
+                ref={bottomRef}
+              >
                 <button
                   onClick={(e) => {
                     handleUpdate(e);

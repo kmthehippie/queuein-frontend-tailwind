@@ -1,4 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
+import {
+  primaryBgTransparentClass,
+  primaryTextClass,
+} from "../styles/tailwind_styles";
 
 const Error = ({ error }) => {
   console.log(error);
@@ -22,13 +26,15 @@ const Error = ({ error }) => {
         </Link>
       </div>
       <div className="flex-2/3 flex items-center justify-center">
-        <div className="bg-white/50 p-10 rounded-xl shadow-md w-4/5 xl:w-3/4">
+        <div
+          className={`${primaryBgTransparentClass} p-10 rounded-xl shadow-md w-4/5 xl:w-3/4`}
+        >
           <div className="flex-row items-center justify-center xl:p-15 ">
             <h1 className="text-5xl font-bold tracking-wide">Oh Shucks!</h1>
-            <h3 className="text-3xl text-stone-600 pb-2 ">
+            <h3 className={`text-3xl ${primaryTextClass} pb-2 `}>
               Something went wrong.
             </h3>
-            <div className="text-stone-600 mt-4 ">
+            <div className={`${primaryTextClass} mt-4 `}>
               <p>
                 {statusCode ? `${statusCode} Error` : "Unexpected Error"}
                 {" : "}

@@ -1,13 +1,17 @@
 import { useState, useEffect } from "react";
-import {
-  useNavigate,
-  useOutletContext,
-  useParams,
-  useLocation,
-} from "react-router-dom";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import api from "../../api/axios";
 import Error from "../Error";
 import Loading from "../../components/Loading";
+import {
+  primaryBgClass,
+  primaryTextClass,
+  primaryButtonClass as buttonClass,
+  checkBoxClass,
+  errorClass,
+  primaryInputClass,
+  labelClass,
+} from "../../styles/tailwind_styles";
 
 const KioskView = () => {
   const [customerName, setCustomerName] = useState("");
@@ -26,7 +30,7 @@ const KioskView = () => {
 
   const [shouldPost, setShouldPost] = useState(false);
   const { acctSlug, queueId } = useParams();
-  const { outletId, businessType } = useOutletContext();
+  const { outletId, showPax } = useOutletContext();
 
   const navigate = useNavigate();
 
@@ -44,13 +48,9 @@ const KioskView = () => {
   };
 
   //Tailwind
-  const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800 `;
   const inputClass = (hasError) =>
-    `border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 text-xs leading-tight focus:outline-none focus:border-black peer active:border-black
+    `${primaryInputClass}
   ${hasError ? "border-red-500" : ""}`;
-  const errorClass = `text-red-600 text-center`;
-  const checkBoxClass = `w-6 h-6 rounded-lg accent-primary-green hover:accent-primary-light-green text-primary-green focus:ring-2 ring-primary-light-green border-primary-dark-green`;
-  const buttonClass = `bg-primary-green mb-5 hover:bg-primary-dark-green transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline`;
 
   const handleSubmitKiosk = async (e) => {
     e.preventDefault();
@@ -80,7 +80,7 @@ const KioskView = () => {
       });
       return;
     }
-    if (businessType === "RESTAURANT") {
+    if (showPax) {
       if (customerPax === 0 || customerPax === null) {
         setCustomerPaxError(true);
         setShouldPost(false);
@@ -99,7 +99,7 @@ const KioskView = () => {
         return;
       }
     }
-    if (businessType !== "RESTAURANT") {
+    if (!showPax) {
       setCustomerPax(1);
     }
     if (!customerName || !number) {
@@ -110,10 +110,10 @@ const KioskView = () => {
     if (isValid) {
       setShouldPost(true);
     }
-    //! ADD 2 FACTOR AUTHENTICATION TO JOIN QUEUE. Once they hit submit, they need to 2FA. Then once authenticated, pass to back end.
   };
 
   useEffect(() => {
+    console.log("Kiosk view use effect, should post", shouldPost);
     const data = {
       customerName: customerName,
       customerNumber: formattedNumber,
@@ -135,11 +135,10 @@ const KioskView = () => {
             ...res.data,
             outletId,
           };
-          console.log(res.data);
           navigate(`/${acctSlug}/kiosk/${queueItem.id}/success`, {
             state: { data: data },
           });
-          console.log("Successfully joined queue");
+          console.log("Successfully joined queue", data);
         }
       } catch (err) {
         setLoading(false);
@@ -175,7 +174,9 @@ const KioskView = () => {
     <div>
       <div className=" flex-row md:pt-5 md:pb-5 justify-self-center relative">
         {warning && (
-          <div className="bg-primary-cream z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/3 left-1/2 -translate-1/2 p-10 md:min-w-md">
+          <div
+            className={`${primaryBgClass} z-10 min-w-sm rounded-3xl text-center ${primaryTextClass} absolute top-1/3 left-1/2 -translate-1/2 p-10 md:min-w-md`}
+          >
             <h1 className="text-red-900">Notice:</h1>
             <p>
               Please talk to our host for large group sizes or close this box to
@@ -227,7 +228,7 @@ const KioskView = () => {
                 required
               />
             </div>
-            {businessType === "RESTAURANT" && (
+            {showPax && (
               <div className="mb-1">
                 <label htmlFor="customer-pax" className={labelClass}>
                   PAX
@@ -256,7 +257,7 @@ const KioskView = () => {
               />
               <label
                 htmlFor="vip"
-                className="ms-2 text-xs font-light text-gray-600 pl-1 md:pl-3"
+                className={`ms-2 text-xs font-light ${primaryTextClass} pl-1 md:pl-3`}
               >
                 Join our VIP list! By providing your consent,{" "}
                 <span className="font-bold">

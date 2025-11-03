@@ -1,6 +1,15 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import useApiPrivate from "../../hooks/useApiPrivate";
+import {
+  primaryTextClass,
+  primaryBgClass,
+  primaryButtonClass as buttonClass,
+  labelClass,
+  errorClass,
+  primaryInputClass,
+  primaryBgTransparentClass,
+} from "../../styles/tailwind_styles";
 
 const AuthorizedUser = ({
   onSuccess,
@@ -18,12 +27,12 @@ const AuthorizedUser = ({
   const params = useParams();
   const apiPrivate = useApiPrivate();
 
-  const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800`;
+  // const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800`;
   const inputClass = (hasError) =>
-    `border-1 border-gray-300 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 text-sm leading-tight focus:outline-none focus:bg-transparent peer active:bg-transparent 
+    `${primaryInputClass}
     ${hasError ? "border-red-500" : ""}`;
-  const buttonClass = `mt-3 transition ease-in text-white font-light bg-primary-green py-2 px-4 rounded-2xl cursor-pointer focus:outline-none focus:shadow-outline min-w-20`;
-  const errorClass = `text-red-600 text-center`;
+  // const buttonClass = `mt-3 transition ease-in text-white font-light bg-primary-green py-2 px-4 rounded-2xl cursor-pointer focus:outline-none focus:shadow-outline min-w-20`;
+  // const errorClass = `text-red-600 text-center`;
 
   const handleCheckCapsLock = (e) => {
     setCapslockOn(e.getModifierState("CapsLock"));
@@ -79,9 +88,11 @@ const AuthorizedUser = ({
       <small className="text-xs font-light italic">
         The action which you intend to perform requires a security check.
       </small>
-      <div className="block mb-4 text-sm bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md m-1 ">
+      <div
+        className={`block mb-4 text-sm ${primaryBgTransparentClass} hover:shadow-2xl p-4 rounded-lg shadow-md m-1`}
+      >
         <p className="font-semibold">SAMPLE STAFF DETAILS:</p>
-        <div className="text-primary-dark-green">
+        <div className="text-primary-dark-green dark:text-primary-light-green font-semibold">
           staff: A Cool Dude pw: 123123
         </div>
         <small className="italic ">

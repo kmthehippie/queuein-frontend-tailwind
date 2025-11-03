@@ -4,11 +4,20 @@ import moment from "moment";
 import AuthorisedUser from "./AuthorisedUser";
 import useApiPrivate from "../../hooks/useApiPrivate";
 import Loading from "../../components/Loading";
+import {
+  primaryButtonClass as buttonClass,
+  labelClass,
+  primaryInputClass as inputClass,
+  primaryBgClass,
+  primaryTextClass,
+  xButtonClass,
+} from "../../styles/tailwind_styles";
 
 const InactiveOutlet = () => {
   const params = useParams();
   const navigate = useNavigate();
   const [queueName, setQueueName] = useState("");
+  const [maxQueueItems, setMaxQueueItems] = useState(999);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const apiPrivate = useApiPrivate();
   const location = useLocation();
@@ -19,26 +28,18 @@ const InactiveOutlet = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  //TAILWIND CLASSES
-  const buttonClass = `mt-3 transition ease-in text-white font-light py-2 px-4 rounded-2xl cursor-pointer focus:outline-none focus:shadow-outline min-w-20`;
-  const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800`;
-  const inputClass = `border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 text-sm leading-tight focus:outline-none focus:border-black peer active:border-black`;
   useEffect(() => {
     setQueueName(moment().format("llll"));
   }, []);
 
   useEffect(() => {
-    // Crucial: Handle direct access/refresh where location.state might be null
     if (!outletData) {
-      // If outletData is missing, you'd likely need to refetch basic outlet info
-      // based on params.outletId or redirect to an error page.
       console.warn(
         "Missing outletData on InactiveOutlet, consider fetching or redirecting."
       );
-      // Example: fetchOutletData(params.outletId);
     }
-    fetchInactiveQueueStats(currentPage); // Fetch the initial page of stats
-  }, [params.accountId, params.outletId, currentPage, apiPrivate, outletData]); // Add dependencies
+    fetchInactiveQueueStats(currentPage);
+  }, [params.accountId, params.outletId, currentPage, apiPrivate, outletData]);
 
   const fetchInactiveQueueStats = async (page) => {
     setLoading(true);
@@ -69,8 +70,9 @@ const InactiveOutlet = () => {
     try {
       const data = {
         name: queueName,
+        maxQueueItems: maxQueueItems,
       };
-      console.log(data);
+      console.log("Creating new queue:", data);
       const res = await apiPrivate.post(
         `newQueue/${params.accountId}/${params.outletId}`,
         data
@@ -104,9 +106,9 @@ const InactiveOutlet = () => {
   }
 
   return (
-    <div>
-      <form className="bg-primary-cream p-3 rounded-2xl">
-        <p className="text-lg font-light italic text-primary-dark-green">
+    <div className={`${primaryBgClass} ${primaryTextClass} p-3 rounded-2xl`}>
+      <form>
+        <p className="text-lg font-light italic text-primary-dark-green dark:text-primary-light-green">
           Let's start a new queue!
         </p>
         <label htmlFor="queue_name" className={labelClass}>
@@ -119,10 +121,20 @@ const InactiveOutlet = () => {
           onChange={(e) => setQueueName(e.target.value)}
           className={inputClass}
         />
+        <label htmlFor="max_queue_items" className={labelClass}>
+          Maximum number of queuers today
+        </label>
+        <input
+          type="int"
+          id="max_queue_items"
+          value={maxQueueItems}
+          onChange={(e) => setMaxQueueItems(e.target.value)}
+          className={inputClass}
+        />
         <button
           className={
             buttonClass +
-            " bg-primary-green hover:bg-primary-dark-green mr-3 border-1 border-primary-light-green"
+            " bg-primary-green hover:bg-primary-dark-green mr-3 border-1 border-primary-light-green md:max-w-[200px]"
           }
           onClick={handleStartQueue}
         >
@@ -131,11 +143,10 @@ const InactiveOutlet = () => {
       </form>
       {showAuthModal && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
-            <button
-              onClick={handleAuthModalClose}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
-            >
+          <div
+            className={`${primaryBgClass} p-6 rounded-lg shadow-xl relative max-w-sm w-full`}
+          >
+            <button onClick={handleAuthModalClose} className={xButtonClass}>
               &times;
             </button>
             <AuthorisedUser
@@ -148,8 +159,11 @@ const InactiveOutlet = () => {
           </div>
         </div>
       )}
-      <div className="bg-primary-cream p-3 rounded-2xl mt-5">
-        <p className="text-lg font-light italic text-primary-dark-green">
+
+      <div
+        className={`${primaryBgClass} ${primaryTextClass} p-3 rounded-2xl mt-5`}
+      >
+        <p className="text-lg font-light italic text-primary-dark-green dark:text-primary-light-green">
           Previous Queue Report
         </p>
         <div>
@@ -178,7 +192,7 @@ const InactiveOutlet = () => {
                 <button
                   onClick={() => setCurrentPage((prev) => prev - 1)}
                   disabled={currentPage <= 1}
-                  className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+                  className="px-4 py-2 bg-primary-green text-white rounded disabled:opacity-50"
                 >
                   Previous
                 </button>
@@ -188,7 +202,7 @@ const InactiveOutlet = () => {
                 <button
                   onClick={() => setCurrentPage((prev) => prev + 1)}
                   disabled={currentPage >= totalPages}
-                  className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+                  className="px-4 py-2 bg-primary-green text-white rounded disabled:opacity-50"
                 >
                   Next
                 </button>

@@ -4,6 +4,8 @@ import useAuth from "../hooks/useAuth";
 import useApiPrivate from "../hooks/useApiPrivate";
 import { alphabeticalSort } from "../utils/sortList";
 import { replaceEscaped } from "../utils/replaceRegex";
+import { primaryBgClass, primaryTextClass } from "../styles/tailwind_styles";
+import { useBusinessType } from "../hooks/useBusinessType";
 
 const Sidenav = () => {
   const [outlets, setOutlets] = useState([]);
@@ -11,14 +13,15 @@ const Sidenav = () => {
 
   const sideNavRef = useRef(null);
   const params = useParams();
-  const { isAuthenticated, accountId, reloadNav, outletText } = useAuth();
+  const { isAuthenticated, accountId, reloadNav } = useAuth();
+  const { config } = useBusinessType();
   const apiPrivate = useApiPrivate();
   const navigate = useNavigate();
 
   //Tailwind classes
   const sideNavButtonClass = ` pl-5 pt-3 m-1 pb-3 cursor-pointer transition ease-in rounded-xl leading-4
         border border-transparent border-l-10 border-l-transparent 
-        hover:text-primary-dark-green hover:border-primary-green hover:border-l-primary-green lg:pl-2`;
+        hover:text-primary-dark-green hover:border-primary-green dark:hover:text-primary-light-green dark:hover:border-primary-light-green   hover:border-l-primary-green lg:pl-2`;
 
   const toggleSideNav = () => {
     setShowSideNav(!showSideNav);
@@ -28,7 +31,7 @@ const Sidenav = () => {
       location.pathname.includes(`outlet/${outletId}/active`) ||
       location.pathname.includes(`outlet/${outletId}/inactive`)
     ) {
-      console.log("True the pathname ends with outletid");
+      console.log("True the pathname ends with outletid", { outletId });
       setShowSideNav(false);
       return;
     }
@@ -69,18 +72,18 @@ const Sidenav = () => {
 
   return (
     <div
-      className="  bg-primary-cream lg:relative absolute top-0 left-0 h-[85vh] lg:col-span-1 print:hidden"
+      className={`  ${primaryBgClass} lg:relative absolute top-0 left-0 h-[85vh] lg:col-span-1 print:hidden`}
       ref={sideNavRef}
     >
       <p
-        className="p-5 cursor-pointer z-8 bg-white rounded-3xl flex justify-center items-center hover:text-primary-dark-green ease-in lg:hidden max-w-20 w-10 h-10 m-3 fixed"
+        className={`p-5 cursor-pointer z-8 ${primaryBgClass} text-primary-dark-green border-1 border-primary-light-green dark:text-primary-light-green rounded-3xl flex justify-center items-center hover:text-primary-dark-green dark:hover:text-primary-light-green ease-in lg:hidden max-w-20 w-10 h-10 m-3 fixed`}
         onClick={toggleSideNav}
       >
         <i className="fa-solid fa-bars"></i>
       </p>
       {/* Need to fix the nav so that it fixes on the page */}
       <div
-        className={` bg-primary-cream
+        className={` ${primaryBgClass} ${primaryTextClass}
          pt-3 h-full
           fixed top-0 left-0
           w-[300px]
@@ -89,7 +92,7 @@ const Sidenav = () => {
         `}
       >
         <p
-          className="pl-5 pt-2 cursor-pointer hover:text-primary-dark-green ease-in lg:hidden "
+          className="pl-5 pt-2 cursor-pointer hover:text-primary-dark-green ease-in lg:hidden dark:hover:text-primary-light-green transition"
           onClick={toggleSideNav}
         >
           <i className="fa-solid fa-bars"></i>
@@ -107,10 +110,10 @@ const Sidenav = () => {
           onClick={toggleSideNav}
         >
           <div
-            className="pl-3 pt-5 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer"
+            className="pl-3 pt-5 m-1 leading-4 text-primary-green dark:text-primary-light-green pb-1 font-bold tracking-wider uppercase hover:text-primary-light-green dark:hover:text-primary-cream transition ease-in cursor-pointer"
             onClick={toggleSideNav}
           >
-            <i className="fa-solid fa-house pr-1"></i> {outletText}
+            <i className="fa-solid fa-house mr-3"></i> {config.label}
           </div>
         </Link>
 
@@ -128,41 +131,50 @@ const Sidenav = () => {
             ))}
           </div>
         ) : (
-          <div className="ml-4 text-sm text-gray-500">
-            No {outletText}s Available.
+          <div className={`ml-4 text-sm ${primaryTextClass}`}>
+            No {config.label}s Available.
           </div>
         )}
         <Link to={`/db/${params.accountId}/outlets/new`}>
           <div onClick={toggleSideNav}>
-            <div className={sideNavButtonClass + " font-semibold"}>
-              Create a new {outletText} +
+            <div className={sideNavButtonClass + " leading-5 font-semibold"}>
+              Create a new {config.queueName} +
             </div>
           </div>
         </Link>
         <Link to={`/db/${params.accountId}/settings`}>
           <div
-            className="pl-3 pt-3 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer"
+            className="pl-3 pt-3 m-1 leading-4 text-primary-green dark:text-primary-light-green pb-1 hover:text-primary-light-green dark:hover:text-primary-cream transition ease-in cursor-pointer"
             onClick={toggleSideNav}
           >
-            <i className="fa-solid fa-gear pr-1"></i> Settings
+            <i className="fa-solid fa-gear pr-1 mr-3"></i> Settings
           </div>
         </Link>
         <Link to={`/db/${params.accountId}/staff`}>
           <div
-            className="pl-3 pt-3 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer"
+            className="pl-3 pt-3 m-1 leading-4 text-primary-green dark:text-primary-light-green pb-1 hover:text-primary-light-green dark:hover:text-primary-cream transition ease-in cursor-pointer"
             onClick={toggleSideNav}
           >
-            <i className="fa-solid fa-users"></i> Staff
+            <i className="fa-solid fa-users mr-3"></i> Staff
           </div>{" "}
+        </Link>
+        <Link to={`/db/${params.accountId}/VIPs`}>
+          <div
+            className="pl-3 pt-3 m-1 leading-4 text-primary-green dark:text-primary-light-green pb-1 hover:text-primary-light-green dark:hover:text-primary-cream transition ease-in cursor-pointer"
+            onClick={toggleSideNav}
+          >
+            <i className="fa-solid fa-users-rectangle mr-3"></i> VIPs
+          </div>
         </Link>
         <Link to={`/db/${params.accountId}/quit`}>
           <div
-            className="pl-3 pt-3 m-1 leading-4 text-primary-green pb-1 hover:text-primary-light-green transition ease-in cursor-pointer"
+            className="pl-3 pt-3 m-1 leading-4 text-primary-green dark:text-primary-light-green pb-1 hover:text-primary-light-green dark:hover:text-primary-cream transition ease-in cursor-pointer"
             onClick={toggleSideNav}
           >
-            <i className="fa-solid fa-right-from-bracket"></i> Quit
+            <i className="fa-solid fa-right-from-bracket mr-3"></i> Quit
           </div>
         </Link>
+
         <div className="cursor-pointer absolute bottom-5 left-5 w-full lg:hidden ">
           <span className="flex items-end font-black text-primary-green">
             <img src="/Q-logo.svg" alt="Queue In Logo" className=" w-15 " />{" "}

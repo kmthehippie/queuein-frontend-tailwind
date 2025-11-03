@@ -9,27 +9,48 @@ import AuthorisedUser from "./AuthorisedUser";
 import useToast from "../../hooks/useToast";
 import PermissionNotification from "../../components/PermissionNotification";
 import NotificationModal from "../../components/NotificationModal";
+import {
+  primaryButtonClass as buttonClass,
+  checkBoxClass,
+  primaryTextClass,
+  primaryBgClass,
+  errorClass,
+} from "../../styles/tailwind_styles";
+import { useBusinessType } from "../../hooks/useBusinessType";
 
 const ActiveOutlet = () => {
   const { socket, isConnected } = useContext(SocketContext);
-  const { isAuthenticated, businessType, accountId, acctSlug } = useAuth();
+  const { isAuthenticated, accountId, acctSlug } = useAuth();
   const params = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const apiPrivate = useApiPrivate();
   const toast = useToast();
   const { staffInfo } = location.state || {}; // Ensure it's an object, even if empty
+  const { config } = useBusinessType();
 
   const [activeQueue, setActiveQueue] = useState(true);
+
+  const [queue, setQueue] = useState({});
+  const [showPax, setShowPax] = useState(false);
   const [queueItems, setQueueItems] = useState([]);
+  const [maxQueueItems, setMaxQueueItems] = useState(0);
   const [lg, setLg] = useState(false);
   const [createCustomerModal, setCreateCustomerModal] = useState(false);
+  const [maxQueuersModal, setMaxQueuersModal] = useState(false);
   const [notification, setNotification] = useState(false);
   const [notice, setNotice] = useState({});
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [errors, setErrors] = useState("");
   const [currentTime, setCurrentTime] = useState(moment());
+  const [highlightedItem, setHighlightedItem] = useState(null);
 
+  const [updateMaxQueueItemsModal, setUpdateMaxQueueItemsModal] =
+    useState(false);
+  const [updateMaxQueueItemsModalError, setUpdateMaxQueueItemsModalError] =
+    useState({});
+
+  const [endQueueErrorModal, setEndQueueErrorModal] = useState(false);
   const [openNotifModal, setOpenNotifModal] = useState(false);
   const [userInteracted, setUserInteracted] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState(
@@ -39,12 +60,12 @@ const ActiveOutlet = () => {
   const convertedTime = (date) => moment(date).fromNow();
 
   //TAILWIND CLASSES:
-  const buttonClass = `mt-3 transition ease-in text-white font-light py-2 px-4 rounded-2xl cursor-pointer focus:outline-none focus:shadow-outline min-w-20`;
-  const activeTableHeader = `text-xs text-primary-dark-green mr-5 ml-2`;
+  const activeTableHeader = `text-xs text-primary-dark-green dark:text-primary-light-green md:mr-5 mr-3 ml-2`;
   const activeTableAnswer = `flex items-center justify-center text-sm `;
-  const landscapeHeaderClass = `border-l-1 border-t-1 border-b-1 border-r-1 border-primary-green p-1`;
-  const errorClass = `text-red-600 text-center`;
-  const [highlightedItem, setHighlightedItem] = useState(null);
+  const landscapeHeaderClass = `border-l-1 border-t-1 border-b-1 border-r-1 border-primary-green p-1 `;
+  const buttonClassInModals = `mt-3 transition ease-in text-white bg-primary-green cursor-pointer font-light py-2 px-4 rounded-xl focus:outline-none focus:shadow-outline min-w-20 hover:bg-primary-dark-green`;
+  const errorButtonInModals = `mt-3 transition ease-in text-white bg-red-700 cursor-pointer font-light py-2 px-4 rounded-xl focus:outline-none focus:shadow-outline min-w-20 hover:bg-red-900`;
+
   const getWaitingTimeClass = useCallback(
     (date) => {
       const createdAt = moment(date);
@@ -100,18 +121,29 @@ const ActiveOutlet = () => {
     setOpenNotifModal(true);
     const activeQueueItems = async () => {
       try {
-        const res = await apiPrivate.get(`activeQueue/${params.queueId}`);
+        const res = await apiPrivate.get(
+          `activeQueue/${params.accountId}/${params.queueId}/${params.outletId}`
+        );
         if (res?.data) {
-          setQueueItems(res.data?.queueItems);
+          console.log("res data from active queue items: ", res?.data);
+          setQueueItems(res.data.queueItems.queueItems);
+          setShowPax(res.data.showPax);
+          setMaxQueueItems(res.data.queueItems.maxQueueItems);
+          setQueue(res.data.queueItems);
         }
       } catch (error) {
+        if (error.response.status === 406) {
+          console.log("Max number of queue items allowed has been reached.");
+        }
         console.error(error);
         console.log("Error in trying to fetch active queue data");
       }
     };
     activeQueueItems();
-  }, [isAuthenticated, params.queueId, apiPrivate]);
-
+  }, [isAuthenticated, params.queueId, apiPrivate, params.outletId]);
+  useEffect(() => {
+    setShowPax(false); // Reset to default value
+  }, [params.queueId, params.outletId]);
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
     const handleMediaQueryChange = (e) => setLg(e.matches);
@@ -215,8 +247,6 @@ const ActiveOutlet = () => {
   }, [socket, isConnected, params.outletId, params.accountId, params.queueId]);
   //LISTEN
   useEffect(() => {
-    //if notificationPermission === "granted" then we open a toast to say notifications are active. We will update you when a customer joins the queue or changes the pax
-    //Else just create a toast that says there is no notifications.
     if (socket && isConnected) {
       const alert = (header, body, soundEffect) => {
         console.log("when alert: ", header, body);
@@ -236,55 +266,79 @@ const ActiveOutlet = () => {
         if (data) {
           const newQueueItems = data.queueItems;
           setQueueItems(newQueueItems);
-          console.log("Data notice: ");
+          console.log("Data notice: ", data.notice);
 
-          if (data.notice.action === "pax") {
-            console.log("Data notice action is pax: ", data.notice.queueItemId);
-            const newQueueItem = newQueueItems.filter(
-              (item) => item.id === data.notice.queueItemId
-            );
-            if (newQueueItem.length > 0) {
-              alert(
-                "There is a pax change",
-                `${newQueueItem[0].name} has changed pax to ${newQueueItem[0].pax} `,
-                "/Ding.mp3"
+          if (data.notice && data.notice.action) {
+            if (data.notice.action === "pax") {
+              console.log(
+                "Data notice action is pax: ",
+                data.notice.queueItemId
               );
-            } else {
-              console.warn("Updated item not found in the new queue list.");
-            }
-            setHighlightedItem(data.notice.queueItemId);
-            setTimeout(() => {
-              setHighlightedItem(null);
-            }, 120000);
-          } else if (data.notice.action === "join") {
-            console.log("someone joined queue", data.notice);
-            const newQueueItem = newQueueItems.filter(
-              (item) => item.id === data.notice.queueItemId
-            );
-            if (newQueueItem.length > 0) {
-              alert(
-                "New Customer has Joined the Queue!",
-                `${newQueueItem[0].name} has joined with ${newQueueItem[0].pax} pax`,
-                "/Success.mp3"
+              const newQueueItem = newQueueItems.filter(
+                (item) => item.id === data.notice.queueItemId
               );
-            }
-          } else if (data.notice.action === "quit") {
-            console.log("Someone quit the queue", data.notice);
-            const newQueueItem = newQueueItems.filter(
-              (item) => item.id === data.notice.queueItemId
-            );
-            if (newQueueItem) {
-              alert(
-                "Customer has quit the queue.",
-                `${newQueueItem[0].name} has left the queue.`,
-                "/FailSound.mp3"
+              if (newQueueItem.length > 0) {
+                alert(
+                  "There is a pax change",
+                  `${newQueueItem[0].name} has changed pax to ${newQueueItem[0].pax} `,
+                  "/Ding.mp3"
+                );
+              } else {
+                console.warn("Updated item not found in the new queue list.");
+              }
+              setHighlightedItem(data.notice.queueItemId);
+              setTimeout(() => {
+                setHighlightedItem(null);
+              }, 120000);
+            } else if (data.notice.action === "join") {
+              console.log("someone joined queue", data.notice);
+              const newQueueItem = newQueueItems.filter(
+                (item) => item.id === data.notice.queueItemId
               );
+              if (newQueueItem.length > 0) {
+                alert(
+                  "New Customer has Joined the Queue!",
+                  `${newQueueItem[0].name} has joined with ${newQueueItem[0].pax} pax`,
+                  "/Success.mp3"
+                );
+              }
+            } else if (data.notice.action === "quit") {
+              console.log("Someone quit the queue", data.notice);
+              const newQueueItem = newQueueItems.filter(
+                (item) => item.id === data.notice.queueItemId
+              );
+              if (newQueueItem) {
+                alert(
+                  "Customer has quit the queue.",
+                  `${newQueueItem[0].name} has left the queue.`,
+                  "/FailSound.mp3"
+                );
+              }
+            } else if (data.notice.action === "noShow") {
+              const newQueueItem = newQueueItems.filter(
+                (item) => item.id === data.notice.queueItemId
+              );
+              console.log(`We set customer ${newQueueItem.name} as no show.`);
+            } else if (data.notice.action === "updateMaxQueuers") {
+              if (typeof data.notice.maxQueueItems === "number") {
+                setMaxQueueItems(parseInt(data.notice.maxQueueItems));
+                console.log("Prev queue: ", queue);
+                setQueue((prev) => ({
+                  ...prev,
+                  maxQueueItems: data.notice.maxQueueItems,
+                }));
+
+                toast.open(
+                  `Maximum number of queuers updated to ${data.notice.maxQueueItems}.`,
+                  {
+                    type: "info",
+                    duration: 2000,
+                    sticky: false,
+                    id: "max-queue-items-updated",
+                  }
+                );
+              }
             }
-          } else if (data.notice.action === "noShow") {
-            const newQueueItem = newQueueItems.filter(
-              (item) => item.id === data.notice.queueItemId
-            );
-            console.log(`We set customer ${newQueueItem.name} as no show.`);
           }
         }
       };
@@ -299,10 +353,22 @@ const ActiveOutlet = () => {
   }, [socket, isConnected, params.outletId, params.accountId, params.queueId]);
 
   //HANDLES
-  const handleAddCustomer = useCallback((e) => {
-    e.preventDefault();
-    setCreateCustomerModal(true);
-  }, []);
+  const handleAddCustomer = useCallback(
+    (e) => {
+      e.preventDefault();
+      console.log(
+        "Max queue items and queueitems length: ",
+        maxQueueItems,
+        queueItems ? queueItems.length : 0
+      );
+      if (queueItems && queueItems.length >= maxQueueItems) {
+        setMaxQueuersModal(true);
+      } else {
+        setCreateCustomerModal(true);
+      }
+    },
+    [maxQueueItems, queueItems]
+  );
   const handleCalled = useCallback(
     async (e, id) => {
       const newCalledStatus = e.target.checked;
@@ -392,19 +458,35 @@ const ActiveOutlet = () => {
     setShowAuthModal(false);
     //Navigate -1 ?
   };
-  const handleEndQueue = useCallback(() => {
+  const handleEndQueue = () => {
+    console.log("Trying to handle end queue", queueItems);
+    queueItems.forEach((item) => {
+      if (!item.seated && !item.noShow) {
+        setEndQueueErrorModal(true);
+        setShowAuthModal(false);
+      } else {
+        setEndQueueErrorModal(false);
+        setShowAuthModal(true);
+      }
+    });
     setErrors("");
-    setShowAuthModal(true);
-  }, []);
+    if (maxQueuersModal === true) {
+      setMaxQueuersModal(false);
+    }
+  };
   const endQueueAllowed = async () => {
     try {
       const res = await apiPrivate.post(
-        `/endQueue/${params.accountId}/${params.outletId}/${params.queueId}`
+        `/endQueue/${accountId}/${params.outletId}/${params.queueId}`
       );
+      console.log(res.data);
       if (res.status === 201) {
         setActiveQueue(false);
         //? Also, emit a socket event to inform others that the queue has ended. Do we want to do queue ended here, or should we do queue ended from the backend?
-        socket.emit("queue_ended", params.queueId);
+        socket.emit("queue_ended", res.data.queueId);
+        navigate(`/db/${res.data.queueId}/outlet/${res.data.outletId}`, {
+          replace: true,
+        });
       } else {
         setErrors({ general: `Error ending queue ${params.queueId}` });
       }
@@ -438,11 +520,90 @@ const ActiveOutlet = () => {
     },
     [apiPrivate, socket, params.queueId]
   );
+  const handleUpdateMaxQueueItems = async (e) => {
+    e.preventDefault;
+    setUpdateMaxQueueItemsModalError({});
+    console.log(
+      "Current max queue items and queueitems length: ",
+      parseInt(maxQueueItems),
+      queueItems ? queueItems.length : 0
+    );
+    if (queueItems ? parseInt(maxQueueItems) < queueItems.length : false) {
+      console.log(
+        maxQueueItems,
+        queueItems.length,
+        "Max queue items cf queue items length"
+      );
+      setUpdateMaxQueueItemsModalError({
+        message: `Error: The maximum number of queuers [${maxQueueItems}] you tried to set is LESS THAN the current number of queuers [${queueItems.length}]`,
+        classname: `border-1 p-2`,
+      });
+    } else if (
+      parseInt(maxQueueItems) !== queue.maxQueueItems &&
+      (queueItems ? parseInt(maxQueueItems) >= queueItems.length : true)
+    ) {
+      try {
+        console.log("Try to send max queue items update ", maxQueueItems);
+        console.log(queueItems ? queueItems.length : 0);
+        console.log(queue.id);
+        // SEND A POST TO UPDATE THE NUMBER OF QUEUERS.
+        const res = await apiPrivate.patch(`/maxQueueItems/${queue.id}`, {
+          maxQueueItems: parseInt(maxQueueItems),
+        });
+        console.log("Response from updating max queuers: ", res);
+        if (res?.status === 201) {
+          setQueue((prev) => ({
+            ...prev,
+            maxQueueItems: parseInt(maxQueueItems),
+          }));
+          setUpdateMaxQueueItemsModal(false);
+          setUpdateMaxQueueItemsModalError({});
+          toast.open(`Maximum number of queuers updated to ${maxQueueItems}.`, {
+            type: "success",
+            duration: 2000,
+            sticky: false,
+            id: "max-queue-items-updated-success",
+          });
 
+          console.log("Max Queuers Updated on Backend", res.data);
+        } else {
+          console.error("Failed to update max queuers on backend.");
+          setUpdateMaxQueueItemsModalError({
+            message: `Error: Unable to update maximum number of queuers to [${maxQueueItems}]`,
+            classname: `border-1 p-2`,
+          });
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    } else if (parseInt(maxQueueItems) === parseInt(queueItems.length)) {
+      setUpdateMaxQueueItemsModalError({
+        message: `Error: The maximum number of queuers [${maxQueueItems}] you tried to set is SAME AS the current number of queuers [${queueItems.length}]`,
+        classname: `border-1 p-2`,
+      });
+      console.log("Cannot set max queuers to same as current queuers");
+    } else if (parseInt(maxQueueItems) === parseInt(queue.maxQueueItems)) {
+      setUpdateMaxQueueItemsModalError({
+        message: `Error: The maximum number of queuers [${maxQueueItems}] you tried to set is SAME AS the current maximum number of queuers already set in the system [${queue.maxQueueItems}]`,
+        classname: `border-1 p-2`,
+      });
+      console.log("Cannot set max queuers to same as current max queuers");
+    }
+  };
+  const handleMaxQueuers = () => {
+    console.log("Maximum number of queuers have been created for this queue");
+    setNotice(
+      "You can no longer add queuers as the maximum number of queuers have been reached"
+    );
+    setNotification(true);
+    setMaxQueuersModal(true);
+  };
   const handleNavKioskView = useCallback((e) => {
     e.preventDefault();
     console.log("This is the account slug", acctSlug);
-    navigate(`/${acctSlug}/outlet/${params.outletId}/kiosk/${params.queueId}`);
+    window.open(
+      `${window.location.origin}/${acctSlug}/outlet/${params.outletId}/kiosk/${params.queueId}`
+    );
   }, []);
 
   if (openNotifModal) {
@@ -454,6 +615,72 @@ const ActiveOutlet = () => {
           setOpenNotifModal(false);
         }}
       />
+    );
+  }
+
+  if (endQueueErrorModal) {
+    return (
+      <NotificationModal
+        title={`Error Ending Queue`}
+        onClose={() => {
+          setEndQueueErrorModal(false);
+        }}
+        content={
+          <div className="text-center">
+            <div className="font-semibold italic text-red-800 text-sm">
+              Some {config.customerSingularLabel}/s are neither marked as No
+              Show nor Seated.
+            </div>
+            <ul className="mt-2">
+              {queueItems.map((item) => {
+                if (!item.noShow && !item.seated) {
+                  return (
+                    <li key={item.id} className="text-xs">
+                      <span className="font-bold text-primary-green p-2 text-lg">
+                        {item.name}
+                      </span>{" "}
+                      is NOT marked as No Show nor {config.status.SEATED}.
+                    </li>
+                  );
+                }
+              })}
+            </ul>
+          </div>
+        }
+        classNameDiv="max-w-md"
+      />
+    );
+  }
+
+  if (maxQueuersModal === true) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 ">
+        <div className="flex flex-col items-center bg-primary-cream p-10 rounded-3xl m-2 max-w-[460px] text-center">
+          <h1 className="text-2xl font-semibold text-center">Max queuers</h1>
+          <p className="mt-3 font-light">
+            You have reached the <span className="font-bold">maximum</span>{" "}
+            number of queuers allowed in this queue.
+          </p>
+          <br />
+          <div className="flex gap-3">
+            <button
+              className={buttonClassInModals}
+              onClick={() => {
+                setUpdateMaxQueueItemsModal(true);
+                setMaxQueuersModal(false);
+              }}
+            >
+              Change Max Queuers Allowed
+            </button>
+            <button
+              className={errorButtonInModals}
+              onClick={() => setMaxQueuersModal(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -475,7 +702,7 @@ const ActiveOutlet = () => {
               onSuccess={endQueueAllowed}
               onFailure={handleAuthModalClose}
               actionPurpose="End Queue" // Changed actionPurpose for clarity
-              minimumRole="MANAGER"
+              minimumRole="TIER_3"
               outletId={params.outletId}
             />
           </div>
@@ -485,7 +712,7 @@ const ActiveOutlet = () => {
         <button
           className={
             buttonClass +
-            " bg-red-700 border-1 border-red-500 hover:bg-red-900 fixed top-0 right-0 lg:absolute mr-3"
+            " bg-red-700 border-1 border-red-500 hover:bg-red-900 fixed top-0 right-0 lg:absolute mr-3 max-w-[180px]"
           }
           onClick={handleEndQueue}
         >
@@ -493,48 +720,105 @@ const ActiveOutlet = () => {
           <span className="pl-3">End Queue</span>
         </button>
       )}
-      {createCustomerModal && (
-        <div className="">
-          <p
-            className="absolute top-0 right-0 text-red-700 pr-5 pt-2 hover:text-red-950 transition ease-in active:text-red-950 font-bold cursor-pointer"
-            onClick={() => {
-              setCreateCustomerModal(false);
-            }}
+      {updateMaxQueueItemsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+          <div
+            className={`flex flex-col items-center ${primaryBgClass} p-10 rounded-3xl m-2 max-w-[400px]`}
           >
-            X
-          </p>
+            <h1 className="text-2xl font-extralight text-center">
+              Update Maximum Queuers
+            </h1>
+            <p
+              className={
+                `text-red-700 text-center text-sm px-2 ` +
+                updateMaxQueueItemsModalError.classname
+              }
+            >
+              {updateMaxQueueItemsModalError.message}
+            </p>
+            <div className="flex flex-col items-center">
+              <label htmlFor="maxQueueItems" className="mt-3 font-bold">
+                Maximum number of Queuers Allowed
+              </label>
+              <input
+                type="number"
+                id="maxQueueItems"
+                placeholder={maxQueueItems}
+                onChange={(e) => {
+                  setMaxQueueItems(e.target.value);
+                }}
+                className="border-1 p-2 text-center mt-2"
+              />
+            </div>
+            <div className="flex gap-2">
+              <div
+                onClick={handleUpdateMaxQueueItems}
+                className={buttonClassInModals}
+              >
+                Update
+              </div>
+              <div
+                onClick={() => {
+                  setUpdateMaxQueueItemsModal(false);
+                  setMaxQueueItems(queue.maxQueueItems);
+                  setUpdateMaxQueueItemsModalError({});
+                }}
+                className={errorButtonInModals}
+              >
+                Cancel
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {createCustomerModal && (
+        <div className="z-20 w-full flex items-center justify-center mt-8">
           <CreateCustomer
             onSuccess={handleRefresh}
+            onFull={handleMaxQueuers}
             setModal={setCreateCustomerModal}
+            showPax={showPax}
             setNotice={setNotice}
             setNotification={setNotification}
           />
         </div>
       )}
-      {!createCustomerModal && (
-        <div className="">
-          {queueItems.length === 0 && (
-            <div className="mt-3 font-semibold italic text-primary-dark-green">
-              There are no queuers in queue yet...
+      {!updateMaxQueueItemsModal && !createCustomerModal && (
+        <div
+          className={` ${primaryTextClass} p-5 rounded-lg mb-5 md:ring-1 md:ring-primary-green/30`}
+        >
+          <div className="">
+            <h3 className="lg:flex text-center lg:items-center">
+              Current Maximum Number Of {config.customerLabel}:{" "}
+              <div
+                className="lg:px-5 lg:py-2 py-1 m-2 lg:ml-4 bg-primary-green text-white text-center rounded-lg cursor-pointer hover:bg-primary-dark-green "
+                onClick={() => setUpdateMaxQueueItemsModal(true)}
+              >
+                {maxQueueItems}{" "}
+                <i className="fa-solid fa-pen-to-square ml-2"></i>
+              </div>
+            </h3>
+          </div>
+          {queueItems && queueItems.length === 0 && (
+            <div className="mt-3 font-semibold italic text-primary-dark-green dark:text-primary-light-green">
+              There are no {config.customerSingularLabel} in queue yet...
             </div>
           )}
           {errors && <p className={errorClass}>{errors.general}</p>}
-          <div className="flex gap-2">
+          <div className="flex gap-2 text-sm">
             <button
               className={
-                buttonClass +
-                "  bg-primary-green hover:bg-primary-dark-green border-1 border-primary-light-green"
+                "  bg-primary-green hover:bg-primary-dark-green md:max-w-[200px] border-1 border-primary-light-green transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline text-center"
               }
               onClick={(e) => {
                 handleAddCustomer(e);
               }}
             >
-              + Add Queuer
+              + Add {config.customerSingularLabel}
             </button>
             <button
               className={
-                buttonClass +
-                "  bg-primary-green hover:bg-primary-dark-green  border-1 border-primary-light-green"
+                "  bg-primary-green hover:bg-primary-dark-green md:max-w-[200px] border-1 border-primary-light-green transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline text-center"
               }
               onClick={(e) => {
                 handleNavKioskView(e);
@@ -544,27 +828,36 @@ const ActiveOutlet = () => {
             </button>
           </div>
           {/* PORTRAIT */}
-          {!lg && queueItems.length > 0 && (
+          {!lg && queueItems && queueItems.length > 0 && (
             <div className="">
               <div className="">
+                <p
+                  className={`text-sm ${primaryTextClass} font-semibold underline my-2`}
+                >
+                  Active {config.customerLabel}
+                </p>
                 {queueItems.map((item) => {
                   // Only render active items in the first block
                   if (item.active === true) {
                     return (
                       <div className="" key={item.id}>
-                        <div className="flex-row w-full  my-3 rounded-2xl p-2 shadow-2xl bg-primary-cream ">
+                        <div
+                          className={`flex-row w-full my-3 rounded-2xl p-2 shadow-2xl dark:shadow-white/20 dark:bg-stone-800/90`}
+                        >
                           <div className="grid grid-cols-2 border-b-1">
                             <div className="flex items-center p-1 border-r-1">
-                              <div className={activeTableHeader + " mr-5"}>
-                                Queuer Number
+                              <div className={activeTableHeader + " md:mr-5"}>
+                                {config.customerSingularLabel} Number
                               </div>
-                              <div className={activeTableAnswer + ""}>
+                              <div
+                                className={activeTableAnswer + "pr-2 md:pr-0"}
+                              >
                                 {item.position}
                               </div>
                             </div>
                             <div className="flex items-center p-1 relative">
                               <div
-                                className={`text-xs text-primary-dark-green mr-3 ml-2`}
+                                className={`text-xs text-primary-dark-green dark:text-primary-light-green mr-3 ml-2`}
                               >
                                 Name
                               </div>
@@ -573,7 +866,7 @@ const ActiveOutlet = () => {
                                   {item.name || item?.Queuer?.name || "N/A"}
                                 </span>
                                 {item?.customer && (
-                                  <span className="ml-2 px-2 py-0.5  absolute top-0 right-0 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
+                                  <span className="ml-2 px-2 py-0.5 absolute -top-2 -right-2 md:top-0 md:right-0 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
                                     VIP
                                   </span>
                                 )}
@@ -581,7 +874,7 @@ const ActiveOutlet = () => {
                             </div>
                           </div>
 
-                          {businessType === "RESTAURANT" && (
+                          {showPax && (
                             <div className={`grid grid-cols-3 border-b-1`}>
                               <div className="col-span-1 flex items-center p-1 border-r-1">
                                 <div className={activeTableHeader}>PAX</div>
@@ -615,7 +908,7 @@ const ActiveOutlet = () => {
                             </div>
                           )}
 
-                          {businessType !== "RESTAURANT" && (
+                          {!showPax && (
                             <div className="flex items-center p-1 border-b-1">
                               <div className={activeTableHeader}>
                                 <i className="fa-solid fa-clock"></i> Waited
@@ -646,7 +939,8 @@ const ActiveOutlet = () => {
                             <div className="flex flex-wrap gap-1">
                               <div
                                 className={
-                                  activeTableAnswer + " flex items-center ml-5"
+                                  activeTableAnswer +
+                                  " flex items-center md:ml-5"
                                 }
                               >
                                 <input
@@ -660,7 +954,7 @@ const ActiveOutlet = () => {
                                   htmlFor={`called-${item.id}`}
                                   className={
                                     activeTableAnswer +
-                                    " ml-2 mr-5 " +
+                                    " ml-1 md:ml-2 md:mr-5 " +
                                     getCalledTimeClass(item.calledAt)
                                   }
                                 >
@@ -681,14 +975,17 @@ const ActiveOutlet = () => {
                                 />
                                 <label
                                   htmlFor={`seated-${item.id}`}
-                                  className={activeTableAnswer + " ml-2"}
+                                  className={
+                                    activeTableAnswer + " ml-1 md:ml-2"
+                                  }
                                 >
-                                  Seated
+                                  {config.status.SEATED}
                                 </label>
                               </div>
                               <div
                                 className={
-                                  activeTableAnswer + " flex items-center ml-5"
+                                  activeTableAnswer +
+                                  " flex items-center md:ml-5"
                                 }
                               >
                                 <input
@@ -700,7 +997,9 @@ const ActiveOutlet = () => {
                                 />
                                 <label
                                   htmlFor={`noShow-${item.id}`}
-                                  className={activeTableAnswer + " ml-2 mr-5 "}
+                                  className={
+                                    activeTableAnswer + " ml-1 md:ml-2 md:mr-5 "
+                                  }
                                 >
                                   No Show
                                 </label>
@@ -715,11 +1014,16 @@ const ActiveOutlet = () => {
                 })}
               </div>
               <div className="">
+                <p
+                  className={`text-sm ${primaryTextClass} font-semibold underline my-2`}
+                >
+                  Inactive {config.customerLabel}
+                </p>
                 {queueItems.map((item) => {
                   if (item.active === false && item.quit === false) {
                     return (
                       <div className="" key={item.id}>
-                        <div className="flex-row w-full  my-3 rounded-2xl p-2 shadow-2xl bg-stone-300 ">
+                        <div className="flex-row w-full  my-3 rounded-2xl p-2 shadow-2xl bg-stone-300 dark:bg-stone-900 ">
                           <div className="grid grid-cols-2">
                             <div className="flex items-center p-1 ">
                               <div className={activeTableHeader + ""}>
@@ -736,7 +1040,7 @@ const ActiveOutlet = () => {
                                   {item?.customer?.name || item.name || "N/A"}
                                 </span>
                                 {item?.customer && (
-                                  <span className="ml-2 px-2 py-0.5 absolute top-0 right-0 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
+                                  <span className="ml-2 px-2 py-0.5 absolute -top-2 -right-2 md:top-0 md:right-0 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
                                     VIP
                                   </span>
                                 )}
@@ -751,6 +1055,11 @@ const ActiveOutlet = () => {
                 })}
               </div>
               <div className="">
+                <p
+                  className={`text-sm ${primaryTextClass} font-semibold underline my-2`}
+                >
+                  {config.customerLabel} Who Left The Queue
+                </p>
                 {queueItems.map((item) => {
                   if (item?.active === false && item?.quit === true) {
                     return (
@@ -772,7 +1081,7 @@ const ActiveOutlet = () => {
                                   {item?.customer?.name || item?.name || "N/A"}
                                 </span>
                                 {item?.customer && (
-                                  <span className="ml-2 px-2 py-0.5 absolute top-0 right-0 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
+                                  <span className="ml-2 px-2 py-0.5 absolute -top-2 -right-2 md:top-0 md:right-0 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
                                     VIP
                                   </span>
                                 )}
@@ -789,68 +1098,61 @@ const ActiveOutlet = () => {
             </div>
           )}
           {/* HEADER FOR LANDSCAPE*/}
-          {lg && queueItems.length > 0 && (
+          {lg && queueItems && queueItems.length > 0 && (
             <div className="hidden md:block overflow-auto">
-              <div className="grid grid-cols-13 mt-3 rounded-md p-2 shadow-2xl bg-primary-cream text-center">
+              <div
+                className={`grid grid-cols-13 mt-3 rounded-md p-2 shadow-2xl dark:shadow-white lg:shadow-none ${primaryBgClass} text-primary-dark-green dark:text-primary-light-green text-center `}
+              >
                 <div
                   className={
                     landscapeHeaderClass +
-                    " text-primary-dark-green col-span-1 border-l-10 rounded-l-xl"
+                    "  col-span-1 border-l-10 rounded-l-xl"
                   }
                 >
                   Q#
                 </div>
-                <div
-                  className={
-                    landscapeHeaderClass + " text-primary-dark-green col-span-2"
-                  }
-                >
+                <div className={landscapeHeaderClass + " col-span-2"}>
                   Time Waited
                 </div>
-                {businessType === "RESTAURANT" && (
-                  <div
-                    className={
-                      landscapeHeaderClass +
-                      " text-primary-dark-green col-span-1"
-                    }
-                  >
+                {showPax && (
+                  <div className={landscapeHeaderClass + " col-span-1"}>
                     PAX
                   </div>
                 )}
-                <div
-                  className={
-                    landscapeHeaderClass + " text-primary-dark-green col-span-3"
-                  }
-                >
-                  Queuer Name
+                <div className={landscapeHeaderClass + "  col-span-3"}>
+                  {config.customerLabel} Name
+                </div>
+                <div className={landscapeHeaderClass + " col-span-2"}>
+                  {config.customerLabel} Contact Number
                 </div>
                 <div
-                  className={
-                    landscapeHeaderClass + " text-primary-dark-green col-span-2"
-                  }
+                  className={landscapeHeaderClass + "  col-span-4 rounded-r-xl"}
                 >
-                  Queuer Contact Number
-                </div>
-                <div
-                  className={
-                    landscapeHeaderClass +
-                    " text-primary-dark-green col-span-4 rounded-r-xl"
-                  }
-                >
-                  Status
+                  Status <br />
+                  {config.status.SEATED === "Seen" ? (
+                    <div className="font-light text-xs mt-1">
+                      <span className="font-semibold">Seen</span> -{" "}
+                      <span className="italic">
+                        Patient is being seen or has been seen.
+                      </span>
+                    </div>
+                  ) : (
+                    ""
+                  )}
                 </div>
               </div>
+
               {queueItems.map((item) => {
                 if (item.active === true) {
                   return (
                     <div
-                      className="grid grid-cols-13 px-2 pb-1 shadow-2xl bg-primary-cream text-center"
+                      className={`grid grid-cols-13 px-2 pb-1 shadow-xl lg:shadow-none dark:text-primary-light-green text-center bg-white dark:bg-stone-600`}
                       key={item.id}
                     >
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-1 border-l-10 rounded-l-xl p-1"
+                          " dark:bg-stone-800/90 col-span-1 border-l-10 rounded-l-xl p-1"
                         }
                       >
                         {item.position}
@@ -858,17 +1160,17 @@ const ActiveOutlet = () => {
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-2" +
+                          " dark:bg-stone-800/90 col-span-2" +
                           getWaitingTimeClass(item.createdAt)
                         }
                       >
                         {convertedTime(item.createdAt)}
                       </div>
-                      {businessType === "RESTAURANT" && (
+                      {showPax && (
                         <div
                           className={
                             landscapeHeaderClass +
-                            `col-span-1
+                            ` dark:bg-stone-800/90 col-span-1
                            ${
                              item.id === highlightedItem ? "bg-yellow-200 " : ""
                            }`
@@ -877,7 +1179,12 @@ const ActiveOutlet = () => {
                           {item.pax}
                         </div>
                       )}
-                      <div className={landscapeHeaderClass + " col-span-3"}>
+                      <div
+                        className={
+                          landscapeHeaderClass +
+                          " dark:bg-stone-800/90 col-span-3"
+                        }
+                      >
                         {item?.customer?.name || item?.name}
                         {item?.customer && (
                           <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-400 text-yellow-900 rounded-full">
@@ -885,12 +1192,18 @@ const ActiveOutlet = () => {
                           </span>
                         )}
                       </div>
-                      <div className={landscapeHeaderClass + " col-span-2"}>
+                      <div
+                        className={
+                          landscapeHeaderClass +
+                          " dark:bg-stone-800/90 col-span-2"
+                        }
+                      >
                         {item.contactNumber || item?.customer?.number}
                       </div>
                       <div
                         className={
-                          landscapeHeaderClass + " col-span-4 rounded-r-xl"
+                          landscapeHeaderClass +
+                          " dark:bg-stone-800/90 col-span-4 rounded-r-xl"
                         }
                       >
                         <form className=" flex justify-center items-center mt-1 gap-1 ">
@@ -924,7 +1237,7 @@ const ActiveOutlet = () => {
                               htmlFor={`seated-landscape-${item.id}`}
                               className={"text-xs ml-2"}
                             >
-                              Seated
+                              {config.status.SEATED}
                             </label>
                           </div>
                           <div className={"flex items-center"}>
@@ -949,33 +1262,36 @@ const ActiveOutlet = () => {
                 }
                 return null;
               })}
+
               {queueItems.map((item) => {
                 // INACTIVE + NEVER QUIT
                 if (item.active === false && item.quit === false) {
                   return (
                     <div
-                      className="grid grid-cols-13 px-2 pb-1 shadow-2xl bg-primary-cream text-center"
+                      className={`grid grid-cols-13 px-2 pb-1 shadow-2xl lg:shadow-none text-center`}
                       key={item.id}
                     >
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-1 border-l-10 rounded-l-xl p-1 bg-stone-300"
+                          " col-span-1 border-l-10 rounded-l-xl p-1 bg-stone-200 dark:bg-stone-900"
                         }
                       >
                         {item.position}
                       </div>
                       <div
                         className={
-                          landscapeHeaderClass + " col-span-2 bg-stone-300"
+                          landscapeHeaderClass +
+                          " col-span-2 bg-stone-200 dark:bg-stone-900"
                         }
                       >
                         {convertedTime(item.createdAt)}
                       </div>
-                      {businessType === "RESTAURANT" && (
+                      {showPax && (
                         <div
                           className={
-                            landscapeHeaderClass + " col-span-1 bg-stone-300"
+                            landscapeHeaderClass +
+                            " col-span-1 bg-stone-200 dark:bg-stone-900"
                           }
                         >
                           {item.pax}
@@ -983,7 +1299,8 @@ const ActiveOutlet = () => {
                       )}
                       <div
                         className={
-                          landscapeHeaderClass + " col-span-3 bg-stone-300"
+                          landscapeHeaderClass +
+                          " col-span-3 bg-stone-200 dark:bg-stone-900"
                         }
                       >
                         {item?.customer?.name || item.name}
@@ -995,7 +1312,8 @@ const ActiveOutlet = () => {
                       </div>
                       <div
                         className={
-                          landscapeHeaderClass + " col-span-2 bg-stone-300"
+                          landscapeHeaderClass +
+                          " col-span-2 bg-stone-200 dark:bg-stone-900"
                         }
                       >
                         {item.contactNumber || item?.customer?.number}
@@ -1003,15 +1321,15 @@ const ActiveOutlet = () => {
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-4 rounded-r-xl bg-stone-300"
+                          " col-span-4 rounded-r-xl bg-stone-200 dark:bg-stone-900"
                         }
                       >
-                        <form className=" flex justify-center items-center mt-1 gap-1 bg-stone-300">
+                        <form className=" flex justify-center items-center mt-1 gap-1 bg-stone-200 dark:bg-stone-900">
                           <div className={"flex items-center "}>
                             <input
                               type="checkbox"
                               id={`called-inactive-${item.id}`} // Unique ID
-                              className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
+                              className={checkBoxClass}
                               onChange={(e) => handleCalled(e, item.id)}
                               checked={item.called || false}
                             />
@@ -1029,7 +1347,7 @@ const ActiveOutlet = () => {
                             <input
                               type="checkbox"
                               id={`seated-inactive-${item.id}`} // Unique ID
-                              className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
+                              className={checkBoxClass}
                               onChange={(e) => handleSeated(e, item.id)}
                               checked={item.seated || false}
                             />
@@ -1037,14 +1355,14 @@ const ActiveOutlet = () => {
                               htmlFor={`seated-inactive-${item.id}`}
                               className={"text-xs ml-2"}
                             >
-                              Seated
+                              {config.status.SEATED}
                             </label>
                           </div>
                           <div className={"flex items-center"}>
                             <input
                               type="checkbox"
                               id={`noShow-inactive-${item.id}`} // Unique ID
-                              className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
+                              className={checkBoxClass}
                               onChange={(e) => handleNoShow(e, item.id)}
                               checked={item.noShow || false}
                             />
@@ -1062,11 +1380,12 @@ const ActiveOutlet = () => {
                 }
                 return null;
               })}
+
               {queueItems.map((item) => {
                 if (item.active === false && item.quit === true) {
                   return (
                     <div
-                      className="grid grid-cols-13 px-2 pb-1 shadow-2xl bg-primary-cream text-center"
+                      className={`grid grid-cols-13 px-2 pb-1 shadow-2xl lg:shadow-none ${primaryBgClass} text-center`}
                       key={item.id}
                     >
                       <div
@@ -1085,7 +1404,7 @@ const ActiveOutlet = () => {
                       >
                         {convertedTime(item.createdAt)}
                       </div>
-                      {businessType === "RESTAURANT" && (
+                      {showPax && (
                         <div
                           className={
                             landscapeHeaderClass +
@@ -1153,7 +1472,7 @@ const ActiveOutlet = () => {
                               htmlFor={`seated-quit-${item.id}`}
                               className={"text-xs ml-2"}
                             >
-                              Seated
+                              {config.status.SEATED}
                             </label>
                           </div>
                           <div className={"flex items-center"}>

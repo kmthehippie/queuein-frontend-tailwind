@@ -1,6 +1,10 @@
 import React from "react";
 import useAuth from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import {
+  primaryBgTransparentClass,
+  primaryTextClass,
+} from "../../styles/tailwind_styles";
 
 const Logout = () => {
   const { logout, accountId } = useAuth();
@@ -14,7 +18,9 @@ const Logout = () => {
   };
   return (
     <div className="pt-15 md:pt-3 md:absolute md:top-1/5 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/5 ">
-      <div className=" bg-white/70 rounded-2xl md:p-20 text-center m-10 p-10 relative">
+      <div
+        className={`${primaryBgTransparentClass} ${primaryTextClass} rounded-2xl md:p-20 text-center m-10 p-10 relative`}
+      >
         <div className="">
           <p
             className="absolute top-0 right-0 text-red-700 pr-5 pt-2 hover:text-red-950 transition ease-in active:text-red-950 font-bold cursor-pointer"
@@ -22,9 +28,9 @@ const Logout = () => {
           >
             X
           </p>
-          <h1 className="font-extralight text-3xl mb-8">Logout</h1>
+          <h1 className="font-semibold text-3xl mb-8">Logout</h1>
           <p>Are you sure you would like to logout?</p>
-          <div className="mt-5">
+          <div className="mt-5 flex justify-center space-x-4">
             <button
               className="text-white p-2 mr-5 bg-primary-green rounded-lg cursor-pointer"
               onClick={handleNavigateHome}

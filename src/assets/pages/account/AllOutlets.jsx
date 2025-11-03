@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { msToMins } from "../../utils/timeConverter";
 import UpdateOutletModal from "../../components/UpdateOutletModal";
 import useApiPrivate from "../../hooks/useApiPrivate";
 import AuthorisedUser from "./AuthorisedUser";
@@ -8,12 +7,19 @@ import useAuth from "../../hooks/useAuth";
 import QRCode from "../../components/QRCodeButton";
 import { numericalSort } from "../../utils/sortList";
 import { replaceEscaped } from "../../utils/replaceRegex";
+import {
+  primaryBgTransparentClass,
+  primaryBgClass,
+  primaryTextClass,
+} from "../../styles/tailwind_styles";
+import { useBusinessType } from "../../hooks/useBusinessType";
 
 const AllOutlets = () => {
   // Functional States
   const { isAuthenticated, accountId, reloadNav, setReloadNav } = useAuth();
   const apiPrivate = useApiPrivate();
   const navigate = useNavigate();
+  const { config } = useBusinessType();
 
   const [outlets, setOutlets] = useState([]);
   const [outletId, setOutletId] = useState("");
@@ -23,7 +29,7 @@ const AllOutlets = () => {
   const [acctName, setAcctName] = useState("");
   const [selectedOutletData, setSelectedOutletData] = useState(null);
   const [logo, setLogo] = useState("");
-  const [outletText, setOutletText] = useState("");
+  // const [outletText, setOutletText] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(false);
 
   const [errors, setErrors] = useState("");
@@ -59,6 +65,10 @@ const AllOutlets = () => {
     navigate(`/db/${accountId}/settings/account`);
   };
 
+  const handleNavigateOutlet = (outletId) => {
+    navigate(`/db/${accountId}/outlet/${outletId}`);
+  };
+
   const handleDelete = async (outlet) => {
     console.log("This is the outlet inside handle delete: ", outlet);
     setErrors("");
@@ -90,15 +100,15 @@ const AllOutlets = () => {
       console.log("Account id is not defined ", accountId);
       return;
     }
-    const handleOutletText = (type) => {
-      if (type === "RESTAURANT") {
-        setOutletText("Outlet");
-      } else if (type === "CLINIC") {
-        setOutletText("Clinic");
-      } else if (type === "BASIC") {
-        setOutletText("Event Location");
-      }
-    };
+    // const handleOutletText = (type) => {
+    //   if (type === "RESTAURANT") {
+    //     setOutletText("Outlet");
+    //   } else if (type === "CLINIC") {
+    //     setOutletText("Clinic");
+    //   } else if (type === "BASIC") {
+    //     setOutletText("Event Location");
+    //   }
+    // };
     const fetchOutlets = async () => {
       try {
         const res = await apiPrivate.get(`/allOutlets/${accountId}`);
@@ -108,7 +118,7 @@ const AllOutlets = () => {
           setLogo(res.data.accountInfo.logo);
           const name = replaceEscaped(res.data.accountInfo.companyName);
           setAcctName(name);
-          handleOutletText(res.data.accountInfo.businessType);
+          // handleOutletText(res.data.accountInfo.businessType);
         }
       } catch (error) {
         console.error(error);
@@ -124,10 +134,12 @@ const AllOutlets = () => {
     <div className="pt-15 md:pt-3">
       {showAuthModal && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
+          <div
+            className={`${primaryBgClass} p-6 rounded-lg shadow-xl relative max-w-sm w-full`}
+          >
             <button
               onClick={handleAuthModalClose}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
+              className={`absolute top-2 right-2 ${primaryTextClass} text-xl font-bold`}
             >
               &times;
             </button>
@@ -142,27 +154,33 @@ const AllOutlets = () => {
         </div>
       )}
       <div className="md:mt-5">
-        <h1 className="ml-5 font-semibold mt">Welcome back, {acctName}</h1>
-        <small className="ml-5 text-sm font-light italic text-stone-500">
+        <h1 className={`ml-5 font-semibold mt ${primaryTextClass}`}>
+          Welcome back, {acctName}
+        </h1>
+        <small className={`ml-5 text-sm font-light italic ${primaryTextClass}`}>
           Organizing your queues for your business
         </small>
       </div>
 
-      <div className="rounded-2xl p-3 relative m-1 text-center bg-primary-cream/60 shadow-lg border-1 border-transparent hover:border-white hover:shadow-white/90 cursor-pointer hover:text-primary-dark-green transition ease-in-out my-3 max-w-sm mx-auto md:hidden">
+      <div
+        className={`rounded-2xl p-3 relative m-1 text-center shadow-lg border-1 border-transparent hover:border-white hover:shadow-white/90 cursor-pointer hover:text-primary-dark-green dark:text-primary-cream ${primaryBgTransparentClass} dark:hover:text-primary-light-green transition ease-in-out my-3 max-w-sm mx-auto md:hidden`}
+      >
         <Link
           to={`/db/${accountId}/outlets/new`}
           className="font-extralight text-3xl"
         >
-          Create New {outletText} +
+          Create New {config.queueName} +
         </Link>
       </div>
 
-      <h1 className="ml-5 text-sm font-light italic text-stone-500 mb-5">
-        Manage your existing {outletText}s...
+      <h1 className="ml-5 text-sm font-light italic text-stone-500 dark:text-stone-200 mb-5">
+        Manage your existing {config.label}s...
       </h1>
 
       {!logo && (
-        <div className="font-light text-primary-dark-green lg:absolute lg:top-0 lg:right-0 lg:w-50 lg:z-1 text-center p-3 bg-primary-cream/80 m-3 border-1 border-red-900">
+        <div
+          className={`font-light text-primary-dark-green lg:absolute lg:top-0 lg:right-0 lg:w-50 lg:z-1 text-center p-3 ${primaryBgTransparentClass} m-3 border-1 border-red-900`}
+        >
           <h1 className="font-bold text-lg">Notification</h1>
           <p className="text-sm">
             Your <span className="font-medium">logo</span> is not set up yet,
@@ -180,12 +198,14 @@ const AllOutlets = () => {
 
       {errorsModal && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
+          <div
+            className={`${primaryBgClass} p-6 rounded-lg shadow-xl relative max-w-sm w-full`}
+          >
             <button
               onClick={() => {
                 setErrorsModal(!errorsModal);
               }}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
+              className={`absolute top-2 right-2 ${primaryTextClass} text-xl font-bold`}
             >
               &times;
             </button>
@@ -193,10 +213,12 @@ const AllOutlets = () => {
           </div>{" "}
         </div>
       )}
-      <div className="grid lg:grid-cols-2 grid-cols-1 mb-10">
+      <div
+        className={`grid lg:grid-cols-2 grid-cols-1 mb-10 ${primaryTextClass}`}
+      >
         {outlets.map((outlet) => (
           <div
-            className=" rounded-2xl p-3 relative m-1 text-center bg-primary-cream/70 shadow-lg "
+            className={`rounded-2xl p-3 relative m-1 text-center ${primaryBgTransparentClass} shadow-lg`}
             key={outlet.id}
           >
             <Link to={`/db/${accountId}/outlet/${outlet.id}`}>
@@ -211,75 +233,54 @@ const AllOutlets = () => {
               />
             </Link>
 
-            <div className="z-10 text-xl font-semibold pt-2 text-primary-dark-green flex justify-center">
+            <div className="z-10 text-xl font-semibold pt-2 text-primary-dark-green dark:text-primary-light-green flex justify-center">
+              {outlet.name}
+            </div>
+            <div className="hover:text-primary-green transition ease-in cursor-pointer mt-1 ">
               <QRCode
                 value={outlet.id}
-                text={""}
-                cssSpan={
-                  "hover:text-primary-green transition ease-in cursor-pointer"
-                }
+                text={"Print QR Code"}
                 prevLocation={window.location.pathname}
-              />
-              {outlet.name}{" "}
-              <span
-                className="hover:text-primary-green transition ease-in cursor-pointer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  toggleEdit(outlet.id); // Pass the ID to toggleEdit
-                }}
-              >
-                <i className="fa-solid fa-pen-to-square pl-1"></i>
-              </span>
+              />{" "}
             </div>
-            {outlet.location !== null && (
-              <div className="z-10 pt-1 border-1 border-transparent">
-                <p className="text-xs font-semibold">Location </p>
-                <p className="font-light text-xs">
-                  {replaceEscaped(outlet.location)}
-                </p>
-              </div>
-            )}
-            {outlet.googleMaps !== null && (
-              <p className="z-10 text-primary-green pt-1 border-1 border-primary-green rounded-xl my-2 cursor-pointer hover:text-primary-dark-green hover:border-primary-dark-green transition ease-in">
-                <Link to={`${outlet.googleMaps}`}>Google Map Link</Link>
-              </p>
-            )}
-            {outlet.wazeMaps && (
-              <p className="z-10 text-primary-green pt-1 border-1 border-primary-green rounded-xl my-2 cursor-pointer hover:text-primary-dark-green hover:border-primary-dark-green transition ease-in">
-                <Link to={`${outlet.wazeMaps}`}>Waze Link</Link>
-              </p>
-            )}
-            <div className="z-10 pt-1 border-1 border-transparent">
-              <p className="text-xs font-semibold">Estimate Wait Time: </p>
-              <p className="font-light text-sm">
-                {msToMins(outlet.defaultEstWaitTime)} minutes
-              </p>
+            <div
+              className="hover:text-primary-green transition ease-in cursor-pointer mt-1"
+              onClick={(e) => {
+                e.preventDefault();
+                toggleEdit(outlet.id); // Pass the ID to toggleEdit
+              }}
+            >
+              <i className="fa-solid fa-pen-to-square pl-1"></i> Edit{" "}
+              {config.label} Queue Info
             </div>
-            {outlet.phone && (
-              <div className="z-10 pt-1 border-1 border-transparent">
-                <p className="text-xs font-semibold">Contact Number: </p>
-                <p className="font-light text-sm">
-                  {replaceEscaped(outlet.phone)}
-                </p>
-              </div>
-            )}
-            {outlet.hours && (
-              <div className="z-10 pt-1 border-1 border-transparent">
-                <p className="text-xs font-semibold">Opening Hours:</p>
-                <p className="font-light text-sm">
-                  {replaceEscaped(outlet.hours)}
-                </p>
-              </div>
-            )}
-            <div className="flex justify-center">
-              <div
-                className="text-center mt-3 transition ease-in text-red-700 font-light border-1 border-red-700 cursor-pointer
-              py-2 px-4 rounded-xl focus:outline-none focus:shadow-outline 
-              md:w-2/3 active:bg-red-700 hover:bg-red-900 hover:text-white"
-                onClick={() => handleDelete(outlet)}
-              >
-                <i className="fa-solid fa-trash"></i> Delete this {outletText}
-              </div>
+            <div
+              className="hover:text-primary-green transition ease-in cursor-pointer mt-1"
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavigateOutlet(outlet.id);
+              }}
+            >
+              <i className="fa-solid fa-arrow-right pl-1"></i> This{" "}
+              {config.label}'s Queue{" "}
+              {outlet.queues[0] ? (
+                <span className="text-primary-dark-green dark:text-primary-light-green">
+                  {" "}
+                  (Active)
+                </span>
+              ) : (
+                <span className="text-red-900 dark:text-red-500">
+                  {" "}
+                  (Inactive)
+                </span>
+              )}
+            </div>
+
+            <div
+              className="transition ease-in 
+               rounded-xl mt-1 cursor-pointer hover:text-red-700 "
+              onClick={() => handleDelete(outlet)}
+            >
+              <i className="fa-solid fa-trash"></i> Delete this {config.label}
             </div>
           </div>
         ))}

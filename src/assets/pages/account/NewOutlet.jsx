@@ -5,11 +5,23 @@ import useApiPrivate from "../../hooks/useApiPrivate";
 import Loading from "../../components/Loading";
 import useAuth from "../../hooks/useAuth";
 import AuthorizedUser from "./AuthorisedUser";
+import {
+  primaryBgTransparentClass,
+  primaryTextClass,
+  labelClass,
+  primaryButtonClass as buttonClass,
+  errorClass,
+  primaryInputClass,
+  xButtonClass,
+} from "../../styles/tailwind_styles";
+import { useBusinessType } from "../../hooks/useBusinessType";
 
 const NewOutlet = () => {
   const { accountId } = useParams();
   const navigate = useNavigate();
   const apiPrivate = useApiPrivate();
+  const { config } = useBusinessType();
+
   const { setReloadNav, outletText } = useAuth();
   //DATA TO SET
   const [name, setName] = useState(""); // Initialize with empty string
@@ -23,6 +35,7 @@ const NewOutlet = () => {
   const [hours, setHours] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showPax, setShowPax] = useState(false);
 
   //Errors
   const [errors, setErrors] = useState({});
@@ -34,18 +47,21 @@ const NewOutlet = () => {
   const [imgUrlError, setImgUrlError] = useState(false);
 
   //Tailwind Classes
-  const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800`;
-  const buttonClass = `mt-3 transition ease-in text-white font-light py-2 px-4 rounded-full focus:outline-none focus:shadow-outline min-w-20`;
-  const errorClass = `text-red-600 text-center`;
+
   const inputDivClass = `px-3 py-1`;
   const inputClass = (hasError) =>
-    `border-1 border-gray-400 rounded-lg bg-transparent appearance-none block py-3 px-4 text-gray-700 text-sm leading-tight focus:outline-none focus:border-black peer active:border-black  ${
-      hasError ? "border-red-500" : ""
-    }`;
+    `${primaryInputClass} ${hasError ? "border-red-500" : ""}`;
   const handleCreate = async (e) => {
     e.preventDefault();
     setShowAuthModal(true);
   };
+  const buttonGroupClass = `flex overflow-hidden `;
+  const buttonOptionClass = (isActive) =>
+    `px-4 py-2 text-sm font-medium focus:outline-none transition-colors duration-300 ${
+      isActive
+        ? "bg-primary-light-green text-white"
+        : "bg-gray-300 text-gray-700 hover:bg-gray-400"
+    }`;
 
   const handleAuthFailure = () => {
     setShowAuthModal(false);
@@ -64,6 +80,9 @@ const NewOutlet = () => {
       setImgFile(null);
       setImgUrl(null);
     }
+  };
+  const handleBackToAllOutlets = () => {
+    navigate(`/db/${accountId}/outlets/all`);
   };
   const createAccountAllowed = async () => {
     setErrors({});
@@ -134,9 +153,14 @@ const NewOutlet = () => {
     dataToSubmit.append("defaultEstWaitTime", defEstWaitTimeInMs);
     dataToSubmit.append("hours", hours);
     dataToSubmit.append("phone", phone);
+    console.log("Show pax value is: ", showPax);
+    dataToSubmit.append("showPax", JSON.stringify(showPax));
 
     try {
-      console.log("Trying to post to new outlet ", accountId);
+      console.log(
+        "Trying to post to new outlet ",
+        JSON.stringify(dataToSubmit)
+      );
       setIsLoading(true);
       // Authorised User
       const res = await apiPrivate.post(
@@ -148,7 +172,6 @@ const NewOutlet = () => {
           },
         }
       );
-
       if (res?.status === 201) {
         setIsLoading(false);
         setReloadNav();
@@ -164,7 +187,7 @@ const NewOutlet = () => {
   if (isLoading) {
     return (
       <Loading
-        title={"Create New Outlet"}
+        title={`Create New ${config.label}`}
         paragraph={"Do Not Navigate Away. Please Wait. "}
       />
     );
@@ -174,7 +197,12 @@ const NewOutlet = () => {
       {showAuthModal && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
-            <button onClick={handleAuthFailure}>&times;</button>
+            <button
+              className="text-red-700 absolute top-0 right-0"
+              onClick={handleAuthFailure}
+            >
+              &times;
+            </button>
             <AuthorizedUser
               onSuccess={createAccountAllowed}
               onFailure={handleAuthFailure}
@@ -186,14 +214,20 @@ const NewOutlet = () => {
         </div>
       )}
 
-      <div className=" rounded-2xl p-3 relative mx-3 mt-2 md:mt-5 md:mx-5 bg-primary-cream/50 shadow-lg ">
-        <h1 className="font-semibold text-2xl mb-3 text-center text-primary-dark-green">
-          Create a new {outletText}
+      <div
+        className={`rounded-2xl p-3 relative mx-3 mt-2 md:mt-5 md:mx-5 ${primaryBgTransparentClass} shadow-lg`}
+      >
+        <h1 className="font-semibold text-2xl mb-3 text-center text-primary-dark-green dark:text-primary-light-green">
+          Create a new {config.label}
         </h1>
+
+        <div className={xButtonClass} onClick={handleBackToAllOutlets}>
+          X
+        </div>
         <div className="flex flex-row justify-center items-center ">
           <form
             onSubmit={handleCreate}
-            className="w-md bg-primary-cream/70 rounded-2xl pb-3"
+            className={`w-md ${primaryBgTransparentClass} rounded-2xl pb-3`}
           >
             <div className={inputDivClass}>
               <label htmlFor="name" className={labelClass}>
@@ -204,12 +238,34 @@ const NewOutlet = () => {
                 type="text"
                 className={inputClass(nameError) + " w-full "}
                 value={name}
+                placeholder={`Please enter ${config.queueName}`}
                 onChange={(e) => setName(e.target.value)}
                 required
               />
               {nameError && errors.name && (
                 <p className={errorClass}>{errors.name}</p>
               )}
+            </div>
+            <div className={inputDivClass}>
+              <div className={labelClass + " mb-2"}>
+                Do you need PAX at your {config.customerLabel}?
+              </div>
+              <div className={buttonGroupClass}>
+                <button
+                  type="button"
+                  className={buttonOptionClass(showPax)}
+                  onClick={() => setShowPax(true)}
+                >
+                  Yes
+                </button>
+                <button
+                  type="button"
+                  className={buttonOptionClass(!showPax)}
+                  onClick={() => setShowPax(false)}
+                >
+                  No
+                </button>
+              </div>
             </div>
             <div className={inputDivClass}>
               <label htmlFor="location" className={labelClass}>
@@ -267,7 +323,7 @@ const NewOutlet = () => {
             </div>
             <div className={inputDivClass}>
               <label htmlFor="imgUrl" className={labelClass}>
-                Upload the image of your {outletText}
+                Upload the image of your {config.queueName}:
               </label>
 
               <div>
@@ -283,7 +339,9 @@ const NewOutlet = () => {
                 <p className={errorClass}>{errors.imgUrl}</p>
               )}
               <div>
-                <p className="text-xs font-light mt-3">A sample of the image</p>
+                <p className={`text-xs font-light mt-3 ${primaryTextClass}`}>
+                  A sample of the image
+                </p>
                 <img
                   src={
                     imgUrl ||
@@ -302,7 +360,9 @@ const NewOutlet = () => {
               <label htmlFor="defaultEstWaitTime" className={labelClass}>
                 An estimate wait time in minutes:*
               </label>
-              <span className="flex items-center text-center">
+              <span
+                className={`flex items-center text-center ${primaryTextClass}`}
+              >
                 <input
                   id="defaultEstWaitTime"
                   type="text"
@@ -348,7 +408,7 @@ const NewOutlet = () => {
                 <p className={errorClass}>{errors.hours}</p>
               )}
             </div>
-            <p className="text-center text-primary-dark-green">
+            <p className="text-center text-primary-dark-green dark:text-primary-light-green">
               * indicate required fields
             </p>
             {errors.general && (

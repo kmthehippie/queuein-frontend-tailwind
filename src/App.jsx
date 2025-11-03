@@ -45,6 +45,7 @@ const StaffManagement = lazy(() =>
   import("./assets/pages/account/StaffManagement.jsx")
 );
 const QRCode = lazy(() => import("./assets/pages/account/QRCode.jsx"));
+const Customers = lazy(() => import("./assets/pages/account/Customers.jsx"));
 
 //Import Pages From Customer
 const AccountLanding = lazy(() =>
@@ -93,8 +94,7 @@ const router = createBrowserRouter([
               />
             }
           >
-            {" "}
-            <div className="">
+            <div>
               <HeaderNav />
               <Home />
             </div>
@@ -141,10 +141,17 @@ const router = createBrowserRouter([
                   />
                 }
               >
-                <OutletLanding />
+                <SocketProvider>
+                  <OutletLanding />
+                </SocketProvider>
               </Suspense>
             ),
-            children: [{ path: "kiosk/:queueId", element: <KioskView /> }],
+            children: [
+              {
+                path: "kiosk/:queueId",
+                element: <KioskView />,
+              },
+            ],
           },
           {
             path: "kiosk/:queueItem",
@@ -152,7 +159,11 @@ const router = createBrowserRouter([
               {
                 path: "success",
                 // This path is still within the kiosk
-                element: <KioskSuccess />,
+                element: (
+                  <SocketProvider>
+                    <KioskSuccess />
+                  </SocketProvider>
+                ),
               },
               {
                 path: "qrScanned",
@@ -368,8 +379,8 @@ const router = createBrowserRouter([
                 ],
               },
               {
-                path: "customers",
-                //element: customers -- displays all customers that agree to share their data here. but if the customer refuse to share data, automatically delete in 24 hours
+                path: "VIPs",
+                element: <Customers />,
               },
               {
                 path: "staff",

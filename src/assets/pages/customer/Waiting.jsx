@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useLocation, Link, useNavigate } from "react-router-dom";
+import React, { useCallback, useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import moment from "moment";
 import api from "../../api/axios";
 import useSocket from "../../hooks/useSocket";
@@ -8,8 +8,32 @@ import useQueueSession from "../../hooks/useQueueSession";
 import PermissionNotification from "../../components/PermissionNotification";
 import useLSContext from "../../hooks/useLSContext";
 import NotificationModal from "../../components/NotificationModal";
+import {
+  primaryBgClass,
+  primaryTextClass,
+  secondaryTextClass,
+  primaryButtonClass as buttonClass,
+} from "../../styles/tailwind_styles";
+import { initializeApp } from "firebase/app";
+import { onMessage, getToken, getMessaging } from "firebase/messaging";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC88qAilHqJD0XdOlSvwtNZfNwtVq27FR8",
+  authDomain: "queue-in-88.firebaseapp.com",
+  projectId: "queue-in-88",
+  storageBucket: "queue-in-88.firebasestorage.app",
+  messagingSenderId: "838543402509",
+  appId: "1:838543402509:web:49d93e3110439443961744",
+  measurementId: "G-PL0TKQ8XLD",
+};
+
+const app = initializeApp(firebaseConfig);
+const messaging = getMessaging(app);
 
 const Waiting = () => {
+  //* useStuff
+  const navigate = useNavigate();
+  const { queueData, isLoadingSession } = useQueueSession();
   const { socket, isConnected, reconnect } = useSocket();
   const { setActiveQueueSession } = useLSContext();
   const toast = useToast();
@@ -17,6 +41,7 @@ const Waiting = () => {
   const [accountInfo, setAccountInfo] = useState("");
   const [outlet, setOutlet] = useState("");
   const [queueItem, setQueueItem] = useState(null);
+  const [queueItemSecret, setQueueItemSecret] = useState(null);
   const [customer, setCustomer] = useState("");
   const [pax, setPax] = useState("");
   const [newPax, setNewPax] = useState("");
@@ -24,20 +49,26 @@ const Waiting = () => {
   const [currentlyServing, setCurrentlyServing] = useState("");
   const [customerPosition, setCustomerPosition] = useState("");
   const [calledTimeElapsed, setCalledTimeElapsed] = useState("");
-
   const [connection, setConnection] = useState(true);
+
   //ewt = estimated wait time
   const [ewt, setEwt] = useState("");
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [dataLoaded, setDataLoaded] = useState(false);
   const [modalUpdate, setModalUpdate] = useState(false);
   const [modalLeave, setModalLeave] = useState(false);
   const [modalCalled, setModalCalled] = useState(false);
+  const [calledSoundPlayed, setCalledSoundPlayed] = useState(false);
   const [barType, setBarType] = useState("");
   const [progressBar, setProgressBar] = useState("");
   const [partiesAhead, setPartiesAhead] = useState("");
+  const [pendingAudioAlerts, setPendingAudioAlerts] = useState([]);
 
   //Queue Item Status
+  const [thirdAlerted, setThirdAlerted] = useState(false);
+  const [secondAlerted, setSecondAlerted] = useState(false);
+  const [firstAlerted, setFirstAlerted] = useState(false);
   const [inactive, setInactive] = useState(false);
   const [seated, setSeated] = useState(false);
   const [quit, setQuit] = useState(false);
@@ -49,12 +80,8 @@ const Waiting = () => {
     Notification.permission
   );
   const [userInteracted, setUserInteracted] = useState(false);
-
-  //* useStuff
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const { queueData, isLoadingSession } = useQueueSession(location.state?.data);
+  const [fcmToken, setFcmToken] = useState(null);
+  const [subscriptionAttempted, setSubscriptionAttempted] = useState(false);
 
   //* Helper functions
   const formatLastUpdated = (date) => {
@@ -67,7 +94,6 @@ const Waiting = () => {
   };
 
   //* Tailwind class
-
   const labelClass = `text-gray-500 text-sm `;
   const dotClass = "animate-pulse bg-stone-800 w-1 h-1 rounded-full";
   const youClass =
@@ -75,46 +101,149 @@ const Waiting = () => {
   const dotBGClass = "bg-stone-200 flex rounded-r w-full items-center h-full";
   const progBarClass =
     "flex w-full max-w-md justify-self-center mt-3 items-center h-[25px]";
-  const buttonClass = `mt-3 transition ease-in text-white font-light py-2 px-4 rounded-full focus:outline-none focus:shadow-outline min-w-20`;
 
   //* INSTANTIATE
   useEffect(() => {
     if (queueData && !isLoadingSession) {
+      console.log("The queue data: ", JSON.stringify(queueData));
       setOpenNotifModal(true);
-      console.log("Queue data: ", queueData);
       setAccountInfo(queueData.accountInfo);
       setOutlet(queueData.outlet);
       setQueueItem(queueData.queueItem);
+      setQueueItemSecret(queueData.queueItem.secretToken);
       setCustomer(queueData.customer);
+      setCurrentlyServing(queueData.currentlyServing);
       if (queueData.queueItem.called) {
         setModalCalled(true);
         const calledAt = moment(queueData.queueItem.calledAt).format(
           "dddd, MMMM Do YYYY, h:mm:ss a"
         );
         setCalledTimeElapsed(calledAt);
+        setPendingAudioAlerts(["/AlertSound.mp3"]);
       }
       setMessage(queueData.message);
       setCustomerPosition(queueData.queueItem.position);
       setLastUpdated(new Date());
       setPax(queueData.queueItem.pax);
       setEwt(queueData.outlet.defaultEstWaitTime);
+      setProgressBar(queueData.queueList.arr);
+      setBarType(queueData.queueList.type);
+      setPartiesAhead(queueData.queueList.partiesAhead);
       setDataLoaded(true);
     }
   }, [queueData, isLoadingSession]);
 
-  //* HANDLE INTERACTION
-  const handleUserInteraction = () => {
-    if (!userInteracted) {
-      const silentAudio = new Audio("/AlertSound.mp3");
-      silentAudio.volume = 0;
-      silentAudio
-        .play()
-        .catch((e) => console.error("Audio playback failed: ", e));
-      setUserInteracted(true);
+  //* PLAY SOUND FUNCTION
+  const playSound = useCallback(
+    (soundFile) => {
+      console.log(
+        "playSound called with:",
+        soundFile,
+        "userInteracted:",
+        userInteracted
+      );
+      if (userInteracted) {
+        const audio = new Audio(soundFile);
+        audio.play().catch((e) => console.error("Audio playback failed: ", e));
+      } else {
+        console.log("Adding to pending alerts:", soundFile);
+        setPendingAudioAlerts([soundFile]);
+      }
+    },
+    [userInteracted]
+  );
+
+  //* REQUEST AND SEND FCM TOKEN
+  const requestAndSendFCMToken = async () => {
+    try {
+      const registration = await navigator.serviceWorker.register(
+        "/firebase-messaging-sw.js",
+        {
+          scope: "/",
+        }
+      );
+      if (registration) {
+        console.log("Service worker registered: ", registration.scope);
+      }
+      await navigator.serviceWorker.ready;
+
+      const vapidKey = import.meta.env.VITE_VAPID_KEY;
+      const token = await getToken(messaging, {
+        vapidKey: vapidKey,
+        serviceWorkerRegistration: registration,
+      });
+
+      if (token) {
+        console.log("FCM Token received:", token);
+        setFcmToken(token);
+        if (!queueItemSecret) {
+          console.error("Cannot subscribe as secret token is MISSING");
+          return;
+        }
+        console.log("Q item ", queueItem.id, " secret: ", queueItemSecret);
+        const subscribeResponse = await api.post("notifications/subscribe", {
+          token: token,
+          queueItemId: queueItem.id,
+          secretToken: queueItemSecret,
+        });
+        if (subscribeResponse.status === 200) {
+          console.log("Successfully subscribed FCM token to backend.");
+          // Optional: Show a success toast
+        } else {
+          console.error(
+            "Failed to subscribe FCM token:",
+            subscribeResponse.data
+          );
+        }
+      } else {
+        console.log("no fcm token received");
+      }
+      onMessage(messaging, (payload) => {
+        console.log("Message received. ", payload);
+        new Notification(payload.notification?.title || "Notification", {
+          body: payload.notification?.body,
+          icon: "/Q-logo.svg",
+        });
+      });
+    } catch (err) {
+      console.error(err);
     }
   };
 
+  //* HANDLE INTERACTION
+  const handleUserInteraction = useCallback(() => {
+    console.log(
+      "Handling user interaction, ",
+      JSON.stringify(pendingAudioAlerts)
+    );
+    if (!userInteracted) {
+      const silentAudio = new Audio("/SilentSound.mp3");
+      silentAudio.volume = 0.05;
+
+      silentAudio
+        .play()
+        .then(() => {
+          console.log(
+            "Audio playback started successfully",
+            JSON.stringify(pendingAudioAlerts)
+          );
+          setUserInteracted(true);
+          if (pendingAudioAlerts.length !== 0) {
+            console.log("Playing the sound: ", pendingAudioAlerts[0]);
+            const audio = new Audio(pendingAudioAlerts[0]);
+            audio
+              .play()
+              .catch((e) => console.error("Audio playback failed: ", e));
+          }
+        })
+        .catch((e) =>
+          console.error("Audio playback failed at handleUserInteraction: ", e)
+        );
+    }
+  }, [userInteracted, pendingAudioAlerts]);
+
   useEffect(() => {
+    if (userInteracted) return;
     document.addEventListener("click", handleUserInteraction, { once: true });
     document.addEventListener("touchstart", handleUserInteraction, {
       once: true,
@@ -136,7 +265,71 @@ const Waiting = () => {
         once: true,
       });
     };
-  }, [userInteracted]);
+  }, [handleUserInteraction]);
+
+  //* CUSTOMER POSITION IN LINE ALERTS
+  useEffect(() => {
+    if (
+      dataLoaded &&
+      customerPosition !== "N/A" &&
+      !inactive &&
+      !isNaN(partiesAhead) &&
+      !modalCalled
+    ) {
+      const tempPosition = parseInt(partiesAhead, 10) + 1;
+      if (tempPosition === 3 && !thirdAlerted) {
+        playSound("/3rdEng.mp3");
+        setThirdAlerted(true);
+        // Optional: Show visual notification
+        toast.open("You are now third in line! Please get ready.", {
+          type: "info",
+          duration: 5000,
+        });
+      } else if (tempPosition === 2 && !secondAlerted) {
+        playSound("/2ndEng.mp3");
+        setSecondAlerted(true);
+        toast.open("You are second in line! Please stay near.", {
+          type: "info",
+          duration: 5000,
+        });
+      } else if (tempPosition === 1 && !firstAlerted) {
+        console.log("Sound is being played");
+        playSound("/1stEng.mp3");
+        setFirstAlerted(true);
+        toast.open("You are next in line! Please prepare to approach.", {
+          type: "warning",
+          duration: 5000,
+        });
+      }
+    }
+  }, [
+    partiesAhead,
+    dataLoaded,
+    inactive,
+    thirdAlerted,
+    secondAlerted,
+    firstAlerted,
+    modalCalled,
+    userInteracted,
+    playSound,
+  ]);
+
+  //* UPDATE CURRENT TIME FOR EST WAIT TIME CALCULATION
+  useEffect(() => {
+    const updateInterval = () => {
+      const timeDiff = Date.now() - lastUpdated.getTime();
+      if (timeDiff < 60000) return 5000; // Every 5 seconds for first minute
+      if (timeDiff < 300000) return 30000; // Every 30 seconds for first 5 minutes
+      return 60000; // Every minute after that
+    };
+
+    const timer = setInterval(() => {
+      console.log("Updating current time for interval check");
+      setCurrentTime(new Date());
+    }, updateInterval());
+
+    return () => clearInterval(timer);
+  }, [lastUpdated]);
 
   //* NOTIFICATION
   useEffect(() => {
@@ -150,13 +343,6 @@ const Waiting = () => {
           id: "browser-notif-unsupported",
         }
       );
-    } else if (notificationPermission === "granted") {
-      toast.open("Notifications are active! We will call you on your turn!", {
-        type: "success",
-        duration: 5000,
-        sticky: false,
-        id: "notif-perms-allowed",
-      });
     } else if (
       notificationPermission === "denied" ||
       notificationPermission === "default"
@@ -174,11 +360,13 @@ const Waiting = () => {
   useEffect(() => {
     if (socket && isConnected && queueItem) {
       socket.emit("join_queue", `queue_${queueItem.queueId}`);
-      socket.emit("set_queue_item_id", queueItem.id);
       socket.emit("join_queue_item_id", `queueitem_${queueItem.id}`);
-      socket.emit("cust_req_queue_refresh", queueItem.queueId);
+      socket.emit("customer_in_waiting", {
+        queueItemId: queueItem.id,
+      });
       socket.emit("cust_update_host", {
         queueId: queueItem.queueId,
+        queueItemId: queueItem.id,
         action: "join",
       });
 
@@ -195,35 +383,43 @@ const Waiting = () => {
   useEffect(() => {
     if (dataLoaded && queueItem !== null && !!socket && isConnected) {
       const called = () => {
-        if ("Notification" in window && Notification.permission === "granted") {
+        if (
+          "Notification" in window &&
+          Notification.permission === "granted" &&
+          !calledSoundPlayed
+        ) {
+          setThirdAlerted(false);
+          setSecondAlerted(false);
+          setFirstAlerted(false);
+          console.log("Called called");
           const audio = new Audio("/AlertSound.mp3");
           audio
             .play()
             .catch((e) => console.error("Audio playback failed: ", e));
           new Notification("It's Your Turn!", {
-            body: "Please proceed to the counter",
+            body: "Please approach.",
             vibrate: [200, 100, 200, 100, 200],
           });
+
+          setCalledSoundPlayed(true);
         }
       };
-
       const handleCalledUpdate = (data) => {
-        if (
-          data.alert &&
-          queueItem.id === data.queueItemId &&
-          data.action === "called"
-        ) {
+        console.log("Handling called update: ", data);
+        console.log("Current queue item id: ", queueItem.id);
+        if (data.alert && data.action === "called") {
           const calledAt = moment(data.calledAt).format(
             "dddd, MMMM Do YYYY, h:mm:ss a"
           );
+          console.log("Are we calling?");
           setCalledTimeElapsed(calledAt);
           setModalCalled(true);
           called();
         } else if (data.alert === false && data.action === "called") {
           setModalCalled(false);
+          setCalledSoundPlayed(false); // Reset flag when modal closes
         }
       };
-
       const handleSeatedUpdate = (data) => {
         if (
           data.alert &&
@@ -237,7 +433,6 @@ const Waiting = () => {
           setInactive(false);
         }
       };
-
       const handleNoShowUpdate = (data) => {
         if (
           data.alert &&
@@ -262,6 +457,16 @@ const Waiting = () => {
         }
       });
       socket.on("queue_update", (data) => {
+        if (data.queueList) {
+          setProgressBar(data.queueList.arr);
+          setBarType(data.queueList.type);
+          setPartiesAhead(data.queueList.partiesAhead);
+        }
+        setLastUpdated(new Date());
+        setCurrentlyServing(data.currentlyServing);
+        setCustomerPosition(data.yourPosition);
+        setPax(data.pax);
+
         if (data.inactive) {
           setInactive(true);
           if (data.seated) {
@@ -272,21 +477,7 @@ const Waiting = () => {
             setNoShow(true);
           }
         }
-
-        if (data.active && data.called) {
-          called();
-        }
-
-        setLastUpdated(new Date());
-        setProgressBar(data.queueList.arr);
-        setCurrentlyServing(data.currentlyServing);
-        setCustomerPosition(data.yourPosition);
-        setBarType(data.queueList.type);
-        setPartiesAhead(data.queueList.partiesAhead);
-        setPax(data.pax);
-        handleCalledUpdate(data);
       });
-
       socket.on("res_queue_refresh", (data) => {
         if (data.inactive) {
           setInactive(data.inactive);
@@ -302,9 +493,6 @@ const Waiting = () => {
             setBarType(data.queueList.type);
             setPartiesAhead(data.queueList.partiesAhead);
             setPax(data.pax);
-            if (data.called) {
-              called();
-            }
           } catch (error) {
             console.error("Error in res_queue_refresh handler:", error);
           }
@@ -312,7 +500,6 @@ const Waiting = () => {
           console.log("Inactive");
         }
       });
-
       //need to trigger update of host page when leave queue and join queue happens
 
       return () => {
@@ -332,7 +519,6 @@ const Waiting = () => {
   ]);
 
   //* FUNCTIONS
-
   const leaveQueue = async (e) => {
     e.preventDefault();
     setModalLeave(true);
@@ -403,12 +589,9 @@ const Waiting = () => {
     setModalUpdate(false);
     setNewPax("");
   };
-
-  //* REFRESH QUEUE USING SOCKETS
-
   const requestQueueRefresh = () => {
     if (socket && socket.connected && queueItem) {
-      socket.emit("cust_req_queue_refresh", queueItem.queueId);
+      socket.emit("cust_req_queue_refresh", queueItem.queueId, queueItem.id);
     } else {
       setConnection(false);
     }
@@ -416,29 +599,38 @@ const Waiting = () => {
 
   if (openNotifModal) {
     return (
-      <NotificationModal
-        title={`Hi ${queueItem.name}!`}
-        paragraph={`You are at position ${customerPosition}.`}
-        content={
-          <div className="max-w-[250px] my-3">
-            <p className="italic font-light text-sm">
-              <i className="fa-solid fa-volume-high pr-3"></i>Please keep your
-              audio <span className="font-bold text-lg">UP</span> so that you
-              can hear when we notify your turn!
-            </p>
-          </div>
-        }
-        onClose={() => {
-          setOpenNotifModal(false);
-        }}
-      />
+      <div>
+        <NotificationModal
+          title={`Hi ${queueItem.name}!`}
+          paragraph={`You are at position ${customerPosition}.`}
+          content={
+            <div className="max-w-[250px] my-3">
+              <p className="italic font-light text-sm">
+                <i className="fa-solid fa-volume-high pr-3"></i>Please keep your
+                audio <span className="font-bold text-lg">UP</span> so that you
+                can hear when we notify your turn!
+              </p>
+            </div>
+          }
+          onClose={() => {
+            handleUserInteraction();
+            setOpenNotifModal(false);
+            if (!subscriptionAttempted) {
+              requestAndSendFCMToken();
+              setSubscriptionAttempted(true);
+            }
+          }}
+        />
+      </div>
     );
   }
   return (
-    <div className="flex-row items-center justify-center p-3 sm:p-5 md:pt-8 relative h-full">
+    <div className="flex-row items-center justify-center p-3 sm:p-5 md:pt-8 h-full">
       {modalLeave && (
-        <div className="bg-primary-ultra-dark-green/85 min-w-full min-h-full absolute top-0 left-0 z-5">
-          <div className="bg-primary-cream z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/2 left-1/2 -translate-1/2 p-10 md:min-w-md">
+        <div className="bg-primary-ultra-dark-green/85 min-w-[100%] min-h-[100%] absolute top-0 left-0 z-5">
+          <div
+            className={`${primaryBgClass} z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/2 left-1/2 -translate-1/2 p-10 md:min-w-md`}
+          >
             <h1 className="text-red-900 font-semibold text-2xl">Warning:</h1>
 
             <p>Do you want to leave the queue?</p>
@@ -488,7 +680,7 @@ const Waiting = () => {
             </p>
             <p>Called since: {calledTimeElapsed}</p>
             <br />
-            <p>Please head over to the host immediately.</p>
+            <p>Please approach immediately.</p>
             <br />
           </div>
         </div>
@@ -557,7 +749,7 @@ const Waiting = () => {
       )}
       <Link
         to={`/${accountInfo.slug}`}
-        className="flex items-center pb-3 border-b-2 border-stone-400 justify-center"
+        className={`flex items-center pb-3 border-b-2 ${secondaryTextClass} justify-center`}
       >
         <img
           src={accountInfo.logo || null}
@@ -571,9 +763,12 @@ const Waiting = () => {
       </Link>
       {inactive && seated && (
         <div className="bg-primary-ultra-dark-green/35 min-w-full min-h-full absolute top-0 left-0 z-5">
-          <div className="bg-primary-cream z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/2 left-1/2 -translate-1/2 p-10 md:min-w-md">
+          <div
+            className={`${primaryBgClass} z-10 min-w-sm rounded-3xl text-center ${primaryTextClass} absolute top-1/2 left-1/2 -translate-1/2 p-10 md:min-w-md`}
+          >
             <h1 className="text-primary-light-green font-semibold text-4xl">
-              Enjoy your meal!
+              {/* MAKE SWITCH CODE FOR HERE */}
+              You are Seated!
             </h1>
             <br />
             <p className="text-2xl">
@@ -604,7 +799,9 @@ const Waiting = () => {
       )}
       {inactive && noShow && (
         <div className="bg-primary-ultra-dark-green/35 min-w-full min-h-full absolute top-0 left-0 z-5">
-          <div className="bg-primary-cream z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/2 left-1/2 -translate-1/2 p-10 md:min-w-md">
+          <div
+            className={`${primaryBgClass} z-10 min-w-sm rounded-3xl text-center ${primaryTextClass} absolute top-1/2 left-1/2 -translate-1/2 p-10 md:min-w-md`}
+          >
             <h1 className="text-primary-light-green font-semibold text-4xl">
               {`Sorry, ${queueItem.name || customer.name}`}
             </h1>
@@ -615,7 +812,7 @@ const Waiting = () => {
             <br />
             <p>{`You have been removed from the queue at ${outlet.name}`} </p>
             <br />
-            <p className="italic text-stone-400">
+            <p className={`italic ${secondaryTextClass}`}>
               We could not reach you since {calledTimeElapsed}. We had to give
               up your spot for another waiting customer. Please rejoin the queue
               if you are still hungry!
@@ -625,44 +822,59 @@ const Waiting = () => {
       )}
       {!inactive && (
         <div className="text-center ">
-          <h1 className="text-3xl font-light pt-3 text-stone-600">
+          <h1 className={`text-3xl font-light pt-3 ${primaryTextClass}`}>
             {outlet.name}
           </h1>
-          <h4 className=" font-lg font-semibold py-3 text-primary-dark-green">
+          <h4 className=" font-lg font-semibold py-3 text-primary-dark-green dark:text-primary-light-green">
             {message ||
-              `Welcome back, ${customer?.name || queueItem?.name || "N/A"}.`}
+              `Welcome back, ${
+                customer?.name !== queueItem?.name
+                  ? `${customer?.name || "N/A"} or ${queueItem?.name || "N/A"}`
+                  : customer?.name || queueItem?.name || "N/A"
+              }`}
           </h4>
-          <h2 className="text-xs font-light italic text-stone-600 w-full md:w-md justify-self-center mb-1">
+          <h2
+            className={`text-xs font-light italic ${primaryTextClass} w-full md:w-md justify-self-center mb-1`}
+          >
             Please keep this page open for us to notify you when it is your
-            turn. This page will refresh every 30 seconds automatically.
+            turn.
           </h2>
           {/* GRID FOR QUEUE INFO */}
           {!dataLoaded && <div>Loading...</div>}
-          <div className="grid grid-cols-2 w-full max-w-md bg-primary-cream rounded-lg shadow justify-self-center ">
+          <div
+            className={`grid grid-cols-2 w-full max-w-md ${primaryBgClass} ${primaryTextClass} rounded-lg shadow justify-self-center `}
+          >
             <div className="p-4 grid grid-rows-3 text-center border-b-1 border-r-1 border-stone-300 ">
-              <div className="text-sm text-stone-600 ">Currently Serving</div>
-              <div className="text-5xl row-span-2 font-bold">
+              <div className={`text-sm `}>Currently Serving</div>
+              <div className="text-5xl row-span-2 font-bold text-primary-green">
                 {currentlyServing || "N/A"}
               </div>
             </div>
 
             <div className="grid grid-cols-3 text-center border-b-1 border-stone-300">
-              {accountInfo.businessType !== "RESTAURANT" && (
+              {!outlet.showPax && (
                 <div className="col-span-5 grid-rows-3 p-4">
-                  <div className="text-sm text-stone-600 ">Your Number</div>
+                  <div className={`text-sm ${primaryTextClass}`}>
+                    Your Number
+                  </div>
 
                   <div className="text-5xl row-span-2 font-bold">
                     {customerPosition || "N/A"}
                   </div>
                 </div>
               )}
-              {/* PAX Update */}
-              {accountInfo.businessType === "RESTAURANT" && (
+
+              {outlet.showPax && (
                 <>
                   <div className="col-span-2 grid-rows-3 p-4">
-                    <div className="text-sm text-stone-600 ">Your Number</div>
+                    <div
+                      className={`text-sm flex items-center justify-center ${primaryTextClass}`}
+                    >
+                      Your <span className={`lg:hidden block pl-1`}> #</span>{" "}
+                      <span className={`lg:block hidden pl-1`}>number</span>
+                    </div>
 
-                    <div className="text-5xl row-span-2 font-bold">
+                    <div className="text-5xl row-span-2 font-bold text-primary-light-green pt-1">
                       {customerPosition || "N/A"}
                     </div>
                   </div>
@@ -670,7 +882,7 @@ const Waiting = () => {
                     className=" grid grid-rows-3 border-stone-300 border-l-1 p-4 cursor-pointer "
                     onClick={paxUpdate}
                   >
-                    <div className="text-sm text-stone-600 ">PAX</div>
+                    <div className={`text-sm ${primaryTextClass}`}>PAX</div>
 
                     <div className="text-5xl row-span-2 font-bold text-primary-light-green hover:text-primary-dark-green transition ease-in-out duration-600">
                       {pax}
@@ -683,18 +895,22 @@ const Waiting = () => {
             {/* Estimated Wait Time */}
 
             <div className="p-4 text-center border-r-1 border-b-1 border-stone-300 grid grid-rows-3">
-              <div className="text-sm text-stone-600 ">Estimated Wait Time</div>
+              <div className={`row-span-1 text-sm ${primaryTextClass}`}>
+                Estimated Wait Time
+              </div>
 
-              <div className="row-span-2">
+              <div className="row-span-1 items-center justify-center text-2xl">
                 <div className="">
                   {calculateEstWaitTime(
                     customerPosition,
                     currentlyServing,
                     ewt
                   ) > 30 ? (
-                    <span className="font-semibold ">More than 30 minutes</span>
+                    <span className={`text-sm text-balance font-semibold`}>
+                      More than 30 minutes
+                    </span>
                   ) : (
-                    <span className="text-2xl/4 font-semibold">
+                    <span className="font-semibold">
                       {calculateEstWaitTime(
                         customerPosition,
                         currentlyServing,
@@ -704,36 +920,57 @@ const Waiting = () => {
                     </span>
                   )}
                 </div>
-
-                <div className="text-xs text-stone-400">
-                  Maybe inaccurate due to new account*
-                </div>
+              </div>
+              <div className={`row-span-1 text-xs ${secondaryTextClass} mt-1`}>
+                Maybe inaccurate due to new account*
               </div>
             </div>
 
             {/* Last Updated Time */}
 
             <div className="p-4 text-center border-b-1 border-stone-300 grid grid-rows-3">
-              <div className="text-sm text-stone-600 ">Last Updated Time</div>
+              <div className={`text-sm ${primaryTextClass}`}>
+                Last Updated Time
+              </div>
 
-              <div className="text-md font-semibold px-1 row-span-2 ">
-                <div className="flex justify-center">
+              <div className=" font-semibold items-center justify-center row-span-1 ">
+                <div className="flex justify-center items-center">
                   <span
-                    className="cursor-pointer text-primary-light-green hover:text-primary-green active:text-primary-dark-green transition ease-in"
+                    className="cursor-pointer text-primary-light-green hover:text-primary-green active:text-primary-dark-green transition ease-in text-xl"
                     onClick={requestQueueRefresh}
                   >
                     <i className="fa-solid fa-arrow-rotate-right"></i>
                   </span>
 
-                  <span className="pl-2 text-[18px]/4 self-center">
+                  <span
+                    className={`pl-2 text-balance ${
+                      formatLastUpdated(lastUpdated).length > 13
+                        ? "text-sm"
+                        : formatLastUpdated(lastUpdated).length > 8
+                        ? "text-md"
+                        : "text-lg"
+                    }`}
+                  >
                     {formatLastUpdated(lastUpdated)}
                   </span>
                 </div>
-
-                <div className="text-[10px] font-light text-stone-400 mt-1">
-                  {connection
-                    ? "Automatically updates if there are changes in the queue."
-                    : "There are connectivity issues. Please refresh page."}
+              </div>
+              <div className="row-span-1 mt-2">
+                <div className="text-xs font-light text-stone-400 flex justify-center items-center ">
+                  Press <i className="fa-solid fa-arrow-rotate-right px-2"></i>{" "}
+                  to refresh
+                </div>
+                <div className={`text-[10px] font-light ${secondaryTextClass}`}>
+                  {isConnected ? (
+                    <span className="text-primary-dark-green dark:text-primary-light-green">
+                      <i className="fa-solid fa-wifi"></i> Live updates
+                    </span>
+                  ) : (
+                    <span className="text-yellow-600">
+                      <i className="fa-solid fa-exclamation-triangle"></i>{" "}
+                      Connection issues
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -760,7 +997,14 @@ const Waiting = () => {
             </div>
           )}
           {barType === "short-bar" && (
-            <div className="grid grid-cols-8 mt-3 h-7 justify-self-center w-full md:w-md">
+            <div
+              className="mt-3 h-7 justify-self-center w-full md:w-md grid"
+              style={{
+                gridTemplateColumns: `repeat(${
+                  progressBar.length
+                }, minmax(0, 1fr)) ${8 - progressBar.length}fr`,
+              }}
+            >
               {progressBar.map((party, index) => (
                 <div key={index} className="flex h-full">
                   {party === customerPosition ? (
@@ -774,10 +1018,7 @@ const Waiting = () => {
                   )}
                 </div>
               ))}
-
-              <div
-                className={`${dotBGClass} col-span-${8 - progressBar.length} `}
-              >
+              <div className={dotBGClass}>
                 <div className={dotClass + " ml-1"}></div>
 
                 <div
@@ -820,7 +1061,7 @@ const Waiting = () => {
               </button>
             </div>
 
-            <div className=" text-xs font-medium italic ">
+            <div className={`text-xs font-medium italic ${secondaryTextClass}`}>
               *Clicking this button will kick you out of the queue. <br />
               You will lose your spot and have to rejoin the queue again.
             </div>

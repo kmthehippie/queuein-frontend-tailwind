@@ -7,7 +7,19 @@ import QRCode from "./QRCodeButton";
 import AuthorisedUser from "../pages/account/AuthorisedUser";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
+import { useBusinessType } from "../hooks/useBusinessType";
 import { replaceEscaped } from "../utils/replaceRegex";
+import {
+  primaryButtonClass as buttonClass,
+  primaryBgTransparentClass,
+  primaryTextClass,
+  primaryBgClass,
+  primaryInputClass,
+  labelClass,
+  errorClass,
+  xButtonClass,
+  secondaryBgClass,
+} from "../styles/tailwind_styles";
 
 const OutletUpdateModal = ({
   show,
@@ -26,7 +38,8 @@ const OutletUpdateModal = ({
   const [imgFile, setImgFile] = useState(null);
   const [phone, setPhone] = useState("");
   const [hours, setHours] = useState("");
-  const [showImgUploadModal, setShowImgUploadModal] = useState(false);
+  const [showPax, setShowPax] = useState(false);
+  const [showImgUploadModal, setShowImgUploadModal] = useState(true);
 
   //State for displaying data only
   const [imgUrl, setImgUrl] = useState("");
@@ -37,8 +50,10 @@ const OutletUpdateModal = ({
   const [nameChanged, setNameChanged] = useState(false);
 
   const bottomRef = useRef(null);
+  const bottomRefForModal = useRef(null);
   const navigate = useNavigate();
   const { reloadNav, setReloadNav } = useAuth();
+  const { config } = useBusinessType();
 
   // Errors
   const [errors, setErrors] = useState({});
@@ -51,19 +66,24 @@ const OutletUpdateModal = ({
   const [imgFileError, setImgFileError] = useState(false);
 
   // Tailwind Classes
-  const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800`;
-  const buttonClass = `mt-3 transition ease-in text-white font-light py-2 px-4 rounded-full focus:outline-none focus:shadow-outline min-w-20`;
-  const errorClass = `text-red-600 text-center`;
+
   const inputDivClass = `px-3 py-1`;
   const inputClass = (hasError) =>
-    `border-1 border-gray-400 rounded-lg bg-transparent appearance-none block py-3 px-4 text-gray-700 text-sm leading-tight focus:outline-none focus:border-black peer active:border-black  ${
-      hasError ? "border-red-500" : ""
+    `${primaryInputClass} ${hasError ? "border-red-500" : ""}`;
+  const buttonGroupClass = `flex overflow-hidden `;
+  const buttonOptionClass = (isActive) =>
+    `px-4 py-2 text-sm font-medium focus:outline-none transition-colors duration-300 ${
+      isActive
+        ? "bg-primary-light-green text-white"
+        : "bg-gray-300 text-gray-700 hover:bg-gray-400"
     }`;
 
   useEffect(() => {
+    console.log("There is outlet data? ", outletData);
     if (outletData) {
       setChangesExist(false);
       setName(outletData.name || "");
+      setShowPax(outletData.showPax || false);
       setLocation(outletData.location || "");
       setGoogleMaps(outletData.googleMaps || "");
       setWazeMaps(outletData.wazeMaps || "");
@@ -84,6 +104,9 @@ const OutletUpdateModal = ({
   }, [outletData]);
 
   const checkChange = () => {
+    if (outletData === null || outletData === undefined) {
+      return;
+    }
     const nameChanged = outletData.name !== name;
     const locationChanged = outletData.location !== location;
     const googleMapsChanged =
@@ -92,7 +115,7 @@ const OutletUpdateModal = ({
       outletData.wazeMaps !== wazeMaps && outletData.wazeMaps !== null;
     const phoneChanged = outletData.phone !== phone;
     const hoursChanged = outletData.hours !== hours;
-
+    const showPaxChanged = outletData.showPax !== !!showPax;
     const defaultWaitTimeInMinutes = msToMins(outletData.defaultEstWaitTime);
     const parsedWaitTime = parseFloat(defaultEstWaitTime);
     const waitTimeChanged = defaultWaitTimeInMinutes !== parsedWaitTime;
@@ -100,6 +123,7 @@ const OutletUpdateModal = ({
 
     const anyChanges =
       nameChanged ||
+      showPaxChanged ||
       locationChanged ||
       googleMapsChanged ||
       wazeMapsChanged ||
@@ -113,6 +137,7 @@ const OutletUpdateModal = ({
   useEffect(() => {
     if (
       name ||
+      showPax ||
       location ||
       googleMaps ||
       wazeMaps ||
@@ -134,6 +159,7 @@ const OutletUpdateModal = ({
     phone,
     hours,
     showImgUploadModal,
+    showPax,
   ]);
   if (!show || !outletData) {
     return null;
@@ -214,6 +240,10 @@ const OutletUpdateModal = ({
       if (outletData.name !== name) {
         dataToSubmit.append("name", name);
       }
+      if (outletData.showPax !== showPax) {
+        dataToSubmit.append("showPax", !!showPax);
+      }
+      console.log("Show Pax value to submit: ", showPax);
       if (outletData.location !== location) {
         dataToSubmit.append("location", location);
       }
@@ -242,6 +272,9 @@ const OutletUpdateModal = ({
     } else {
       if (outletData.name !== name) {
         payload.name = name;
+      }
+      if (outletData.showPax !== showPax) {
+        payload.showPax = showPax;
       }
       if (outletData.location !== location) {
         payload.location = location;
@@ -336,6 +369,9 @@ const OutletUpdateModal = ({
   };
   const scrollToBottom = () => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (view === "modal") {
+      bottomRefForModal.current?.scrollIntoView({ behavior: "smooth" });
+    }
   };
   const handleReset = (e) => {
     e.preventDefault();
@@ -374,7 +410,22 @@ const OutletUpdateModal = ({
   if (view === "modal" && !isLoading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-        <div className="relative w-[90%] md:w-md my-10 bg-primary-cream rounded-3xl p-5 max-h-[90vh] overflow-y-auto">
+        <div
+          className={`relative w-[90%] md:w-md my-10 ${primaryBgClass} ${primaryTextClass} rounded-3xl p-5 max-h-[90vh] overflow-y-auto `}
+        >
+          {changesExist && (
+            <div className="fixed top-1/9 left-1/4">
+              <div className="absolute -inset-2 red-800 text-white rounded-2xl z-0 opacity-75 blur-sm animate-pulse"></div>
+              <div
+                className="relative p-2 rounded-xl shadow-red-900 max-w-[150px] cursor-pointer bg-primary-cream z-10"
+                onClick={scrollToBottom}
+              >
+                <div className="animate-ping bg-red-700 w-3 h-3 rounded-2xl absolute top-0 right-0"></div>
+                <p className="text-black">Changes Exist</p>
+              </div>
+            </div>
+          )}
+
           <div className="sticky top-0 -mr-2 flex justify-end ">
             <button
               className="text-red-700 font-semibold px-5 py-3.5 hover:text-red-900 transition ease-in cursor-pointer bg-transparent border-1 rounded-full hover:border-red-900 border-transparent hover:bg-primary-cream"
@@ -385,7 +436,7 @@ const OutletUpdateModal = ({
           </div>
 
           <h1 className="text-2xl font-light text-center">
-            Updating Your Outlet Details
+            Updating Your {config.label} Details
           </h1>
           {showAuthModal && (
             <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
@@ -406,7 +457,8 @@ const OutletUpdateModal = ({
               </div>
             </div>
           )}
-          <form className="mt-5" onSubmit={handleUpdate}>
+
+          <form className="mt-5 " onSubmit={handleUpdate}>
             <div className={inputDivClass}>
               <label htmlFor="name" className={labelClass}>
                 Name:*
@@ -415,7 +467,7 @@ const OutletUpdateModal = ({
                 id="name"
                 type="text"
                 className={inputClass(nameError) + " w-full "}
-                value={name}
+                value={name || config.queueName}
                 onChange={(e) => {
                   setName(e.target.value);
                   setNameChanged(true);
@@ -425,6 +477,27 @@ const OutletUpdateModal = ({
               {nameError && errors.name && (
                 <p className={errorClass}>{errors.name}</p>
               )}
+            </div>
+            <div className={inputDivClass}>
+              <div className={labelClass + " mb-2"}>
+                Do you need PAX at your {config.label}?
+              </div>
+              <div className={buttonGroupClass}>
+                <button
+                  type="button"
+                  className={buttonOptionClass(showPax)}
+                  onClick={() => setShowPax(true)}
+                >
+                  Yes
+                </button>
+                <button
+                  type="button"
+                  className={buttonOptionClass(!showPax)}
+                  onClick={() => setShowPax(false)}
+                >
+                  No
+                </button>
+              </div>
             </div>
             <div className={inputDivClass}>
               <label htmlFor="location" className={labelClass}>
@@ -481,7 +554,7 @@ const OutletUpdateModal = ({
             </div>
             <div className={inputDivClass}>
               <label htmlFor="imgFile" className={labelClass}>
-                Image of your outlet:
+                Image of your {config.label}:
               </label>
               <div
                 className={labelClass + " text-center p-2 "}
@@ -594,7 +667,7 @@ const OutletUpdateModal = ({
             )}
             <p>* indicate required fields</p>
 
-            <div className="flex justify-center mt-5">
+            <div className="flex justify-center mt-5" ref={bottomRefForModal}>
               <button
                 onClick={(e) => handleUpdate(e)}
                 className={
@@ -620,7 +693,7 @@ const OutletUpdateModal = ({
   if (isLoading) {
     return (
       <Loading
-        title={"Update Outlet Information"}
+        title={`Update ${config.outlet} Information`}
         paragraph={"Do Not Navigate Away. Please Wait. "}
       />
     );
@@ -631,10 +704,7 @@ const OutletUpdateModal = ({
         {showAuthModal && (
           <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
-              <button
-                onClick={handleAuthModalClose}
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
-              >
+              <button onClick={handleAuthModalClose} className={xButtonClass}>
                 &times;
               </button>
               <AuthorisedUser
@@ -651,7 +721,7 @@ const OutletUpdateModal = ({
 
         {changesExist && (
           <div
-            className="fixed p-2 bg-primary-cream/90 top-1/5 right-1/10 lg:right-1/5 lg:top-1/4  rounded-xl shadow-red-900 shadow-lg/30 cursor-pointer z-20"
+            className={`fixed p-2 bg-red-800 text-white top-1/5 right-1/10 lg:right-1/5 lg:top-1/4  rounded-xl shadow-red-900 shadow-lg/30 cursor-pointer z-20`}
             onClick={scrollToBottom}
           >
             <div className="animate-ping bg-red-700 w-3 h-3 rounded-2xl absolute top-0 right-0"></div>
@@ -659,22 +729,22 @@ const OutletUpdateModal = ({
           </div>
         )}
         <div className="flex justify-center gap-3">
-          <div className="p-2 text-sm font-light text-gray-500 border-1 border-primary-cream hover:border-primary-green hover:text-primary-dark-green transition ease-in text-center cursor-pointer bg-primary-cream">
+          <div
+            className={`p-2 text-sm font-light ${primaryTextClass} border-1 border-primary-cream hover:border-primary-green hover:text-primary-dark-green transition ease-in text-center cursor-pointer ${primaryBgClass}`}
+          >
             <button
               onClick={handleNavigateAuditLog}
               className="hover:text-primary-green transition ease-in cursor-pointer"
             >
               <i className="fa-solid fa-clipboard pr-2"></i>
-              Outlet Audit Logs
+              {config.label} Audit Logs
             </button>
           </div>
 
           <QRCode
             value={outletData.id}
             text={"View QR Code"}
-            cssDiv={
-              "p-2 text-sm font-light text-gray-500 border-1 border-primary-cream hover:border-primary-green hover:text-primary-dark-green transition ease-in text-center cursor-pointer bg-primary-cream"
-            }
+            cssDiv={`p-2 text-sm font-light ${primaryTextClass} border-1 border-primary-cream hover:border-primary-green hover:text-primary-dark-green transition ease-in text-center cursor-pointer ${primaryBgClass}`}
             cssSpan={
               "hover:text-primary-green transition ease-in cursor-pointer"
             }
@@ -697,6 +767,27 @@ const OutletUpdateModal = ({
             {nameError && errors.name && (
               <p className={errorClass}>{errors.name}</p>
             )}
+          </div>
+          <div className={inputDivClass}>
+            <div className={labelClass + " mb-2"}>
+              Do you need PAX at your {config.label}?
+            </div>
+            <div className={buttonGroupClass}>
+              <button
+                type="button"
+                className={buttonOptionClass(showPax)}
+                onClick={() => setShowPax(true)}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                className={buttonOptionClass(!showPax)}
+                onClick={() => setShowPax(false)}
+              >
+                No
+              </button>
+            </div>
           </div>
           <div className={inputDivClass}>
             <label htmlFor="location" className={labelClass}>
@@ -751,7 +842,7 @@ const OutletUpdateModal = ({
           </div>
           <div className={inputDivClass}>
             <label htmlFor="imgFile" className={labelClass}>
-              Image of your outlet:
+              Image of your {config.label}:
             </label>
             <div
               className={labelClass + " text-center p-2 "}
@@ -858,7 +949,7 @@ const OutletUpdateModal = ({
           <p>* indicate required fields</p>
         </form>
         <div
-          className="flex justify-center sticky bottom-0 pb-2 bg-primary-cream "
+          className={`flex justify-center pb-2 ${primaryBgClass} pt-3 lg:text-md text-xs `}
           ref={bottomRef}
         >
           <button

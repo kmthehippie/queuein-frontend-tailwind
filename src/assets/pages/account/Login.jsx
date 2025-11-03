@@ -4,6 +4,15 @@ import { apiPrivate } from "../../api/axios";
 import useAuth from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import Loading from "../../components/Loading";
+import {
+  errorClass,
+  checkBoxClass,
+  primaryButtonClass as buttonClass,
+  labelClass,
+  primaryInputClass,
+  primaryBgTransparentClass,
+  primaryTextClass,
+} from "../../styles/tailwind_styles";
 
 const Login = () => {
   const { login, isAuthenticated, accountId } = useAuth();
@@ -17,24 +26,22 @@ const Login = () => {
   const [capslockOn, setCapslockOn] = useState(false);
   const [testing, setTesting] = useState(false);
   const [loading, setLoading] = useState(false);
-  const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800`;
+
   const inputClass = (
     hasError // Changed inputClass to be a function
   ) =>
-    `border-1 border-gray-300 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 text-sm leading-tight focus:outline-none focus:bg-transparent peer active:bg-transparent 
+    `${primaryInputClass}
   ${hasError ? "border-red-500" : ""}`; // Apply red border if there's an error
-  const errorClass = `text-red-600 text-center`;
-  const checkBoxClass = `w-6 h-6 rounded-lg accent-primary-green hover:accent-primary-light-green text-primary-green focus:ring-2 ring-primary-light-green border-primary-dark-green`;
-  const buttonClass = `bg-primary-green mt-3 hover:bg-primary-dark-green w-full transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline`;
+
   const linkClass = `text-primary-green hover:text-primary-dark-green transition ease-in`;
   const handleCheckCapsLock = (e) => {
     setCapslockOn(e.getModifierState("CapsLock"));
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrors(""); // Clear general error on new submission
-    setEmailError(""); // Clear email error
-    setPasswordError(""); // Clear password error
+    setErrors("");
+    setEmailError("");
+    setPasswordError("");
 
     if (email.length === 0) {
       setEmailError("Invalid Credentials");
@@ -56,7 +63,6 @@ const Login = () => {
       const res = await apiPrivate.post("/login", {
         ...credentials,
       });
-      console.log("Response after post to login: ", res?.data, res?.status);
 
       if (
         res.status === 201 &&
@@ -65,16 +71,13 @@ const Login = () => {
         res.data.businessType &&
         res.data.acctSlug
       ) {
-        console.log("This is after checking", res.data);
         const data = res?.data;
-        login(data);
-        setErrors({});
-        setTimeout(() => {
+        const auth = await login(data);
+        if (auth) {
           setLoading(false);
-          navigate(`/db/${accountId}/outlets/all`);
-        }, 1500);
+        }
+        setErrors("");
       } else {
-        setLoading(false);
         console.error("Unexpected success response:", res.data);
         setErrors({
           general:
@@ -82,15 +85,19 @@ const Login = () => {
         });
       }
     } catch (err) {
-      if (err.response?.data?.errors) {
-        setErrors(err.response.data.errors);
-      } else if (err.response?.data) {
-        setErrors({ general: err.response.data });
-      } else {
-        setErrors({
-          general: "An unexpected error occurred. Please try again.",
-        });
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      if (
+        err.response?.data?.errors &&
+        Array.isArray(err.response.data.errors)
+      ) {
+        errorMessage = err.response.data.errors[0].msg;
+      } else if (typeof err.response?.data === "string") {
+        errorMessage = err.response.data;
+      } else if (typeof err.response?.data?.message === "string") {
+        errorMessage = err.response.data.message;
       }
+      setErrors(errorMessage);
+      setLoading(false);
       console.error("Axios error: ", err);
     }
   };
@@ -105,6 +112,7 @@ const Login = () => {
       const res = await apiPrivate.post("/login", {
         ...credentials,
       });
+      setLoading(true);
       console.log("Response after post to login: ", res?.data, res?.status);
 
       if (
@@ -116,11 +124,8 @@ const Login = () => {
       ) {
         console.log("This is after checking", res.data);
         const data = res?.data;
-        login(data);
-        setErrors({});
-        setTimeout(() => {
-          navigate(`/db/${accountId}/outlets/all`);
-        }, 1500);
+        await login(data);
+        setErrors("");
       } else {
         console.error("Unexpected success response:", res.data);
         setErrors({
@@ -129,16 +134,21 @@ const Login = () => {
         });
       }
     } catch (err) {
-      if (err.response?.data?.errors) {
-        setErrors(err.response.data.errors);
-      } else if (err.response?.data) {
-        setErrors({ general: err.response.data });
-      } else {
-        setErrors({
-          general: "An unexpected error occurred. Please try again.",
-        });
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      if (
+        err.response?.data?.errors &&
+        Array.isArray(err.response.data.errors)
+      ) {
+        errorMessage = err.response.data.errors[0].msg;
+      } else if (typeof err.response?.data === "string") {
+        errorMessage = err.response.data;
+      } else if (typeof err.response?.data?.message === "string") {
+        errorMessage = err.response.data.message;
       }
+      setErrors(errorMessage);
       console.error("Axios error: ", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -150,10 +160,7 @@ const Login = () => {
   };
   if (loading) {
     return (
-      <Loading
-        title={"Loading in"}
-        paragraph={"Please wait while we log you in"}
-      />
+      <Loading title={"Login"} paragraph={"Please wait while we log you in"} />
     );
   }
   return (
@@ -162,23 +169,31 @@ const Login = () => {
         <img src="/Q-logo.svg" alt="Queue In Logo" className="p-12" />
       </div>
       <div className="flex-2/3 flex items-center justify-center">
-        <div className="bg-white/50 p-10 rounded-xl shadow-md w-4/5 xl:w-3/4">
-          <h1 className="text-3xl font-semibold mb-2 font-poppins">
+        <div
+          className={`${primaryBgTransparentClass} p-10 rounded-xl shadow-md w-4/5 xl:w-3/4`}
+        >
+          <h1
+            className={`text-3xl font-semibold mb-2 font-poppins ${primaryTextClass}`}
+          >
             Welcome back!
           </h1>
-          <small className="block mb-4 text-gray-600">
+          <small className={`block mb-4 ${primaryTextClass}`}>
             Enter your credentials to access your account.
           </small>
           {isAuthenticated && !testing && !loading && (
-            <div className="flex flex-col mb-4 bg-primary-cream/80 hover:shadow-2xl p-2 rounded-lg shadow-md items-center">
+            <div
+              className={`flex flex-col mb-4 ${primaryBgTransparentClass} hover:shadow-2xl p-2 rounded-lg shadow-md items-center`}
+            >
               <h2 className="text-primary-green font-semibold text-sm mb-2">
                 You are still logged in
               </h2>
-              <p className="italic text-gray-600 font-light text-xs text-center ">
+              <p
+                className={`italic ${primaryTextClass} font-light text-xs text-center`}
+              >
                 Would you like to head back to your home page?
               </p>
               <button
-                className="bg-primary-green text-white px-3 py-1 rounded-lg mt-3"
+                className={`${buttonClass} mt-3`}
                 onClick={handleNavOutletsAll}
               >
                 Yes
@@ -189,13 +204,15 @@ const Login = () => {
           {!isAuthenticated && (
             <div className="" onClick={handleViewTesting}>
               <h1 className="text-xs font-semibold mb-3 text-primary-green hover:text-primary-dark-green">
-                <i className="fa-solid fa-circle-info text-primary-dark-green"></i>{" "}
+                <i className="fa-solid fa-circle-info text-primary-light-green"></i>{" "}
                 Just testing?
               </h1>
             </div>
           )}
           {testing && (
-            <div className="block mb-4 text-sm bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md m-1 ">
+            <div
+              className={`block mb-4 text-sm ${primaryBgTransparentClass} hover:shadow-2xl p-4 rounded-lg shadow-md m-1`}
+            >
               <button onClick={testNavigate}> Click to enter test page </button>
             </div>
           )}
@@ -250,12 +267,12 @@ const Login = () => {
               />
               <label
                 htmlFor="default-checkbox"
-                className="ms-2 text-sm font-medium text-gray-600 "
+                className={`ms-2 text-sm font-medium ${primaryTextClass}`}
               >
                 Remember this device
               </label>
             </div>
-            {errors && <p className={errorClass}>{errors.general}</p>}{" "}
+            {errors && <p className={errorClass}>{errors}</p>}{" "}
             {/* Show general error */}
             <button className={buttonClass}>Sign In</button>
           </form>

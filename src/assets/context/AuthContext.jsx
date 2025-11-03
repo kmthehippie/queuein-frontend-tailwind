@@ -9,28 +9,19 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { apiPrivate } from "../api/axios";
 import Loading from "../components/Loading";
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [accountId, setAccountId] = useState(null);
-  const [businessType, setBusinessType] = useState("BASIC"); //Kinda useless but let's just keep it for now
+  const [businessType, setBusinessType] = useState(""); //Kinda useless but let's just keep it for now
   const [acctSlug, setAcctSlug] = useState("");
-  const [outletText, setOutletText] = useState("");
   const [authLoading, setAuthLoading] = useState(true);
   const [reloadNav, setReloadNav] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const handleOutletText = (type) => {
-    if (type === "RESTAURANT") {
-      setOutletText("Outlet");
-    } else if (type === "CLINIC") {
-      setOutletText("Clinic");
-    } else if (type === "BASIC") {
-      setOutletText("Event Location");
-    }
-  };
+
   const refresh = useCallback(async () => {
     console.log("Trying to refresh within auth context: ", location.pathname);
 
@@ -48,7 +39,6 @@ export const AuthProvider = ({ children }) => {
         setAcctSlug(response.data.acctSlug);
         setIsAuthenticated(true);
         setAccountId(response.data.accountId);
-        handleOutletText(response.data.businessType);
         return response.data.accessToken;
       } else {
         console.log(
@@ -69,17 +59,21 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = useCallback((data) => {
-    setAccessToken(data.accessToken);
-    setBusinessType(data.businessType);
-    handleOutletText(data.businessType);
-    setAccountId(data.accountId);
-    setAcctSlug(data.acctSlug);
-    setIsAuthenticated(true);
-  }, []);
+  const login = useCallback(
+    (data) => {
+      setAccessToken(data.accessToken);
+      setBusinessType(data.businessType);
+      setAccountId(data.accountId);
+      setAcctSlug(data.acctSlug);
+      setIsAuthenticated(true);
+      setTimeout(() => {
+        navigate(`/db/${data.accountId}/outlets/all`);
+      }, 1500);
+    },
+    [navigate]
+  );
 
   const logout = useCallback(async () => {
-    console.log("Logging out!");
     try {
       const response = await apiPrivate.post(`/logout/${accountId}`);
       if (response.status === 200 || response.status === 204) {
@@ -91,7 +85,6 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
       setAccessToken(null);
       setBusinessType("");
-      setOutletText("");
       setAccountId(null);
     }
   }, [navigate]);
@@ -99,6 +92,10 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     console.log("There are changes in the reload nav! ", reloadNav);
   }, [reloadNav]);
+
+  useEffect(() => {
+    console.log("Business type changed to: ", businessType);
+  }, []);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -118,7 +115,6 @@ export const AuthProvider = ({ children }) => {
   const contextValue = useMemo(
     () => ({
       accessToken,
-      outletText,
       acctSlug,
       businessType,
       login,
@@ -140,6 +136,7 @@ export const AuthProvider = ({ children }) => {
       accountId,
       reloadNav,
       acctSlug,
+      businessType,
     ]
   );
   if (authLoading) {

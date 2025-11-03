@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { featuresData, futureFeaturesData } from "../Data/FeaturesData";
+import { primaryTextClass } from "../styles/tailwind_styles";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -30,7 +31,9 @@ const Home = () => {
   };
   return (
     <div className="">
-      <div className="flex flex-col items-center justify-center ">
+      <div
+        className={`flex flex-col items-center justify-center ${primaryTextClass}`}
+      >
         <div className="font-light max-w-2xl mx-auto">
           <h1 className="font-extralight text-4xl mt-10 text-center">
             Welcome to Queue in

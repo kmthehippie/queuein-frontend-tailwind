@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useContext } from "react";
 import { Link, Outlet, useLocation, useParams } from "react-router-dom";
 import api from "../../api/axios";
 import Error from "../Error";
@@ -6,23 +6,41 @@ import moment from "moment";
 import { formatMilliseconds } from "../../utils/timeConverter";
 import Loading from "../../components/Loading";
 import GetQRCode from "../../components/GetQRCode";
+import SocketContext from "../../context/SocketContext";
+import {
+  primaryBgClass,
+  primaryButtonClass,
+  primaryTextClass,
+  secondaryTextClass,
+  primaryBgTransparentClass,
+} from "../../styles/tailwind_styles";
+import { useBusinessType } from "../../hooks/useBusinessType";
 
 const OutletLanding = () => {
+  const { socket, isConnected } = useContext(SocketContext);
   const [accountInfo, setAccountInfo] = useState("");
   const [outlet, setOutlet] = useState("");
+  const [showPax, setShowPax] = useState(false);
   const [queue, setQueue] = useState("");
   const [queueItemsLength, setQueueItemsLength] = useState(0);
+  const [allQueueItems, setAllQueueItems] = useState(0);
+  const [maxQueueItems, setMaxQueueItems] = useState(0);
   const [estWaitTime, setEstWaitTIme] = useState("N/A");
   const [status, setStatus] = useState("");
   const [statusClass, setStatusClass] = useState("");
+
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [lastUpdated, setLastUpdate] = useState(new Date());
 
+  const [viewOutlet, setViewOutlet] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
   const [showJoinButton, setShowJoinButton] = useState(false);
   const { acctSlug, outletId, queueId } = useParams();
+  const { config } = useBusinessType(accountInfo.businessType);
+
   const [errors, setErrors] = useState("");
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const location = useLocation();
 
   const formatLastUpdated = (date) => {
@@ -30,37 +48,39 @@ const OutletLanding = () => {
   };
 
   const fetchOutletData = useCallback(async () => {
-    setAccountInfo("");
-    setOutlet("");
-    setQueue("");
-    setLoading(true);
-    setErrors("");
-    setQueueItemsLength(0);
-    setStatus("");
-    setStatusClass("");
-
     try {
       const res = await api.get(`/outletLandingPage/${acctSlug}/${outletId}`);
-      console.log("res from outlet data", res.data);
+      console.log("res from outlet data", JSON.stringify(res.data));
+      setErrors("");
       if (res?.data) {
         setAccountInfo(res?.data?.accountInfo);
         setOutlet(res?.data?.outlet);
-        if (res?.data?.queue) {
-          console.log("Data from outlet landing page: ", res.data);
-          setQueue(res?.data?.queue[0]);
-          const activeItemsLength = res?.data?.activeItemsLength;
-          setQueueItemsLength(activeItemsLength || "0");
-          const ewt = res?.data?.outlet?.defaultEstWaitTime;
-          const formattedEwt = formatMilliseconds(ewt, activeItemsLength);
-          console.log(formattedEwt);
-          setEstWaitTIme(formattedEwt);
+        setShowPax(res?.data?.outlet.showPax || false);
+        if (res?.data?.queue === null) {
+          setQueue(null);
+          setQueueItemsLength(0);
+          setEstWaitTIme("N/A");
+          setStatus("No Wait!");
+          setStatusClass("text-xl font-semibold text-primary-light-green");
+          return;
         }
+        setQueue(res?.data?.queue[0]);
+
+        const allItems = res?.data?.queue[0]?.queueItems || [];
+        setAllQueueItems(allItems.length || 0);
+        setMaxQueueItems(res?.data?.queue[0].maxQueueItems);
+
+        const activeItemsLength = res?.data?.activeItemsLength;
+        setQueueItemsLength(activeItemsLength || "0");
+
+        const ewt = res?.data?.outlet?.defaultEstWaitTime;
+        const formattedEwt = formatMilliseconds(ewt, activeItemsLength);
+
+        setEstWaitTIme(formattedEwt);
         setLastUpdate(new Date());
       }
-      setLoading(false);
     } catch (err) {
       console.error("Error fetching outlet landing page ", err);
-      setLoading(false);
       setErrors({
         message: err?.response?.data?.message || err?.message,
         statusCode: err.response?.status || err?.status,
@@ -68,23 +88,63 @@ const OutletLanding = () => {
     }
   }, []);
 
-  //TODO: LOGIC: ADD PAGE NAV FOR CUSTOMER TO ADD NAME AND NUMBER TO GET THEIR WAITING PAGE
-  const handleNavigateQRCode = () => {
-    console.log("Navigate to qr code scanning page for customer");
-    //OR WE CAN JUST ADD A DIV ON TOP OF THE CURRENT PAGE FOR THEM TO ENTER THE DATA THEN FETCH THE QR CODE FOR THEM TO SCAN
-  };
+  //SOCKET HERE
+  //JOIN & EMIT
+  useEffect(() => {
+    if (socket && isConnected && queue !== null) {
+      socket.emit("join_max_queue_items", `kiosk_${queue.id}`);
+      console.log("Joining max queue items room: ", `kiosk_${queue.id}`);
+      socket.emit("join_outlet_landing", `outlet_${queue.id}`);
+    }
+  }, [socket, isConnected, queue]);
+  //LISTEN
+  useEffect(() => {
+    if (socket && isConnected) {
+      console.log("Listening to socket for OutletLanding, queue: ");
+
+      const handleMaxQueueItems = (data) => {
+        console.log("Received max_queue_items event: ", data);
+        if (data && data.maxQueueItems) {
+          setMaxQueueItems(data.maxQueueItems);
+        }
+      };
+
+      const handleQueueEnded = (data) => {
+        console.log("Received queue_ended event: ", data);
+        if (data && data.queueEnded) {
+          // setMaxQueueItems(data.maxQueueItems);
+          //if queue ended, set queue to null
+          setQueue(null);
+        }
+      };
+
+      socket.on("outlet_queue_update", fetchOutletData);
+      socket.on("max_queue_items", handleMaxQueueItems);
+      socket.on("queue_ended", handleQueueEnded);
+      return () => {
+        socket.off("outlet_queue_update");
+        socket.off("queue_ended");
+        socket.off("max_queue_items");
+      };
+    }
+  }, [socket, isConnected]);
 
   useEffect(() => {
-    console.log("Fetch data again! ");
     fetchOutletData();
-  }, [fetchOutletData]);
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    if (params.get("source") === "qr") {
+    console.log(
+      "max queue items vs queue items length: ",
+      maxQueueItems,
+      queue.queueItems?.length,
+      allQueueItems
+    );
+    if (params.get("source") === "qr" && maxQueueItems > allQueueItems) {
       setShowJoinButton(true);
     }
-  }, [location.search]);
+  }, [location.search, maxQueueItems, allQueueItems]);
 
   useEffect(() => {
     if (queueItemsLength > 5) {
@@ -100,21 +160,43 @@ const OutletLanding = () => {
       setStatus("Short Wait");
       setStatusClass("text-xl font-semibold text-primary-green");
     }
-  }, [queueItemsLength]);
+
+    if (allQueueItems < maxQueueItems) {
+      console.log("max queue items: ", maxQueueItems);
+      setViewOutlet(true);
+    } else {
+      setViewOutlet(false);
+    }
+  }, [status, queueItemsLength, allQueueItems, maxQueueItems]);
+
+  // Smart interval - more frequent for recent updates, less frequent for older ones
+  useEffect(() => {
+    const updateInterval = () => {
+      const timeDiff = Date.now() - lastUpdated.getTime();
+
+      if (timeDiff < 60000) return 30000; //Check every 30s if last updated within 1 min
+      if (timeDiff < 300000) return 60000; //Check every 1 min if last updated within 5 mins
+      return 150000; //Check every 2.5 mins if last updated more than 5 mins ago
+    };
+
+    const timer = setInterval(() => {
+      console.log("Updating interval based on last updated time");
+      setCurrentTime(new Date());
+    }, updateInterval());
+
+    return () => clearInterval(timer);
+  }, [lastUpdated]);
 
   if (errors) {
     return <Error error={errors} />;
-  }
-  if (loading) {
-    return (
-      <Loading title={"Page"} paragraph={"The page you are on is loading"} />
-    );
   }
 
   if (showModal) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 ">
-        <div className="flex flex-col items-center bg-primary-cream p-10 rounded-3xl m-2 relative lg:max-w-1/3">
+        <div
+          className={`flex flex-col items-center ${primaryBgClass} ${primaryTextClass} p-10 rounded-3xl m-2 relative lg:max-w-1/3`}
+        >
           <h1 className="text-2xl font-extralight text-center">
             Get your waiting page.
           </h1>
@@ -144,69 +226,114 @@ const OutletLanding = () => {
             alt={`${accountInfo.companyName} logo`}
             className="w-20"
           />
-          <h1 className="font-bold pl-3 text-2xl sm:text-4xl sm:pl-6 lg:text-6xl ">
+          <h1
+            className={`font-bold pl-3 text-2xl sm:text-4xl sm:pl-6 lg:text-6xl ${primaryTextClass}`}
+          >
             {accountInfo.companyName}
           </h1>
         </div>
-        <h1 className="font-light text-2xl text-center text-stone-600 md:mt-5 mt-2 md:text-3xl lg:text-4xl mb-2">
+        <h1
+          className={`font-light text-2xl text-center ${primaryTextClass} md:mt-5 mt-2 md:text-3xl lg:text-4xl mb-2`}
+        >
           {outlet.name}
         </h1>
 
-        <div className="flex h-full gap-0 flex-col md:flex-row md:items-center rounded-xl max-w-4xl bg-primary-cream ">
+        {!viewOutlet && (
+          <div className="p-3 text-red-800 text-2xl font-extrabold">
+            <h2>Queue is full</h2>
+          </div>
+        )}
+        <div
+          className={`flex h-full gap-0 flex-col md:flex-row md:items-center rounded-xl max-w-4xl ${primaryBgClass} ${primaryTextClass}`}
+        >
           <div className="flex-1/2  h-full lg:flex justify-center md:p-2  items-center lg:flex-col">
             <div className="grid grid-cols-2 w-full justify-self-center">
               <div className="p-4 text-center border-r-1 md:border-y-1 border-b-1 md:border-l-1 border-stone-300 grid grid-rows-2">
-                <div className="text-sm text-stone-600 font-semibold text-balance flex justify-center items-center">
-                  Current # of Queuers in Queue
+                <div
+                  className={`text-sm ${primaryTextClass} font-semibold text-balance flex justify-center items-center`}
+                >
+                  Current # of {config.customerLabel} in Queue
                 </div>
                 <div className="text-5xl font-bold text-primary-light-green">
                   {queueItemsLength}
                 </div>
               </div>
               <div className="p-4 text-center md:border-y-1 border-b-1  border-stone-300 md:border-r-1 grid grid-rows-2 ">
-                <div className="text-sm text-stone-600 font-semibold flex justify-center items-center">
+                <div
+                  className={`text-sm ${primaryTextClass} font-semibold flex justify-center items-center`}
+                >
                   Queue Status
                 </div>
                 <div className={statusClass}>{status}</div>
               </div>
-              <div className="p-4 text-center border-r-1 border-b-1 h-full md:border-l-1 border-stone-300 grid grid-rows-4 gap-2">
-                <div className="text-sm text-stone-600 font-semibold row-span-1">
+              <div className="p-4 text-center border-r-1 border-b-1 h-full md:border-l-1 border-stone-300 grid grid-rows-3 gap-2">
+                <div
+                  className={`text-sm ${primaryTextClass} font-semibold row-span-1`}
+                >
                   Estimated Wait Time
                 </div>
-                <div className="md:text-xl text-lg row-span-2 flex justify-center items-center font-semibold">
+                <div className="md:text-xl text-lg row-span-1 flex justify-center items-center font-semibold">
                   {estWaitTime}
                 </div>
                 <div className="text-xs text-stone-400 row-span-1 flex justify-center items-center ">
                   Maybe inaccurate*
                 </div>
               </div>
-              <div className="p-4 text-center border-b-1 border-stone-300 md:border-r-1 grid grid-rows-4  h-full gap-2">
-                <div className="text-sm text-stone-600 font-semibold row-span-1">
+              {/* Last updated time */}
+              <div className="p-4 text-center border-b-1 border-stone-300 md:border-r-1 grid grid-rows-3  h-full ">
+                <div
+                  className={`text-sm ${primaryTextClass} font-semibold row-span-1 `}
+                >
                   Last Updated Time
                 </div>
-                <div className=" font-semibold row-span-2 flex justify-center items-center">
-                  <div className="flex pl-3">
+                <div className=" font-semibold row-span-1 flex justify-center items-center">
+                  <div className="flex justify-center items-center">
                     <button
                       onClick={fetchOutletData}
-                      className="cursor-pointer text-primary-light-green hover:text-primary-green active:text-primary-dark-green transition ease-in"
+                      className="cursor-pointer text-primary-light-green dark:text-white hover:text-primary-green active:text-primary-dark-green transition ease-in text-xl"
                     >
                       <i className="fa-solid fa-arrow-rotate-right"></i>
                     </button>
-                    <span className="pl-1 text-sm md:text-md text-balance self-center">
+                    <span
+                      className={`ml-2 text-balance ${
+                        formatLastUpdated(lastUpdated).length > 13
+                          ? "text-sm"
+                          : formatLastUpdated(lastUpdated).length > 8
+                          ? "text-md"
+                          : "text-lg"
+                      }`}
+                    >
                       {formatLastUpdated(lastUpdated)}
                     </span>
                   </div>
                 </div>
-                <div className="text-xs font-light text-stone-400  flex justify-center items-center row-span-1">
-                  Press <i className="fa-solid fa-arrow-rotate-right px-2"></i>{" "}
-                  to refresh
+                <div className="row-span-1 mt-3">
+                  <div className="text-xs font-light text-stone-400 flex justify-center items-center ">
+                    Press{" "}
+                    <i className="fa-solid fa-arrow-rotate-right px-2"></i> to
+                    refresh
+                  </div>
+                  <div
+                    className={`text-[10px] font-light ${secondaryTextClass} mt-1`}
+                  >
+                    {isConnected ? (
+                      <span className="text-primary-dark-green dark:text-primary-light-green">
+                        <i className="fa-solid fa-wifi"></i> Live updates
+                      </span>
+                    ) : (
+                      <span className="text-yellow-600">
+                        <i className="fa-solid fa-exclamation-triangle"></i>{" "}
+                        Connection issues
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className=" font-semibold text-center ">
               <button
-                className="bg-primary-green mt-5  hover:bg-primary-dark-green transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                className={primaryButtonClass}
                 onClick={() => {
                   setShowModal(true);
                 }}
@@ -215,22 +342,28 @@ const OutletLanding = () => {
               </button>
             </div>
           </div>
-          <div className="flex-1/2 flex items-center justify-center">
-            <div className="">
+          {viewOutlet && (
+            <div className={`flex-1/2 flex items-center justify-center `}>
               <Outlet
-                context={{ outletId, businessType: accountInfo.businessType }}
+                context={{
+                  outletId,
+                  businessType: accountInfo.businessType,
+                  showPax: showPax,
+                }}
               />
             </div>
-          </div>
+          )}
         </div>
       </div>
     );
   } else {
     return (
-      <div className="flex-row items-center justify-center p-3 sm:p-5 md:pt-8 relative ">
+      <div
+        className={`flex-row items-center justify-center p-3 sm:p-5 md:pt-8 relative `}
+      >
         <Link
           to={`/${accountInfo.slug}`}
-          className="flex items-center  pb-3 border-b-2 border-stone-400 "
+          className={`flex items-center  pb-3 border-b-2 ${secondaryTextClass}`}
         >
           <img
             src={accountInfo.logo}
@@ -241,10 +374,14 @@ const OutletLanding = () => {
             {accountInfo.companyName}
           </h1>
         </Link>
-        <h1 className="font-light text-3xl text-center text-stone-600 mt-5 lg:text-4xl mb-2">
+        <h1
+          className={`font-light text-3xl text-center ${primaryTextClass} mt-5 lg:text-4xl mb-2`}
+        >
           {outlet.name}
         </h1>
-        <div className="flex items-center justify-center space-x-4 mb-2 text-sm text-stone-500">
+        <div
+          className={`flex items-center justify-center space-x-4 mb-2 text-sm ${primaryTextClass}`}
+        >
           {outlet.wazeMaps && (
             <div className="">
               <a href={outlet.wazeMaps} className="">
@@ -268,7 +405,9 @@ const OutletLanding = () => {
             </div>
           )}
         </div>
-        <div className="flex items-center justify-center space-x-4 mb-4 text-sm text-stone-500">
+        <div
+          className={`flex items-center justify-center space-x-4 mb-4 text-sm ${secondaryTextClass}`}
+        >
           {outlet.hours && (
             <p className="">
               <i className="fa-solid fa-clock" style={{ color: "#497B04" }}></i>
@@ -288,30 +427,37 @@ const OutletLanding = () => {
           )}
         </div>
         {queue && (
-          <div className="grid grid-cols-2 w-full max-w-md bg-primary-cream rounded-lg shadow justify-self-center">
+          <div
+            className={`grid grid-cols-2 w-full max-w-md ${primaryBgClass} rounded-lg shadow justify-self-center`}
+          >
             <div className="p-4 text-center border-r-1 border-b-1 border-stone-300 grid grid-rows-2">
-              <div className="text-sm text-stone-600 font-semibold">
+              <div className={`text-sm ${primaryTextClass} font-semibold`}>
                 Current # of Queuers in Queue
               </div>
               <div className="text-5xl font-bold text-primary-light-green">
                 {queueItemsLength}
               </div>
             </div>
+
             <div className="p-4 text-center border-b-1 border-stone-300 grid grid-rows-2">
-              <div className="text-sm text-stone-600 font-semibold">
+              <div className={`text-sm ${primaryTextClass} font-semibold`}>
                 Queue Status
               </div>
               <div className={statusClass}>{status}</div>
             </div>
             <div className="p-4 text-center border-r-1 border-b-1 border-stone-300 grid grid-rows-3">
-              <div className="text-sm text-stone-600 font-semibold">
+              <div className={`text-sm ${primaryTextClass} font-semibold`}>
                 Estimated Wait Time
               </div>
-              <div className="text-2xl font-semibold">{estWaitTime}</div>
-              <div className="text-xs text-stone-400">Maybe inaccurate*</div>
+              <div className="text-2xl font-semibold text-primary-light-green">
+                {estWaitTime}
+              </div>
+              <div className={`text-xs ${secondaryTextClass}`}>
+                Maybe inaccurate*
+              </div>
             </div>
             <div className="p-4 text-center border-b-1 border-stone-300 grid grid-rows-3">
-              <div className="text-sm text-stone-600 font-semibold">
+              <div className={`text-sm ${primaryTextClass} font-semibold`}>
                 Last Updated Time
               </div>
               <div className="text-xl font-semibold px-1  row-span-2 ">
@@ -322,36 +468,38 @@ const OutletLanding = () => {
                   >
                     <i className="fa-solid fa-arrow-rotate-right"></i>
                   </button>
-                  <span className="pl-2 text-md self-center">
+                  <span className="pl-2 text-md self-center text-primary-light-green text-sm md:text-lg">
                     {formatLastUpdated(lastUpdated)}
                   </span>
                 </div>
-                <div className="text-xs font-light text-stone-400">
+                <div className={`text-xs font-light ${secondaryTextClass}`}>
                   Press <i className="fa-solid fa-arrow-rotate-right"></i> to
                   refresh
                 </div>
               </div>
             </div>
-            <div className="mt-2 text-xs text-center col-span-2 text-stone-600 px-5">
+            <div
+              className={`mt-2 text-xs text-center col-span-2 ${primaryTextClass} px-5`}
+            >
               <p className="">
-                *This outlet's Estimated Wait Time maybe inaccurate due to it
-                being new to our system.*
+                *This {config.customerSingularLabel}'s Estimated Wait Time maybe
+                inaccurate due to it being new to our system.*
               </p>
             </div>
             {queue && showJoinButton && (
-              <div className="p-4 text-center col-span-2">
-                <div className="font-bold text-xl mb-3">
+              <div className="p-4 text-center col-span-2 ">
+                <div className={`font-bold text-xl mb-3 ${primaryTextClass}`}>
                   <h1>Save your spot! </h1>
                 </div>
                 <Link to={`/${acctSlug}/join/${queue.id}`}>
                   <div className="mb-3">
-                    <button className="px-5 py-2 bg-primary-light-green rounded-full text-primary-cream font-light hover:bg-primary-green cursor-pointer transition ease-in">
+                    <button className={primaryButtonClass}>
                       Join Queue{" "}
                       <i className="fa-solid fa-arrow-right-to-bracket"></i>
                     </button>
                   </div>
                 </Link>
-                <div className="text-stone-400 text-xs italic ">
+                <div className={`${secondaryTextClass} text-xs italic`}>
                   Please meet with our host. Join the queue via QR or ask the
                   host to add you to Queue.
                 </div>
@@ -360,12 +508,17 @@ const OutletLanding = () => {
           </div>
         )}
         {!queue && (
-          <div className="flex items-center justify-center w-full">
+          <div className="flex flex-col items-center justify-center w-full">
             <img
               src={outlet.imgUrl}
               alt={`${outlet.name} store front`}
               className="w-180"
             />
+            <h1
+              className={`text-3xl absolute top-[1/2] left-[1/2] w-180 text-center text-red-700 font-black ${primaryBgTransparentClass} py-8`}
+            >
+              Queue is closed. Please ask for assistance.
+            </h1>
           </div>
         )}
       </div>

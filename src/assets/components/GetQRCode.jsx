@@ -3,6 +3,15 @@ import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
 import Error from "../pages/Error";
 import Loading from "../components/Loading";
+import {
+  primaryButtonClass as buttonClass,
+  primaryInputClass,
+  primaryBgClass,
+  primaryTextClass,
+  labelClass,
+  errorClass,
+  secondaryTextClass,
+} from "../styles/tailwind_styles";
 
 const GetQRCode = ({ onClose }) => {
   const [customerName, setCustomerName] = useState("");
@@ -31,12 +40,9 @@ const GetQRCode = ({ onClose }) => {
   };
 
   //Tailwind
-  const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800 `;
   const inputClass = (hasError) =>
-    `border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 text-xs leading-tight focus:outline-none focus:border-black peer active:border-black
+    `${primaryInputClass}
   ${hasError ? "border-red-500" : ""}`;
-  const errorClass = `text-red-600 text-center`;
-  const buttonClass = `bg-primary-green mb-5 hover:bg-primary-dark-green transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline`;
 
   const handleSubmitQRCode = async (e) => {
     e.preventDefault();
@@ -135,16 +141,18 @@ const GetQRCode = ({ onClose }) => {
   if (notFound) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-        <div className="flex flex-col items-center bg-primary-cream p-10 rounded-3xl m-2 text-center">
+        <div
+          className={`flex flex-col items-center ${primaryBgClass} ${primaryTextClass} p-10 rounded-3xl m-2 text-center`}
+        >
           <h1 className="text-2xl font-extralight text-center">Not Found</h1>
           <p className="mt-3 font-bold text-sm mb-5">
             Sorry, the contact number you entered does not exist in this queue.
           </p>
-          <p className="text-gray-500">
+          <p className={`${secondaryTextClass}`}>
             Please join the queue at our kiosk page.
           </p>
           <button
-            className={`mt-3 transition ease-in text-white bg-primary-green cursor-pointer font-light py-2 px-4 rounded-xl focus:outline-none focus:shadow-outline min-w-20`}
+            className={`mt-3 transition ease-in ${primaryTextClass} bg-primary-green cursor-pointer font-light py-2 px-4 rounded-xl focus:outline-none focus:shadow-outline min-w-20`}
             onClick={handleBack}
           >
             Close
@@ -198,7 +206,7 @@ const GetQRCode = ({ onClose }) => {
             {validationError && (
               <p className={errorClass}>{validationError.general}</p>
             )}
-            <div className="flex w-full justify-center pt-2 ">
+            <div className="flex w-full justify-center pt-2 text-center">
               <div className={buttonClass} onClick={handleSubmitQRCode}>
                 Get Previous QR Code
               </div>

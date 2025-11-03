@@ -4,6 +4,11 @@ import AuthorisedUser from "./AuthorisedUser";
 import NotificationModal from "../../components/NotificationModal";
 import useApiPrivate from "../../hooks/useApiPrivate";
 import useAuth from "../../hooks/useAuth";
+import {
+  primaryTextClass,
+  primaryBgClass,
+  primaryBgTransparentClass,
+} from "../../styles/tailwind_styles";
 
 const roleData = (
   <div className=" ">
@@ -287,8 +292,6 @@ const StaffManagement = () => {
         general: error.response?.data?.message || "Failed to update staff.",
       });
     } finally {
-      console.log("REACHED FINALLY IN UPDATE STAFF");
-
       setPendingAction(null);
       setStaffUpdateId(null);
       console.log("Set refresh page to true");
@@ -340,7 +343,9 @@ const StaffManagement = () => {
     <div className="flex flex-col items-center justify-center rounded-3xl lg:m-10 md:mt-2 md:p-5 pt-15 lg:pt-5 mx-3">
       {updateViewModal && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
-          <div className="bg-primary-cream p-5 rounded-2xl m-2 w-md relative">
+          <div
+            className={`${primaryBgClass} ${primaryTextClass} p-5 rounded-2xl m-2 w-md relative`}
+          >
             <h3 className="text-xl pb-2 text-center">Update staff</h3>
 
             <p
@@ -368,7 +373,7 @@ const StaffManagement = () => {
                     required
                   />
                 </div>
-                <small className="text-xs italic text-stone-600">
+                <small className={`text-xs italic ${primaryTextClass}`}>
                   **Your staff will be using this to login
                 </small>
                 <div className={``}>
@@ -412,7 +417,7 @@ const StaffManagement = () => {
                   <select
                     id="role"
                     name="role"
-                    className="border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 text-xs leading-tight focus:outline-none focus:border-black peer active:border-black"
+                    className={`border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 ${primaryTextClass} ${primaryBgClass} text-xs leading-tight focus:outline-none focus:border-black peer active:border-black`}
                     value={selectedRole}
                     onChange={handleRoleChange}
                   >
@@ -428,7 +433,9 @@ const StaffManagement = () => {
                       <option value="TIER_4">TIER 4: View-Only Access</option>
                     </optgroup>
                   </select>
-                  <div className="text-xs leading-3 italic text-stone-500 my-2">
+                  <div
+                    className={`text-xs leading-3 italic ${primaryTextClass} my-2`}
+                  >
                     If you do not choose a role, it will default to previously
                     selected role.
                   </div>
@@ -448,7 +455,9 @@ const StaffManagement = () => {
                     autoComplete="password"
                     required
                   />
-                  <div className="text-xs leading-3 italic text-stone-500 my-2">
+                  <div
+                    className={`text-xs leading-3 italic ${primaryTextClass} my-2`}
+                  >
                     Password is not shown. If you need to change it, please
                     insert the new password here. Else the password will remain
                     the same as before.
@@ -470,7 +479,9 @@ const StaffManagement = () => {
                     autoComplete="password"
                     required
                   />
-                  <div className="text-xs leading-3 italic text-stone-500 mt-2">
+                  <div
+                    className={`text-xs leading-3 italic ${primaryTextClass} mt-2`}
+                  >
                     Enter a confirm password only if you need to change the
                     password.
                   </div>
@@ -488,7 +499,9 @@ const StaffManagement = () => {
         </div>
       )}
       {viewModal && (
-        <div className="bg-primary-cream p-5 rounded-2xl m-2 w-md relative ">
+        <div
+          className={`${primaryBgClass} ${primaryTextClass} p-5 rounded-2xl m-2 w-md relative flex flex-col items-center justify-center`}
+        >
           <h3 className="text-xl pb-2 text-center">Create a new staff</h3>
           <p
             className="absolute top-0 right-0 text-red-700 pr-5 pt-2 hover:text-red-950 transition ease-in active:text-red-950 font-bold cursor-pointer"
@@ -623,28 +636,20 @@ const StaffManagement = () => {
         </div>
       )}
       {!viewModal && (
-        <div className="lg:p-5 p-2 w-full border-2 border-primary-green rounded-3xl  bg-primary-cream/80 lg:mt-10  ">
+        <div
+          className={`lg:p-5 p-2 w-full border-2 border-primary-green rounded-3xl  ${primaryBgTransparentClass} lg:mt-10  `}
+        >
           <div className="lg:my-3 mt-4 mb-3">
             <h1 className="text-3xl lg:text-4xl font-bold text-center">
               Staff Onboard
             </h1>
           </div>
-          <div className="flex flex-col justify-center">
+          <div className="flex flex-col justify-center items-center w-full">
             <button
-              className={
-                buttonClass +
-                " bg-primary-cream  text-primary-green max-w-xl cursor-pointer mb-3"
-              }
+              className={`${buttonClass} ${primaryBgClass} dark:text-primary-light-green text-primary-green max-w-lg cursor-pointer mb-3`}
               onClick={handleOpenModal}
             >
               Create New Staff +
-            </button>
-            <button
-              className="font-semibold text-xs cursor-pointer mb-3"
-              onClick={(e) => handleRoleInfo(e)}
-            >
-              <i className="fa-solid fa-circle-info pr-3"></i>More info about
-              roles
             </button>
             {roleInfo && (
               <NotificationModal
@@ -656,9 +661,9 @@ const StaffManagement = () => {
             )}{" "}
           </div>
 
-          <div className="bg-primary-cream mx-3">
+          <div className={`${primaryBgClass} mx-3`}>
             {staffList.length > 0 && (
-              <div className="grid grid-cols-8 w-full text-primary-dark-green font-semibold">
+              <div className="grid grid-cols-8 w-full dark:text-primary-light-green text-primary-dark-green font-semibold">
                 <div
                   className={
                     "border-l-5 border-t-1 border-b-1 border-r-1 border-primary-green text-sm col-span-3 rounded-tl-lg p-5 lg:col-span-2"
@@ -671,21 +676,33 @@ const StaffManagement = () => {
                     " border-t-1 border-b-1 border-r-1 border-primary-green text-sm  col-span-2 p-5 "
                   }
                 >
-                  Role
+                  Role{" "}
+                  <span
+                    className=" cursor-pointer "
+                    onClick={(e) => handleRoleInfo(e)}
+                  >
+                    <i className="fa-solid fa-circle-info font-semibold pr-1"></i>
+                    <span className="font-light text-xs lg:block hidden">
+                      More info about roles
+                    </span>
+                  </span>
                 </div>
                 <div
                   className={
-                    "border-t-1 border-b-1 border-r-1 border-primary-green text-sm col-span-2 lg:col-span-3 p-5"
+                    "border-t-1 border-b-1 border-r-1 border-primary-green text-sm col-span-2 lg:col-span-2 p-5"
                   }
                 >
                   Email
                 </div>
                 <div
                   className={
-                    "border-t-1 border-b-1 border-r-1 border-primary-green text-sm col-span-1 rounded-tr-lg flex items-center justify-center  "
+                    "border-t-1 border-b-1 border-r-1 border-primary-green text-sm col-span-1 lg:col-span-2 rounded-tr-lg flex items-center p-5"
                   }
                 >
                   <i className="fa-solid fa-trash"></i>
+                  <span className=" text-sm font-semibold lg:block hidden pl-2 ">
+                    Delete Staff
+                  </span>
                 </div>
               </div>
             )}
@@ -713,14 +730,14 @@ const StaffManagement = () => {
                   </div>
                   <div
                     className={
-                      "border-b-1 border-r-1 border-primary-green text-sm lg:col-span-3 col-span-2 p-2 truncate"
+                      "border-b-1 border-r-1 border-primary-green text-sm lg:col-span-2 col-span-2 p-2 truncate"
                     }
                   >
                     {staff.email}
                   </div>
                   <div
                     className={
-                      "border-b-1 border-r-1 border-primary-green text-sm col-span-1  p-2 flex items-center justify-center cursor-pointer"
+                      "border-b-1 border-r-1 border-primary-green text-sm col-span-1 lg:col-span-2 p-2 flex items-center justify-center cursor-pointer"
                     }
                     onClick={() => handleDeleteStaff(staff.id)}
                   >
@@ -732,7 +749,7 @@ const StaffManagement = () => {
         </div>
       )}
       {showAuthModal && (
-        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 ">
           <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
             <button
               onClick={handleAuthModalClose}

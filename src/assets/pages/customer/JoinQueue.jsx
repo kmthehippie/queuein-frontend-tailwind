@@ -4,6 +4,19 @@ import api from "../../api/axios";
 import Error from "../Error";
 import { setWithExpiry } from "../../utils/localStorage";
 import useLSContext from "../../hooks/useLSContext";
+import {
+  primaryBgClass,
+  primaryBgTransparentClass,
+  primaryTextClass,
+  secondaryTextClass,
+  labelClass,
+  errorClass,
+  checkBoxClass,
+  primaryButtonClass as buttonClass,
+  primaryInputClass,
+  errorTextClass,
+  xButtonClass,
+} from "../../styles/tailwind_styles";
 
 //! +Customer must be on mobile.
 const JoinQueue = () => {
@@ -42,13 +55,10 @@ const JoinQueue = () => {
   };
 
   //Tailwind
-  const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800 `;
+
   const inputClass = (hasError) =>
-    `border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 text-xs leading-tight focus:outline-none focus:border-black peer active:border-black
+    `${primaryInputClass}
   ${hasError ? "border-red-500" : ""}`;
-  const errorClass = `text-red-600 text-center`;
-  const checkBoxClass = `w-6 h-6 rounded-lg accent-primary-green hover:accent-primary-light-green text-primary-green focus:ring-2 ring-primary-light-green border-primary-dark-green`;
-  const buttonClass = `bg-primary-green mt-3 hover:bg-primary-dark-green w-full transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline`;
 
   const fetchFormData = async () => {
     setLoading(true);
@@ -149,7 +159,6 @@ const JoinQueue = () => {
         );
 
         if (res.status === 201 || res.status === 200) {
-          const data = { ...res.data, accountInfo, outlet };
           const queueItem = res.data.queueItem;
           const storeToLocalStorage = {
             queueItemId: queueItem.id,
@@ -158,9 +167,7 @@ const JoinQueue = () => {
           };
           setWithExpiry("queueItemLS", storeToLocalStorage, localStorageExpiry);
           checkSession();
-          navigate(`/${acctSlug}/queueItem/${queueItem.id}`, {
-            state: { data: data },
-          });
+          navigate(`/${acctSlug}/queueItem/${queueItem.id}`);
         }
       } catch (err) {
         setLoading(false);
@@ -201,14 +208,13 @@ const JoinQueue = () => {
   }
   return (
     <div className="p-3 md:p-5">
-      {warning && (
+      {/* {warning && (
         <div className="bg-primary-ultra-dark-green/85 min-w-full min-h-full absolute top-0 left-0 z-5"></div>
-      )}
+      )} */}
 
       <Link
         to={`/${accountInfo.slug}`}
-        className="flex items-center pb-3 border-b-1 border-stone-400
-        justify-center "
+        className={`flex items-center pb-3 border-b-1 ${secondaryTextClass} justify-center `}
       >
         <img
           src={accountInfo.logo}
@@ -219,21 +225,24 @@ const JoinQueue = () => {
           {accountInfo.companyName}
         </h1>
       </Link>
-      <h1 className="font-light text-3xl text-center text-stone-600 mt-5 lg:text-4xl mb-2">
+      <h1
+        className={`font-light text-3xl text-center ${primaryTextClass} mt-5 lg:text-4xl mb-2`}
+      >
         {outlet.name}
       </h1>
-      <div className="bg-white/50 p-10 rounded-xl shadow-md w-4/5 flex-row md:pt-5 md:pb-5 justify-self-center relative">
+      <div
+        className={`${primaryBgTransparentClass} p-2 md:p-10 rounded-xl shadow-md w-4/5 flex-row md:pt-5 md:pb-5 justify-self-center relative max-w-[500px]`}
+      >
         {warning && (
-          <div className="bg-primary-cream z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/3 left-1/2 -translate-1/2 p-10 md:min-w-md">
-            <h1 className="text-red-900">Notice:</h1>
+          <div
+            className={`${primaryBgClass} z-10 min-w-sm rounded-3xl text-center ${primaryTextClass} absolute top-1/3 left-1/2 -translate-1/2 p-10 md:min-w-md`}
+          >
+            <h1 className={errorTextClass}>Notice:</h1>
             <p>
-              Please talk to our host for large group sizes or close this box to
-              change your group size.
+              Please talk to our staff for large group sizes or close this box
+              to change your group size.
             </p>
-            <p
-              className="absolute top-0 right-0 text-red-700 pr-5 pt-2 hover:text-red-950 transition ease-in active:text-red-950 font-bold"
-              onClick={closeWarning}
-            >
+            <p className={xButtonClass} onClick={closeWarning}>
               X
             </p>
             <button className={buttonClass} onClick={closeWarning}>
@@ -241,8 +250,10 @@ const JoinQueue = () => {
             </button>
           </div>
         )}
-        <form>
-          <h1 className="text-center text-xl font-extralight">
+        <form className="">
+          <h1
+            className={`text-center text-xl md:text-3xl font-extralight ${primaryTextClass} `}
+          >
             Enter the queue:
           </h1>
           <div className="flex-row p-1 ">
@@ -279,7 +290,7 @@ const JoinQueue = () => {
                 required
               />
             </div>
-            {accountInfo.businessType === "RESTAURANT" && (
+            {outlet.showPax && (
               <div className="mb-1">
                 <label htmlFor="customer-pax" className={labelClass}>
                   PAX
@@ -308,7 +319,7 @@ const JoinQueue = () => {
               />
               <label
                 htmlFor="vip"
-                className="ms-2 text-xs font-light text-gray-600 pl-1 md:pl-3"
+                className={`ms-2 text-xs font-light ${primaryTextClass} pl-1 md:pl-3`}
               >
                 Join our VIP list! By providing your consent,{" "}
                 <span className="font-bold">

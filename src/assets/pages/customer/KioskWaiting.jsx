@@ -44,6 +44,7 @@ const KioskWaiting = () => {
   };
 
   useEffect(() => {
+    console.log("Fetching data in kiosk waiting page.");
     fetchData();
   }, []);
 

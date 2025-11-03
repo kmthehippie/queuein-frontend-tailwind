@@ -5,11 +5,13 @@ import UpdateOutletModal from "../../components/UpdateOutletModal";
 import AuditLogs from "./AuditLogs";
 import { alphabeticalSort } from "../../utils/sortList";
 import { useNavigate, useParams, Link } from "react-router-dom";
-
+import { primaryTextClass, primaryBgClass } from "../../styles/tailwind_styles";
+import { useBusinessType } from "../../hooks/useBusinessType";
 //TODO: SELF NOTES: HOW ABOUT CREATING A COMPONENT THAT TAKES IN NAME OF FIELD, DATA TO DISPLAY, AND ETC. THAT WAY WE CAN JUST CREATE COMPONENT FOR EVERY DIV INSTEAD OF SO MUCH REPEATED CODE.
 
 const SettingsOutlet = () => {
-  const { accountId, outletText } = useAuth();
+  const { accountId } = useAuth();
+  const { config } = useBusinessType();
   const apiPrivate = useApiPrivate();
   const { outletId } = useParams();
 
@@ -33,6 +35,7 @@ const SettingsOutlet = () => {
     const fetchAllOutlets = async () => {
       try {
         const res = await apiPrivate.get(`/alloutlets/${accountId}`);
+        console.log("Fetched outlets:", res.data.outlets);
         const outlets = res.data.outlets;
         if (outlets.length > 0) {
           const sorted = alphabeticalSort(outlets);
@@ -83,7 +86,7 @@ const SettingsOutlet = () => {
         <div className="">Nothing here</div>{" "}
         <Link to={`/db/${accountId}/outlets/new`}>
           <p className="text-xs text-primary-green hover:text-primary-light-green">
-            Please create {outletText}.
+            Please create {config.label}.
           </p>
         </Link>
       </div>
@@ -92,8 +95,10 @@ const SettingsOutlet = () => {
 
   return (
     <div className="">
-      <div className="overflow-y-auto max-h-[63vh]  lg:max-h-[55vh] h-full gap-1">
-        <div className="border-b-primary-light-green p-2 bg-primary-cream z-1 sticky top-0 border-b-1 ">
+      <div className="overflow-y-auto pb-5 max-h-[60vh] lg:max-h-[55vh] h-full gap-1">
+        <div
+          className={`border-b-primary-light-green p-2 ${primaryBgClass} ${primaryTextClass} z-1 sticky top-0 border-b-1 `}
+        >
           {allOutlets && (
             <div className="flex overflow-x-auto ">
               {allOutlets.map((outlet) => (
@@ -117,7 +122,7 @@ const SettingsOutlet = () => {
           )}
           {!allOutlets && (
             <div className="flex overflow-x-auto ">
-              No outlets available yet.
+              No {config.label}s available yet.
             </div>
           )}
         </div>
