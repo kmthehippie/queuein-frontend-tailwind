@@ -61,7 +61,7 @@ const Home = () => {
             </div>
           </div>
           <br />
-          <h2 className="font-extralight text-2xl text-center">
+          <h2 className="font-extralight text-2xl text-center dark:text-white">
             A quick walkthrough
           </h2>
           <div className="bg-primary-cream hover:shadow-2xl p-4 rounded-lg shadow-md m-1">
@@ -183,7 +183,7 @@ const Home = () => {
               </div>
             </div>
           </div>
-          <h2 className="font-extralight text-2xl mt-10 text-center">
+          <h2 className="font-extralight text-2xl mt-10 text-center dark:text-white">
             Give it a whirl!
           </h2>
           <div className="bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md m-1">
@@ -285,7 +285,7 @@ const Home = () => {
             </div>
           </div>
           <div className="font-light  max-w-2xl mx-auto">
-            <h2 className="font-extralight text-2xl mt-10 text-center">
+            <h2 className="font-extralight text-2xl mt-10 text-center dark:text-white">
               Features
             </h2>
             <ul className="list-none space-y-4 bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md max-w-200 m-1 text-xs">
@@ -342,7 +342,7 @@ const Home = () => {
           </div>
 
           <div className="font-light max-w-2xl mx-auto mb-10">
-            <h2 className="font-extralight text-2xl mt-10 text-center">
+            <h2 className="font-extralight text-2xl mt-10 text-center dark:text-white">
               Future features
             </h2>
             <div className="bg-primary-cream/80 hover:shadow-2xl p-4 rounded-lg shadow-md m-1">
