@@ -125,7 +125,10 @@ const ActiveOutlet = () => {
           `activeQueue/${params.accountId}/${params.queueId}/${params.outletId}`
         );
         if (res?.data) {
-          console.log("res data from active queue items: ", res?.data);
+          console.log(
+            "res data from active queue items: ",
+            JSON.stringify(res?.data)
+          );
           setQueueItems(res.data.queue.queueItems);
           setShowPax(res.data.showPax);
           setMaxQueueItems(res.data.queue.maxQueueItems);
@@ -382,8 +385,6 @@ const ActiveOutlet = () => {
         const res = await apiPrivate.patch(`/callQueueItem/${id}`, {
           called: newCalledStatus,
         });
-
-        // The patch here also calls the emit from the backend, we don't need to do socket emit from the front end.
 
         if (res?.status === 201) {
           console.log("Call status updated on backend.");

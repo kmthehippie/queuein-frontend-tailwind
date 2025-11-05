@@ -33,6 +33,7 @@ const Register = () => {
   const [passwordSame, setPasswordSame] = useState(false);
   const [capslockOn, setCapslockOn] = useState(false);
   const [showBusinessType, setShowBusinessType] = useState(false);
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
 
   const [loading, setLoading] = useState(false);
   //Use hooks imported
@@ -122,6 +123,13 @@ const Register = () => {
     if (ownerPassword.length < 6) {
       setErrors({ general: "Invalid password" });
       setOwnerPasswordError(true);
+      return;
+    }
+    if (!agreeToTerms) {
+      setErrors({
+        general:
+          "You must agree to the Terms and Conditions and Privacy Policy.",
+      });
       return;
     }
 
@@ -458,6 +466,40 @@ const Register = () => {
             </div>
 
             {errors && <p className={errorClass}>{errors.general}</p>}
+            <div className="flex items-center m-2">
+              <input
+                id="agree-terms-checkbox"
+                type="checkbox"
+                className={checkBoxClass}
+                onChange={() => setAgreeToTerms(!agreeToTerms)}
+                checked={agreeToTerms}
+                required
+              />
+              <label
+                htmlFor="agree-terms-checkbox"
+                className="ms-2 text-xs font-light text-primary-dark-green"
+              >
+                I agree to the{" "}
+                <a
+                  href="/legal-policies" // Adjust to the actual route or URL for displaying LegalPolicies(Alpha).md
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={linkClass}
+                >
+                  Terms and Conditions
+                </a>{" "}
+                and{" "}
+                <a
+                  href="/legal-policies" // Same as above; if separate, use different links
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={linkClass}
+                >
+                  Privacy Policy
+                </a>
+                .
+              </label>
+            </div>
             <button type="submit" className={buttonClass}>
               Register
             </button>
