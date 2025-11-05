@@ -10,6 +10,7 @@ import { useBusinessType } from "../hooks/useBusinessType";
 const Sidenav = () => {
   const [outlets, setOutlets] = useState([]);
   const [showSideNav, setShowSideNav] = useState(false);
+  const [loading, setLoading] = useState(true); // Add loading state
 
   const sideNavRef = useRef(null);
   const params = useParams();
@@ -55,6 +56,7 @@ const Sidenav = () => {
     if (!isAuthenticated) return;
 
     const fetchOutlets = async () => {
+      setLoading(true); // Set loading before fetch
       try {
         const response = await apiPrivate.get(`/sidenav/${accountId}`);
         if (response?.data) {
@@ -65,6 +67,9 @@ const Sidenav = () => {
         }
       } catch (error) {
         console.error("Error fetching outlets for side nav:", error);
+        setOutlets([]); // Clear outlets on error
+      } finally {
+        setLoading(false); // Always set loading to false
       }
     };
     fetchOutlets();
@@ -117,7 +122,11 @@ const Sidenav = () => {
           </div>
         </Link>
 
-        {outlets.length > 0 ? (
+        {loading ? (
+          <div className={`ml-4 text-sm ${primaryTextClass}`}>
+            Loading {config.label}s...
+          </div>
+        ) : outlets.length > 0 ? (
           <div>
             {outlets.map((outlet) => (
               <div
