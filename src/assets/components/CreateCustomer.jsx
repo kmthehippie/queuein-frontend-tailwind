@@ -178,7 +178,9 @@ const CreateCustomer = ({
               htmlFor="vip"
               className="ms-2 text-sm font-light text-gray-600 pl-1 md:pl-3"
             >
-              VIP {config.customerSingularLabel}
+              Agree to be a VIP {config.customerSingularLabel} where we will
+              retain your contact number to contact you for future promotions
+              and updates.
             </label>
           </div>
         </div>
