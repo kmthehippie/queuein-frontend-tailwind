@@ -270,7 +270,7 @@ const KioskView = () => {
             {validationError && (
               <p className={errorClass}>{validationError.general}</p>
             )}
-            <div className="flex w-full justify-center pt-2 ">
+            <div className="flex w-full justify-center pt-2 pb-5 md:pb-0">
               <div className={buttonClass} onClick={handleSubmitKiosk}>
                 Join Queue
               </div>
