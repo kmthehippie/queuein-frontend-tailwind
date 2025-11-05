@@ -284,7 +284,7 @@ const SettingsAccount = () => {
         </div>
       )}
       {!showAuditLogs && (
-        <div className=" md:p-0">
+        <div className=" md:p-0 relative">
           {emailModalInfo && (
             <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
               <div
@@ -356,6 +356,13 @@ const SettingsAccount = () => {
           <div
             className={`overflow-y-auto h-auto max-h-[52vh] ${primaryTextClass}`}
           >
+            <div
+              className={`sticky top-0 left-0 bg-white/90 py-2 ${
+                errors ? "block" : "hidden"
+              }`}
+            >
+              {errors && <div className={errorClass}>{errors.general}</div>}
+            </div>
             <div className="pl-5 lg:pl-10 mt-5">
               <div className=" text-md ">Welcome to your account settings</div>
               <div className="text-xs font-extralight italic ">
@@ -363,7 +370,7 @@ const SettingsAccount = () => {
               </div>
             </div>
             <div
-              className={`py-2.5 px-3 rounded-full lg:rounded-sm lg:p-2 text-sm font-light ${primaryTextClass} md:border-1 md:border-primary-cream hover:border-primary-green hover:text-primary-dark-green transition ease-in w-max cursor-pointer ${primaryBgClass} mt-2 ml-5 md:ml-0 md:absolute md:top-2 md:right-2`}
+              className={`py-2.5 px-3 rounded-full lg:rounded-sm lg:p-2 text-sm font-light ${primaryTextClass} border-1 border-primary-cream hover:border-primary-green hover:text-primary-green transition ease-in w-max cursor-pointer mt-5 mr-5 ml-5 md:ml-0 md:absolute md:top-2 md:right-2`}
             >
               <button
                 onClick={handleNavigateAuditLog}
@@ -495,7 +502,6 @@ const SettingsAccount = () => {
                 </button>
               </div>
             </form>
-            {errors && <div className={errorClass}>{errors.general}</div>}
           </div>
         </div>
       )}
