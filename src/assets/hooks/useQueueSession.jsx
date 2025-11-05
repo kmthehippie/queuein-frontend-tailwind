@@ -17,10 +17,6 @@ const useQueueSession = (initialReceivedData) => {
           `/customerWaitingPage/${storedSession.acctSlug}/${storedSession.queueId}/${storedSession.queueItemId}`
         );
         if (response.status === 200 && response.data.queueItem.active) {
-          console.log(
-            "Response from use queue session at customer waiting page: ",
-            response.data
-          );
           setQueueData(response.data);
         } else if (response.status === 400 || response.status === 404) {
           console.log(

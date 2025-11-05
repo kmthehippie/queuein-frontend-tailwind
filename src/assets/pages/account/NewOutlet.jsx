@@ -13,6 +13,7 @@ import {
   errorClass,
   primaryInputClass,
   xButtonClass,
+  primaryBgClass,
 } from "../../styles/tailwind_styles";
 import { useBusinessType } from "../../hooks/useBusinessType";
 
@@ -22,7 +23,7 @@ const NewOutlet = () => {
   const apiPrivate = useApiPrivate();
   const { config } = useBusinessType();
 
-  const { setReloadNav, outletText } = useAuth();
+  const { setReloadNav } = useAuth();
   //DATA TO SET
   const [name, setName] = useState(""); // Initialize with empty string
   const [location, setLocation] = useState("");
@@ -175,7 +176,9 @@ const NewOutlet = () => {
       if (res?.status === 201) {
         setIsLoading(false);
         setReloadNav();
-        navigate(`/db/${accountId}/outlets/all`);
+        setTimeout(() => {
+          navigate(`/db/${accountId}/outlets/all`);
+        }, 500);
       } else {
         setIsLoading(false);
         setErrors({ general: "Failed to update outlet. Please try again" });
@@ -196,7 +199,9 @@ const NewOutlet = () => {
     <div>
       {showAuthModal && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
+          <div
+            className={`${primaryBgClass} p-6 rounded-lg shadow-xl relative max-w-sm w-full`}
+          >
             <button
               className="text-red-700 absolute top-0 right-0"
               onClick={handleAuthFailure}
@@ -422,7 +427,7 @@ const NewOutlet = () => {
                   " bg-primary-green hover:bg-primary-dark-green mr-3"
                 }
               >
-                Submit New {outletText}
+                Submit New {config.label}
               </button>
             </div>
           </form>

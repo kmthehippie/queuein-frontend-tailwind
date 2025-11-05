@@ -50,7 +50,6 @@ const OutletLanding = () => {
   const fetchOutletData = useCallback(async () => {
     try {
       const res = await api.get(`/outletLandingPage/${acctSlug}/${outletId}`);
-      console.log("res from outlet data", JSON.stringify(res.data));
       setErrors("");
       if (res?.data) {
         setAccountInfo(res?.data?.accountInfo);

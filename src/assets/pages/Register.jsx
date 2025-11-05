@@ -3,6 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import { apiPrivate } from "../api/axios";
 import Loading from "../components/Loading";
+import {
+  errorClass,
+  primaryButtonClass as buttonClass,
+  checkBoxClass,
+} from "../styles/tailwind_styles";
 
 const Register = () => {
   //States
@@ -10,7 +15,7 @@ const Register = () => {
   const [companyNameErr, setCompanyNameErr] = useState("");
   const [companyEmail, setCompanyEmail] = useState("");
   const [companyEmailErr, setCompanyEmailErr] = useState("");
-  const [businessType, setBusinessType] = useState("");
+  const [businessType, setBusinessType] = useState("BASIC");
   const [businessTypeError, setBusinessTypeError] = useState(false);
   const [companyPassword, setCompanyPassword] = useState("");
   const [passwordCompanyError, setPasswordCompanyError] = useState("");
@@ -36,13 +41,11 @@ const Register = () => {
 
   //Tailwind
   const hideClass = `hidden`;
-  const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800`;
+  const labelClass = `text-gray-500 text-xs transition-all duration-300 cursor-text color-gray-800`;
   const inputClass = (hasError) =>
     `border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 text-sm leading-tight focus:outline-none focus:border-black peer active:border-black
   ${hasError ? "border-red-500" : ""}`;
-  const errorClass = `text-red-600 text-center`;
-  const checkBoxClass = `w-6 h-6 rounded-lg accent-primary-green hover:accent-primary-light-green text-primary-green focus:ring-2 ring-primary-light-green border-primary-dark-green`;
-  const buttonClass = `bg-primary-green mt-3 hover:bg-primary-dark-green w-full transition ease-in text-white font-light py-2 px-4 rounded focus:outline-none focus:shadow-outline`;
+
   const linkClass = `text-primary-green hover:text-primary-dark-green transition ease-in`;
 
   useEffect(() => {
@@ -156,7 +159,7 @@ const Register = () => {
         ownerInfo,
       });
       if (res.status === 201 && res.data?.accessToken && res.data?.accountId) {
-        console.log("Response from registering: ", res.data);
+        console.log("Response from registering: ", JSON.stringify(res.data));
         const accessToken = res.data?.accessToken;
         const accountId = res.data?.accountId;
         const businessType = res.data?.businessType;
@@ -168,7 +171,7 @@ const Register = () => {
           navigate(`/db/${res.data.accountId}/outlets/all`);
         }, 2000);
       } else {
-        console.error("Unexpected success response:", res.data);
+        console.error("Unexpected success response:", JSON.stringify(res.data));
         setErrors({
           general:
             "Registration successful, but unable to redirect. Please try again.",
@@ -209,248 +212,258 @@ const Register = () => {
           <h1 className="text-3xl font-semibold mb-2 font-poppins text-stone-700">
             Great Choice!
           </h1>
-          <small className="block mb-4 text-gray-600">Let's get started.</small>
-          <form onSubmit={handleSubmit} className="space-y-4 lg:flex lg:h-full">
-            <div className="flex-row p-1">
-              <div>
-                <label htmlFor="company-name" className={labelClass}>
-                  Company name
-                </label>
-                <input
-                  id="company-name"
-                  type="text"
-                  placeholder="Enter your company name"
-                  className={inputClass(!!companyNameErr)} // Use the function
-                  onChange={(e) => {
-                    setCompanyName(e.target.value);
-                  }}
-                  autoComplete="name"
-                  required
-                />
-              </div>
+          <small className="block text-gray-600">Let's get started.</small>
+          <form
+            onSubmit={handleSubmit}
+            role="form"
+            aria-label="Account Registration Form"
+          >
+            <div className="space-y-4 lg:flex lg:h-full">
+              <div className="flex-row p-1">
+                <h3 className={`text-primary-green italic`}>
+                  Company Information
+                </h3>
+                <div>
+                  <label htmlFor="company-name" className={labelClass}>
+                    Company name
+                  </label>
+                  <input
+                    id="company-name"
+                    type="text"
+                    placeholder="Enter your company name"
+                    className={inputClass(!!companyNameErr)} // Use the function
+                    onChange={(e) => {
+                      setCompanyName(e.target.value);
+                    }}
+                    autoComplete="name"
+                    required
+                  />
+                </div>
 
-              <div>
-                <label htmlFor="company-email" className={labelClass}>
-                  Company Email
-                </label>
-                <input
-                  id="company-email"
-                  type="email"
-                  placeholder="Enter your company email"
-                  className={inputClass(!!companyEmailErr)}
-                  onChange={(e) => {
-                    setCompanyEmail(e.target.value);
-                  }}
-                  autoComplete="email"
-                  required
-                />
-              </div>
+                <div>
+                  <label htmlFor="company-email" className={labelClass}>
+                    Company Email
+                  </label>
+                  <input
+                    id="company-email"
+                    type="email"
+                    placeholder="Enter your company email"
+                    className={inputClass(!!companyEmailErr)}
+                    onChange={(e) => {
+                      setCompanyEmail(e.target.value);
+                    }}
+                    autoComplete="email"
+                    required
+                  />
+                </div>
 
-              <div className="flex items-center m-2 mb-2">
-                <input
-                  id="email-same-checkbox"
-                  type="checkbox"
-                  className={checkBoxClass}
-                  onChange={() => {
-                    setEmailSame(!emailSame);
-                  }}
-                  checked={emailSame}
-                />
-                <label
-                  htmlFor="email-same-checkbox"
-                  className="ms-2 text-xs font-light text-primary-dark-green"
-                >
-                  Owner's email is the same as Company email
-                </label>
-              </div>
-              <div className="text-sm text-gray-600 mb-2">
-                <label
-                  htmlFor="business-type"
-                  className={labelClass + " mr-10 "}
-                >
-                  Business Type
-                </label>
-                <select
-                  id="business-type"
-                  onChange={(e) => setBusinessType(e.target.value)}
-                  className={
-                    `border-1 border-gray-400 rounded-lg px-2 py-1` +
-                    `${businessTypeError ? " border-red-600" : ""}`
-                  }
-                >
-                  {" "}
-                  <option value="" defaultValue disabled>
-                    -----Please select an option-----
-                  </option>
-                  <option value="BASIC">Basic</option>
-                  <option value="RESTAURANT">Restaurant</option>
-                  <option value="CLINIC">Clinic</option>
-                </select>
-                <br />
-
-                <div className="cursor-pointer pt-1">
-                  {" "}
-                  {!showBusinessType && (
-                    <div onClick={handleInfo}>
-                      <i className="fa-solid fa-caret-right pr-5"></i> More
-                      Info...
-                    </div>
-                  )}
+                <div className="flex items-center m-2 mb-2">
+                  <input
+                    id="email-same-checkbox"
+                    type="checkbox"
+                    className={checkBoxClass}
+                    onChange={() => {
+                      setEmailSame(!emailSame);
+                    }}
+                    checked={emailSame}
+                  />
+                  <label
+                    htmlFor="email-same-checkbox"
+                    className="ms-2 text-xs font-light text-primary-dark-green"
+                  >
+                    Owner's email is the same as Company email
+                  </label>
+                </div>
+                <div className="text-sm text-gray-600 mb-2">
+                  <label
+                    htmlFor="business-type"
+                    className={labelClass + " mr-10 "}
+                  >
+                    Business Type
+                  </label>
+                  <select
+                    id="business-type"
+                    value={businessType}
+                    onChange={(e) => setBusinessType(e.target.value)}
+                    className={
+                      `border-1 border-gray-400 rounded-lg px-2 py-1` +
+                      `${businessTypeError ? " border-red-600" : ""}`
+                    }
+                  >
+                    <option value="">-----Please select an option-----</option>
+                    <option value="BASIC">Basic</option>
+                    <option value="RESTAURANT">Restaurant</option>
+                    <option value="CLINIC">Clinic</option>
+                  </select>
+                  <br />
+                  <div className="cursor-pointer pt-1">
+                    {" "}
+                    {!showBusinessType && (
+                      <div onClick={handleInfo}>
+                        <i className="fa-solid fa-caret-right pr-5"></i> More
+                        Info...
+                      </div>
+                    )}
+                    {showBusinessType && (
+                      <div onClick={handleInfo}>
+                        <i className="fa-solid fa-caret-down pr-5"></i>More
+                        Info...
+                      </div>
+                    )}
+                  </div>
                   {showBusinessType && (
-                    <div onClick={handleInfo}>
-                      <i className="fa-solid fa-caret-down pr-5"></i>More
-                      Info...
+                    <div className=" text-primary-green mt-2 pl-5 py-2 border-1">
+                      <small>
+                        <span className="text-primary-dark-green font-semibold">
+                          Basic
+                        </span>
+                        : No pax and you are using us for events.
+                      </small>
+                      <br />
+                      <small>
+                        <span className="text-primary-dark-green font-semibold">
+                          Clinic
+                        </span>
+                        : Healthcare facility.
+                      </small>
+                      <br />
+                      <small>
+                        <span className="text-primary-dark-green font-semibold">
+                          Restaurants
+                        </span>
+                        : Restaurant usage. (Has Pax).
+                      </small>
                     </div>
                   )}
                 </div>
-                {showBusinessType && (
-                  <div className=" text-primary-green mt-2 pl-5 py-2 border-1">
-                    <small>
-                      <span className="text-primary-dark-green font-semibold">
-                        Basic
-                      </span>
-                      : No pax and you are using us for events.
-                    </small>
-                    <br />
-                    <small>
-                      <span className="text-primary-dark-green font-semibold">
-                        Clinic
-                      </span>
-                      : Healthcare facility.
-                    </small>
-                    <br />
-                    <small>
-                      <span className="text-primary-dark-green font-semibold">
-                        Restaurants
-                      </span>
-                      : Restaurant usage. (Has Pax).
-                    </small>
-                  </div>
-                )}
+                <div>
+                  <label htmlFor="company-password" className={labelClass}>
+                    Company Password
+                  </label>
+                  <input
+                    id="company-password"
+                    type="password"
+                    placeholder="Enter your password"
+                    className={inputClass(!!passwordCompanyError)} // Use the function
+                    onChange={(e) => {
+                      setCompanyPassword(e.target.value);
+                    }}
+                    onKeyUp={handleCheckCapsLock}
+                    autoComplete="password"
+                    required
+                  />
+                  {capslockOn && (
+                    <div className="text-xs text-red-700">
+                      Your CAPSLOCK is on.
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="cfm-company-password" className={labelClass}>
+                    Confirm Company Password
+                  </label>
+                  <input
+                    id="cfm-company-password"
+                    type="password"
+                    placeholder="Confirm Company password"
+                    className={inputClass(!!confirmCompanyPasswordError)} // Use the function
+                    onChange={(e) => {
+                      setCompanyCfmPassword(e.target.value);
+                    }}
+                    onKeyUp={handleCheckCapsLock}
+                    autoComplete="password"
+                    required
+                  />
+                  {capslockOn && (
+                    <div className="text-xs text-red-700">
+                      Your CAPSLOCK is on.
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center m-2">
+                  <input
+                    id="password-same-checkbox"
+                    type="checkbox"
+                    className={checkBoxClass}
+                    onChange={() => {
+                      setPasswordSame(!passwordSame);
+                    }}
+                    checked={passwordSame}
+                  />
+                  <label
+                    htmlFor="password-same-checkbox"
+                    className="ms-2 text-xs font-light text-primary-dark-green "
+                  >
+                    Owner's password is the same as Company password
+                  </label>
+                </div>
               </div>
-              <div>
-                <label htmlFor="company-password" className={labelClass}>
-                  Company Password
-                </label>
-                <input
-                  id="company-password"
-                  type="password"
-                  placeholder="Enter your password"
-                  className={inputClass(!!passwordCompanyError)} // Use the function
-                  onChange={(e) => {
-                    setCompanyPassword(e.target.value);
-                  }}
-                  onKeyUp={handleCheckCapsLock}
-                  autoComplete="password"
-                  required
-                />
-                {capslockOn && (
-                  <div className="text-xs text-red-700">
-                    Your CAPSLOCK is on.
-                  </div>
-                )}
-              </div>
-              <div>
-                <label htmlFor="cfm-company-password" className={labelClass}>
-                  Confirm Company Password
-                </label>
-                <input
-                  id="cfm-company-password"
-                  type="password"
-                  placeholder="Confirm Company password"
-                  className={inputClass(!!confirmCompanyPasswordError)} // Use the function
-                  onChange={(e) => {
-                    setCompanyCfmPassword(e.target.value);
-                  }}
-                  onKeyUp={handleCheckCapsLock}
-                  autoComplete="password"
-                  required
-                />
-                {capslockOn && (
-                  <div className="text-xs text-red-700">
-                    Your CAPSLOCK is on.
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center m-2">
-                <input
-                  id="password-same-checkbox"
-                  type="checkbox"
-                  className={checkBoxClass}
-                  onChange={() => {
-                    setPasswordSame(!passwordSame);
-                  }}
-                  checked={passwordSame}
-                />
-                <label
-                  htmlFor="password-same-checkbox"
-                  className="ms-2 text-xs font-light text-primary-dark-green "
-                >
-                  Owner's password is the same as Company password
-                </label>
-              </div>
-            </div>
-            <div className="flex-row p-1 ">
-              <div>
-                <label htmlFor="owner-name" className={labelClass}>
-                  Owner Name
-                </label>
-                <input
-                  id="owner-name"
-                  type="text"
-                  placeholder="Enter your Owner Name"
-                  className={inputClass(ownerNameErr)} // Use the function
-                  onChange={(e) => {
-                    setOwnerName(e.target.value);
-                  }}
-                  autoComplete="name"
-                  required
-                />
-              </div>
-              <div className={` ${emailSame ? hideClass : ""}`}>
-                <label htmlFor="owner-email" className={labelClass}>
-                  Owner Email
-                </label>
-                <input
-                  id="owner-email"
-                  type="email"
-                  placeholder="Enter your Owner Email"
-                  className={inputClass(!!ownerEmailErr)} // Use the function
-                  onChange={(e) => {
-                    setOwnerEmail(e.target.value);
-                  }}
-                  autoComplete="email"
-                />
-              </div>
-              <div className={` ${passwordSame ? hideClass : ""}`}>
-                <label htmlFor="owner-password" className={labelClass}>
-                  Owner Password
-                </label>
-                <input
-                  id="owner-password"
-                  type="password"
-                  placeholder="Enter your owner password"
-                  className={inputClass(!!ownerPasswordError)} // Use the function
-                  onChange={(e) => {
-                    setOwnerPassword(e.target.value);
-                  }}
-                  onKeyUp={handleCheckCapsLock}
-                  autoComplete="password"
-                />
-                {capslockOn && (
-                  <div className="text-xs text-red-700">
-                    Your CAPSLOCK is on.
-                  </div>
-                )}
+              <div className="flex-row p-1 ">
+                <h3 className={`text-primary-green italic`}>
+                  Owner Information
+                </h3>
+                <div>
+                  <label htmlFor="owner-name" className={labelClass}>
+                    Owner Name
+                  </label>
+                  <input
+                    id="owner-name"
+                    type="text"
+                    placeholder="Enter your Owner Name"
+                    className={inputClass(ownerNameErr)} // Use the function
+                    onChange={(e) => {
+                      setOwnerName(e.target.value);
+                    }}
+                    autoComplete="name"
+                    required
+                  />
+                </div>
+                <div className={` ${emailSame ? hideClass : ""}`}>
+                  <label htmlFor="owner-email" className={labelClass}>
+                    Owner Email
+                  </label>
+                  <input
+                    id="owner-email"
+                    type="email"
+                    placeholder="Enter your Owner Email"
+                    className={inputClass(!!ownerEmailErr)} // Use the function
+                    onChange={(e) => {
+                      setOwnerEmail(e.target.value);
+                    }}
+                    autoComplete="email"
+                  />
+                </div>
+                <div className={` ${passwordSame ? hideClass : ""}`}>
+                  <label htmlFor="owner-password" className={labelClass}>
+                    Owner Password
+                  </label>
+                  <input
+                    id="owner-password"
+                    type="password"
+                    placeholder="Enter your owner password"
+                    className={inputClass(!!ownerPasswordError)} // Use the function
+                    onChange={(e) => {
+                      setOwnerPassword(e.target.value);
+                    }}
+                    onKeyUp={handleCheckCapsLock}
+                    autoComplete="password"
+                  />
+                  {capslockOn && (
+                    <div className="text-xs text-red-700">
+                      Your CAPSLOCK is on.
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
+
+            {errors && <p className={errorClass}>{errors.general}</p>}
+            <button type="submit" className={buttonClass}>
+              Register
+            </button>
           </form>
 
-          {errors && <p className={errorClass}>{errors.general}</p>}
-          <button type="button" className={buttonClass} onClick={handleSubmit}>
-            Register
-          </button>
-          <p className="mt-3 text-center">
+          <p className="mt-3 text-center text-stone-700">
             Already have an account?{" "}
             <Link to="/db/login" className={linkClass}>
               Sign In !

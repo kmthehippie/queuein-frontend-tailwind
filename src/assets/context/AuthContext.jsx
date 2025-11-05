@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await apiPrivate.post("/refresh");
       setAuthLoading(true);
-      console.log("Response in refresh: ", response);
+      console.log("Response in refresh: ", JSON.stringify(response));
       if (response.data.accessToken) {
         setBusinessType(response.data.businessType);
         setAccessToken(response.data.accessToken);

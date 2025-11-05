@@ -105,7 +105,6 @@ const Waiting = () => {
   //* INSTANTIATE
   useEffect(() => {
     if (queueData && !isLoadingSession) {
-      console.log("The queue data: ", JSON.stringify(queueData));
       setOpenNotifModal(true);
       setAccountInfo(queueData.accountInfo);
       setOutlet(queueData.outlet);

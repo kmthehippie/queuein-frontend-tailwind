@@ -29,7 +29,6 @@ const AllOutlets = () => {
   const [acctName, setAcctName] = useState("");
   const [selectedOutletData, setSelectedOutletData] = useState(null);
   const [logo, setLogo] = useState("");
-  // const [outletText, setOutletText] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(false);
 
   const [errors, setErrors] = useState("");
@@ -100,15 +99,7 @@ const AllOutlets = () => {
       console.log("Account id is not defined ", accountId);
       return;
     }
-    // const handleOutletText = (type) => {
-    //   if (type === "RESTAURANT") {
-    //     setOutletText("Outlet");
-    //   } else if (type === "CLINIC") {
-    //     setOutletText("Clinic");
-    //   } else if (type === "BASIC") {
-    //     setOutletText("Event Location");
-    //   }
-    // };
+
     const fetchOutlets = async () => {
       try {
         const res = await apiPrivate.get(`/allOutlets/${accountId}`);

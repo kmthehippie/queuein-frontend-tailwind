@@ -9,6 +9,7 @@ import {
   errorClass,
   primaryInputClass,
   primaryBgTransparentClass,
+  secondaryBgClass,
 } from "../../styles/tailwind_styles";
 
 const AuthorizedUser = ({
@@ -27,12 +28,9 @@ const AuthorizedUser = ({
   const params = useParams();
   const apiPrivate = useApiPrivate();
 
-  // const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800`;
   const inputClass = (hasError) =>
     `${primaryInputClass}
     ${hasError ? "border-red-500" : ""}`;
-  // const buttonClass = `mt-3 transition ease-in text-white font-light bg-primary-green py-2 px-4 rounded-2xl cursor-pointer focus:outline-none focus:shadow-outline min-w-20`;
-  // const errorClass = `text-red-600 text-center`;
 
   const handleCheckCapsLock = (e) => {
     setCapslockOn(e.getModifierState("CapsLock"));
@@ -80,7 +78,7 @@ const AuthorizedUser = ({
     }
   };
   return (
-    <div>
+    <div className={``}>
       <h1 className="pb-1">This is a security measure.</h1>
       <p className="text-sm font-semibold pb-2">
         Please let us know who you are

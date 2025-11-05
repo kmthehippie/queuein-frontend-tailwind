@@ -68,7 +68,7 @@ const Sidenav = () => {
       }
     };
     fetchOutlets();
-  }, [accountId, reloadNav, setOutlets]);
+  }, [accountId, reloadNav]);
 
   return (
     <div

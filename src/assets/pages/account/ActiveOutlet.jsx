@@ -126,10 +126,10 @@ const ActiveOutlet = () => {
         );
         if (res?.data) {
           console.log("res data from active queue items: ", res?.data);
-          setQueueItems(res.data.queueItems.queueItems);
+          setQueueItems(res.data.queue.queueItems);
           setShowPax(res.data.showPax);
-          setMaxQueueItems(res.data.queueItems.maxQueueItems);
-          setQueue(res.data.queueItems);
+          setMaxQueueItems(res.data.queue.maxQueueItems);
+          setQueue(res.data.queue);
         }
       } catch (error) {
         if (error.response.status === 406) {
