@@ -57,7 +57,17 @@ const ActiveOutlet = () => {
     Notification.permission
   );
   //HELPER FUNCTION
-  const convertedTime = (date) => moment(date).fromNow();
+  const convertedTime = (date) => {
+    const mDate = moment(date);
+    // calculate seconds difference: positive = currentTime is after date (expected)
+    const diffSeconds = currentTime.diff(mDate, "seconds");
+    // If date appears slightly in the future (clock skew), show "just now"
+    if (diffSeconds < 0 && Math.abs(diffSeconds) < 10) {
+      return "just now";
+    }
+    // Use currentTime as reference to ensure correct "ago" phrasing
+    return mDate.from(currentTime);
+  };
 
   //TAILWIND CLASSES:
   const activeTableHeader = `text-xs text-primary-dark-green dark:text-primary-light-green md:mr-5 mr-3 ml-2`;
