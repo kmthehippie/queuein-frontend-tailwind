@@ -77,6 +77,37 @@ const AuthorizedUser = ({
       onFailure();
     }
   };
+  const handleTestAccount = async (e) => {
+    e.preventDefault();
+    try {
+      const data = {
+        name: "Chai",
+        password: "123123",
+        actionPurpose: actionPurpose,
+        minimumRole: minimumRole,
+        outletId: outletId ? outletId : null,
+      };
+
+      const res = await apiPrivate.post(
+        `/authorisedRole/${params.accountId}`,
+        data
+      );
+      if (res.status === 200) {
+        const info = {
+          staffId: res.data.staffId,
+          staffRole: res.data.staffRole,
+          staffName: res.data.staffName,
+        };
+        onSuccess(info);
+      } else {
+        console.log("Something went wrong, status is not 200");
+        onFailure();
+      }
+    } catch (error) {
+      console.error(error);
+      onFailure();
+    }
+  };
   return (
     <div className={``}>
       <h1 className="pb-1">This is a security measure.</h1>
@@ -89,13 +120,9 @@ const AuthorizedUser = ({
       <div
         className={`block mb-4 text-sm ${primaryBgTransparentClass} hover:shadow-2xl p-4 rounded-lg shadow-md m-1`}
       >
-        <p className="font-semibold">SAMPLE STAFF DETAILS:</p>
-        <div className="text-primary-dark-green dark:text-primary-light-green font-semibold">
-          staff: A Cool Dude pw: 123123
-        </div>
-        <small className="italic ">
-          This will only work for the sample account
-        </small>
+        <button className={buttonClass} onClick={handleTestAccount}>
+          Use Test Account
+        </button>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4 mt-2">
         <div>

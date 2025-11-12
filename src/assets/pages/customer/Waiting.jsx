@@ -836,7 +836,8 @@ const Waiting = () => {
             className={`text-xs font-light italic ${primaryTextClass} w-full md:w-md justify-self-center mb-1`}
           >
             Please keep this page open for us to notify you when it is your
-            turn.
+            turn. Please make sure you are not in "Do Not Disturb" mode and your
+            volume is up!
           </h2>
           {/* GRID FOR QUEUE INFO */}
           {!dataLoaded && <div>Loading...</div>}
