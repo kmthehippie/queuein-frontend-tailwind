@@ -1102,7 +1102,7 @@ const ActiveOutlet = () => {
           {lg && queueItems && queueItems.length > 0 && (
             <div className="hidden md:block overflow-auto">
               <div
-                className={`grid grid-cols-13 mt-3 rounded-md p-2 shadow-2xl dark:shadow-white lg:shadow-none ${primaryBgClass} text-primary-dark-green dark:text-primary-light-green text-center `}
+                className={`grid grid-cols-13 mt-3 rounded-md p-2 shadow-2xl dark:shadow-white lg:shadow-none  bg-white dark:bg-stone-700 text-primary-dark-green dark:text-primary-light-green text-center `}
               >
                 <div
                   className={
@@ -1147,7 +1147,7 @@ const ActiveOutlet = () => {
                 if (item.active === true) {
                   return (
                     <div
-                      className={`grid grid-cols-13 px-2 pb-1 shadow-xl lg:shadow-none dark:text-primary-light-green text-center bg-white dark:bg-stone-600`}
+                      className={`grid grid-cols-13 px-2 pb-1 shadow-xl lg:shadow-none dark:text-primary-light-green text-center bg-white dark:bg-stone-700`}
                       key={item.id}
                     >
                       <div

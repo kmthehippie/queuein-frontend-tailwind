@@ -23,7 +23,7 @@ export const businessTypeConfig = {
   [BUSINESS_TYPES.CLINIC]: {
     label: "Clinic",
     value: "CLINIC",
-    queueName: "Clinic Name: Doctor",
+    queueName: "Doctor",
     customerLabel: "Patients",
     customerSingularLabel: "Patient",
     listTitle: "Patient List",
