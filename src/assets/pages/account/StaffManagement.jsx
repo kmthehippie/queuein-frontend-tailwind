@@ -65,9 +65,9 @@ const StaffManagement = () => {
   const { isAuthenticated } = useAuth();
 
   //TAILWIND CLASSES
-  const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text color-gray-800 `;
+  const labelClass = ` text-gray-500 text-sm transition-all duration-300 cursor-text dark:text-white`;
   const inputClass = (hasError) =>
-    `border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 text-xs leading-tight focus:outline-none focus:border-black peer active:border-black
+    `border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 dark:text-white text-xs leading-tight focus:outline-none focus:border-black peer active:border-black
   ${hasError ? "border-red-500" : ""}`;
   const errorClass = `text-red-600 text-center`;
   const buttonClass = ` hover:bg-primary-dark-green hover:text-primary-cream transition ease-in font-light py-2 px-8 rounded-xl focus:outline-none focus:shadow-outline hover:border-transparent border-primary-dark-green border-1`;
@@ -500,7 +500,7 @@ const StaffManagement = () => {
       )}
       {viewModal && (
         <div
-          className={`${primaryBgClass} ${primaryTextClass} p-5 rounded-2xl m-2 w-md relative flex flex-col items-center justify-center`}
+          className={`${primaryBgClass} text-stone-600 dark:text-white p-5 rounded-2xl m-2 w-md relative flex flex-col items-center justify-center`}
         >
           <h3 className="text-xl pb-2 text-center">Create a new staff</h3>
           <p
@@ -527,7 +527,7 @@ const StaffManagement = () => {
                   required
                 />
               </div>
-              <small className="text-xs italic text-stone-600">
+              <small className="text-xs italic text-stone-600 dark:text-white">
                 Your staff will be using this to login
               </small>
               <div className={``}>
@@ -554,7 +554,7 @@ const StaffManagement = () => {
                 <select
                   id="role"
                   name="role"
-                  className="border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 text-xs leading-tight focus:outline-none focus:border-black peer active:border-black"
+                  className="border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-stone-700 dark:text-white text-xs leading-tight focus:outline-none focus:border-black peer active:border-black"
                   value={selectedRole}
                   onChange={handleRoleChange}
                 >
@@ -750,7 +750,7 @@ const StaffManagement = () => {
       )}
       {showAuthModal && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 ">
-          <div className="bg-white p-6 rounded-lg shadow-xl relative max-w-sm w-full">
+          <div className="bg-white dark:bg-stone-800 p-6 rounded-lg shadow-xl relative max-w-sm w-full">
             <button
               onClick={handleAuthModalClose}
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"

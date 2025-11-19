@@ -23,6 +23,7 @@ const KioskView = () => {
   const [customerPaxError, setCustomerPaxError] = useState("");
   const [vip, setVIP] = useState(true);
   const [warning, setWarning] = useState(false);
+  const [pdpa, setPDPA] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(null);
@@ -172,7 +173,7 @@ const KioskView = () => {
 
   return (
     <div>
-      <div className=" flex-row md:pt-5 md:pb-5 justify-self-center relative">
+      <div className=" flex-row md:pt-3 md:pb-5 justify-self-center relative">
         {warning && (
           <div
             className={`${primaryBgClass} z-10 min-w-sm rounded-3xl text-center ${primaryTextClass} absolute top-1/3 left-1/2 -translate-1/2 p-10 md:min-w-md`}
@@ -194,7 +195,8 @@ const KioskView = () => {
           </div>
         )}
         <form>
-          <div className="flex-row pt-5 max-w-xs">
+          <div className="flex-row  max-w-xs">
+            <h1 className="text-xl italic font-extralight">Join The Queue!</h1>
             <div className="mb-1">
               <label htmlFor="customer-name" className={labelClass}>
                 Name
@@ -264,6 +266,24 @@ const KioskView = () => {
                   we will retain your phone number
                 </span>{" "}
                 to send you exclusive offers and updates.
+              </label>
+            </div>
+            <div className="flex items-center mb-1 mt-3">
+              <input
+                id="vip"
+                type="checkbox"
+                className={checkBoxClass}
+                onChange={() => {
+                  setPDPA(!pdpa);
+                }}
+                checked={pdpa}
+              />
+              <label
+                htmlFor="pdpa"
+                className={`ms-2 text-xs font-light ${primaryTextClass} pl-1 md:pl-3`}
+              >
+                I consent to the collection and use of my personal data in
+                accordance with the PDPA guidelines.
               </label>
             </div>
 

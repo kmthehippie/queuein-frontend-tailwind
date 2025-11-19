@@ -104,17 +104,15 @@ const Login = () => {
 
   const testNavigate = async () => {
     const credentials = {
-      email: "general@nlbh.com",
+      email: "chai@gmail.com",
       password: "123123",
-      rememberDevice: false,
+      rememberDevice: true,
     };
+    setLoading(true);
     try {
       const res = await apiPrivate.post("/login", {
         ...credentials,
       });
-      setLoading(true);
-      console.log("Response after post to login: ", res?.data, res?.status);
-
       if (
         res.status === 201 &&
         res.data.accessToken &&
@@ -122,7 +120,6 @@ const Login = () => {
         res.data.businessType &&
         res.data.acctSlug
       ) {
-        console.log("This is after checking", res.data);
         const data = res?.data;
         await login(data);
         setErrors("");
@@ -203,17 +200,23 @@ const Login = () => {
 
           {!isAuthenticated && (
             <div className="" onClick={handleViewTesting}>
-              <h1 className="text-xs font-semibold mb-3 text-primary-green hover:text-primary-dark-green">
+              <h1 className="cursor-pointer text-xs font-semibold mb-3 text-primary-green hover:text-primary-dark-green dark:hover:text-white">
                 <i className="fa-solid fa-circle-info text-primary-light-green"></i>{" "}
-                Just testing?
+                Just testing? Click here to enter test mode.
               </h1>
             </div>
           )}
           {testing && (
             <div
-              className={`block mb-4 text-sm ${primaryBgTransparentClass} hover:shadow-2xl p-4 rounded-lg shadow-md m-1`}
+              className={`block mb-4 text-sm ${primaryBgTransparentClass} hover:shadow-2xl p-4 rounded-lg shadow-md m-1 cursor-pointer`}
             >
-              <button onClick={testNavigate}> Click to enter test page </button>
+              <button
+                onClick={testNavigate}
+                className="cursor-pointer hover:text-primary-green"
+              >
+                {" "}
+                Click to enter test page for Clinics{" "}
+              </button>
             </div>
           )}
           <form onSubmit={handleSubmit} className="space-y-4">

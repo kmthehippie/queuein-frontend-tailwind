@@ -24,8 +24,8 @@ const CreateCustomer = ({
   const [customerName, setCustomerName] = useState("");
   const [number, setNumber] = useState("");
 
-  const [customerPax, setCustomerPax] = useState(null);
-  const [vip, setVIP] = useState(true);
+  const [customerPax, setCustomerPax] = useState(1);
+  const [vip, setVIP] = useState(false);
   const [validationError, setValidationError] = useState("");
   const { config } = useBusinessType();
 
@@ -43,6 +43,7 @@ const CreateCustomer = ({
   const handleSubmit = (e) => {
     let formattedNumber;
     e.preventDefault();
+
     //Validation
     if (customerName.length === 0) {
       return setValidationError({ general: "Please enter a name" });
@@ -56,13 +57,21 @@ const CreateCustomer = ({
         general: "Please enter a valid Malaysian Phone Number",
       });
     }
-    if (customerPax === 0 || customerPax === null) {
-      return setValidationError({
-        general:
-          "Please enter a valid number of people who will be joining us today.",
-      });
+    if (showPax) {
+      if (customerPax === 0 || customerPax === null) {
+        return setValidationError({
+          general:
+            "Please enter a valid number of people who will be joining us today.",
+        });
+      }
+      if (customerPax > 12) {
+        return setValidationError({
+          general: "For groups larger than 12, please contact us directly.",
+        });
+      }
     }
-    if (!customerName || !number || !customerPax) {
+
+    if (!customerName || !number) {
       return setValidationError({ general: "Please fill out the fields" });
     }
 
@@ -74,7 +83,6 @@ const CreateCustomer = ({
       pax: parseInt(customerPax),
     };
 
-    console.log("Create a customer with this data: ", data);
     const createNewCustomer = async () => {
       try {
         const res = await apiPrivate.post(
@@ -101,7 +109,7 @@ const CreateCustomer = ({
 
   return (
     <div
-      className={`max-w-md relative ${primaryBgClass} ${primaryTextClass} p-6 rounded-lg shadow-xl`}
+      className={`max-w-md relative ${primaryBgClass} ${primaryTextClass} p-6 rounded-lg shadow-xl border-1 border-stone-600`}
     >
       <p
         className="absolute top-0 right-0 text-red-700 pr-5 pt-2 hover:text-red-950 transition ease-in active:text-red-950 font-bold cursor-pointer"
@@ -111,7 +119,9 @@ const CreateCustomer = ({
       >
         X
       </p>
-
+      <h1 className="text-2xl pb-2">
+        Create New {config.customerSingularLabel}
+      </h1>
       <form className="">
         <div>
           <label htmlFor="customer-name" className={labelClass}>
@@ -176,11 +186,10 @@ const CreateCustomer = ({
             />
             <label
               htmlFor="vip"
-              className="ms-2 text-sm font-light text-gray-600 pl-1 md:pl-3"
+              className="ms-2 text-sm font-light text-gray-600 dark:text-white pl-1 md:pl-3"
             >
-              Agree to be a VIP {config.customerSingularLabel} where we will
-              retain your contact number to contact you for future promotions
-              and updates.
+              Does your {config.customerSingularLabel} agree to be a VIP where
+              their contact number will be retained.
             </label>
           </div>
         </div>

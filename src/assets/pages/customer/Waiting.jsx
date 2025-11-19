@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useRef, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import moment from "moment";
 import api from "../../api/axios";
@@ -49,7 +49,7 @@ const Waiting = () => {
   const [currentlyServing, setCurrentlyServing] = useState("");
   const [customerPosition, setCustomerPosition] = useState("");
   const [calledTimeElapsed, setCalledTimeElapsed] = useState("");
-  const [connection, setConnection] = useState(true);
+  const [reminderModal, setReminderModal] = useState(false);
 
   //ewt = estimated wait time
   const [ewt, setEwt] = useState("");
@@ -64,6 +64,7 @@ const Waiting = () => {
   const [progressBar, setProgressBar] = useState("");
   const [partiesAhead, setPartiesAhead] = useState("");
   const [pendingAudioAlerts, setPendingAudioAlerts] = useState([]);
+  const [positionNotification, setPositionNotification] = useState(null);
 
   //Queue Item Status
   const [thirdAlerted, setThirdAlerted] = useState(false);
@@ -73,6 +74,12 @@ const Waiting = () => {
   const [seated, setSeated] = useState(false);
   const [quit, setQuit] = useState(false);
   const [noShow, setNoShow] = useState(false);
+
+  //REF FOR AUDIO
+  const audioRef = useRef(null);
+  const audioQueueRef = useRef([]); // FIFO queue of soundFile strings
+  const isPlayingRef = useRef(false);
+  const lastPlayingSrcRef = useRef(null);
 
   //PERMISSION FOR NOTIFICATION
   const [openNotifModal, setOpenNotifModal] = useState(false);
@@ -131,6 +138,49 @@ const Waiting = () => {
       setDataLoaded(true);
     }
   }, [queueData, isLoadingSession]);
+  //* AUDIO SETUP
+  useEffect(() => {
+    const a = new Audio();
+    audioRef.current = a;
+
+    const onPlaying = () => {
+      isPlayingRef.current = true;
+      lastPlayingSrcRef.current = a.src || null;
+    };
+    const onEnded = () => {
+      isPlayingRef.current = false;
+      lastPlayingSrcRef.current = null;
+      const next = audioQueueRef.current.shift();
+      if (next && a) {
+        setTimeout(() => {
+          a.src = next;
+          a.currentTime = 0;
+          a.play().catch((e) => {
+            console.error("Audio playback failed for queued item:", e);
+            isPlayingRef.current = false;
+            lastPlayingSrcRef.current = null;
+          });
+        }, 50);
+      }
+    };
+    const onError = () => {
+      isPlayingRef.current = false;
+      lastPlayingSrcRef.current = null;
+    };
+
+    a.addEventListener("playing", onPlaying);
+    a.addEventListener("ended", onEnded);
+    a.addEventListener("error", onError);
+
+    return () => {
+      a.pause();
+      a.removeEventListener("playing", onPlaying);
+      a.removeEventListener("ended", onEnded);
+      a.removeEventListener("error", onError);
+      audioRef.current = null;
+      audioQueueRef.current = [];
+    };
+  }, []);
 
   //* PLAY SOUND FUNCTION
   const playSound = useCallback(
@@ -141,12 +191,58 @@ const Waiting = () => {
         "userInteracted:",
         userInteracted
       );
-      if (userInteracted) {
-        const audio = new Audio(soundFile);
-        audio.play().catch((e) => console.error("Audio playback failed: ", e));
-      } else {
-        console.log("Adding to pending alerts:", soundFile);
-        setPendingAudioAlerts([soundFile]);
+
+      // If user hasn't interacted yet, keep in the pending list (append)
+      if (!userInteracted) {
+        console.log("User not interacted, queueing pending alert:", soundFile);
+        setPendingAudioAlerts((prev) => {
+          // avoid duplicates in pending list
+          if (prev.includes(soundFile)) return prev;
+          return [...prev, soundFile];
+        });
+        return;
+      }
+
+      // If we have an audio instance, use it (serialized). Otherwise fallback to one-shot.
+      const a = audioRef.current;
+      if (!a) {
+        const tmp = new Audio(soundFile);
+        tmp
+          .play()
+          .catch((e) => console.error("Audio playback failed (fallback): ", e));
+        return;
+      }
+
+      const currentlyPlayingSrc = lastPlayingSrcRef.current || a.src || "";
+      const sameAsPlaying =
+        currentlyPlayingSrc && currentlyPlayingSrc.includes(soundFile);
+
+      if (isPlayingRef.current) {
+        if (sameAsPlaying) {
+          console.log("Skipping duplicate audio (already playing):", soundFile);
+          return;
+        }
+        // Different audio is playing -> enqueue (avoid duplicate enqueues)
+        if (!audioQueueRef.current.includes(soundFile)) {
+          audioQueueRef.current.push(soundFile);
+          console.log("Enqueued audio:", soundFile);
+        } else {
+          console.log("Audio already queued, not adding:", soundFile);
+        }
+        return;
+      }
+
+      // Nothing is playing -> play immediately
+      try {
+        a.src = soundFile;
+        a.currentTime = 0;
+        a.play().catch((e) => {
+          console.error("Audio playback failed: ", e);
+          isPlayingRef.current = false;
+          lastPlayingSrcRef.current = null;
+        });
+      } catch (e) {
+        console.error("Error starting audio playback: ", e);
       }
     },
     [userInteracted]
@@ -216,30 +312,51 @@ const Waiting = () => {
       JSON.stringify(pendingAudioAlerts)
     );
     if (!userInteracted) {
-      const silentAudio = new Audio("/SilentSound.mp3");
-      silentAudio.volume = 0.05;
+      const silent = new Audio("/SilentSound.mp3");
+      silent.volume = 0.0;
 
-      silentAudio
+      silent
         .play()
         .then(() => {
-          console.log(
-            "Audio playback started successfully",
-            JSON.stringify(pendingAudioAlerts)
-          );
           setUserInteracted(true);
-          if (pendingAudioAlerts.length !== 0) {
-            console.log("Playing the sound: ", pendingAudioAlerts[0]);
-            const audio = new Audio(pendingAudioAlerts[0]);
-            audio
-              .play()
-              .catch((e) => console.error("Audio playback failed: ", e));
+          const a = audioRef.current;
+          pendingAudioAlerts.forEach((s) => {
+            if (a && a.src && a.src.includes(s)) return;
+            if (!audioQueueRef.current.includes(s))
+              audioQueueRef.current.push(s);
+          });
+          setPendingAudioAlerts([]);
+
+          if (a && !isPlayingRef.current) {
+            const next = audioQueueRef.current.shift();
+            if (next) {
+              a.src = next;
+              a.currentTime = 0;
+              a.play().catch((e) =>
+                console.error("Audio playback failed: ", e)
+              );
+            }
           }
         })
-        .catch((e) =>
-          console.error("Audio playback failed at handleUserInteraction: ", e)
-        );
+        .catch((e) => {
+          console.warn("Silent playback failed, marking userInteracted:", e);
+          setUserInteracted(true);
+          const a = audioRef.current;
+          pendingAudioAlerts.forEach((s) => {
+            if (a && a.src && a.src.includes(s)) return;
+            if (!audioQueueRef.current.includes(s))
+              audioQueueRef.current.push(s);
+          });
+          setPendingAudioAlerts([]);
+        });
+    } else {
+      pendingAudioAlerts.forEach((soundFile) => {
+        console.log("Playing pending audio alerts: ", soundFile);
+        playSound(soundFile);
+      });
+      setPendingAudioAlerts([]);
     }
-  }, [userInteracted, pendingAudioAlerts]);
+  }, [userInteracted, pendingAudioAlerts, playSound]);
 
   useEffect(() => {
     if (userInteracted) return;
@@ -279,21 +396,25 @@ const Waiting = () => {
       if (tempPosition === 3 && !thirdAlerted) {
         playSound("/3rdEng.mp3");
         setThirdAlerted(true);
-        // Optional: Show visual notification
-        toast.open("You are now third in line! Please get ready.", {
+        setPositionNotification("You are now third in line! Please get ready.");
+        toast.open("You are now THIRD in line! Please get ready.", {
           type: "info",
           duration: 5000,
         });
       } else if (tempPosition === 2 && !secondAlerted) {
         playSound("/2ndEng.mp3");
         setSecondAlerted(true);
-        toast.open("You are second in line! Please stay near.", {
+        setPositionNotification(
+          "You are now SECOND in line! Please get ready."
+        );
+        toast.open("You are second in line! Please prepare to approach.", {
           type: "info",
           duration: 5000,
         });
       } else if (tempPosition === 1 && !firstAlerted) {
         console.log("Sound is being played");
         playSound("/1stEng.mp3");
+        setPositionNotification("You are now NEXT in line! Please get ready.");
         setFirstAlerted(true);
         toast.open("You are next in line! Please prepare to approach.", {
           type: "warning",
@@ -368,8 +489,6 @@ const Waiting = () => {
         queueItemId: queueItem.id,
         action: "join",
       });
-
-      setConnection(true); // Update local connection state
     } else if (socket && !isConnected) {
       console.log(
         "Socket not connected, attempting to reconnect in 5 seconds..."
@@ -390,11 +509,12 @@ const Waiting = () => {
           setThirdAlerted(false);
           setSecondAlerted(false);
           setFirstAlerted(false);
-          console.log("Called called");
-          const audio = new Audio("/AlertSound.mp3");
-          audio
-            .play()
-            .catch((e) => console.error("Audio playback failed: ", e));
+
+          playSound("/AlertSound.mp3");
+          // const audio = new Audio("/AlertSound.mp3");
+          // audio
+          //   .play()
+          //   .catch((e) => console.error("Audio playback failed: ", e));
           new Notification("It's Your Turn!", {
             body: "Please approach.",
             vibrate: [200, 100, 200, 100, 200],
@@ -506,6 +626,7 @@ const Waiting = () => {
         socket.off("disconnect");
         socket.off("queue_update");
         socket.off("res_queue_refresh");
+        socket.off("queueitem_update");
       };
     }
   }, [
@@ -546,6 +667,8 @@ const Waiting = () => {
       //* If error, we need to kick user out of queue and redirect to left queue page still.
       // as long as user hits this button, we kick them out
       console.error(JSON.stringify(error));
+    } finally {
+      setModalLeave(false);
     }
   };
   const paxUpdate = (e) => {
@@ -592,7 +715,7 @@ const Waiting = () => {
     if (socket && socket.connected && queueItem) {
       socket.emit("cust_req_queue_refresh", queueItem.queueId, queueItem.id);
     } else {
-      setConnection(false);
+      console.log("Socket not connected, cannot request queue refresh.");
     }
   };
 
@@ -605,6 +728,11 @@ const Waiting = () => {
           content={
             <div className="max-w-[250px] my-3">
               <p className="italic font-light text-sm">
+                <i className="fa-solid fa-bell pr-3"></i>Please keep this{" "}
+                <span className="font-bold text-lg">PAGE OPEN</span> and check
+                back regularly to stay updated on your queue status.
+              </p>
+              <p className="italic font-light text-sm pt-3">
                 <i className="fa-solid fa-volume-high pr-3"></i>Please keep your
                 audio <span className="font-bold text-lg">UP</span> so that you
                 can hear when we notify your turn!
@@ -625,18 +753,50 @@ const Waiting = () => {
   }
   return (
     <div className="flex-row items-center justify-center p-3 sm:p-5 md:pt-8 h-full">
-      {modalLeave && (
-        <div className="bg-primary-ultra-dark-green/85 min-w-[100%] min-h-[100%] absolute top-0 left-0 z-5">
+      {reminderModal && (
+        <div className="bg-primary-ultra-dark-green/95 min-w-[100%] min-h-[100%] absolute top-0 left-0 z-5 ">
           <div
-            className={`${primaryBgClass} z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/2 left-1/2 -translate-1/2 p-10 md:min-w-md`}
+            className={`text-sm font-medium italic text-primary-green dark:text-primary-light-green col-span-2 top-1/2 -translate-y-1/2 left-1/2 transform absolute -translate-x-1/2 w-full text-center dark:bg-stone-700 bg-primary-cream py-10 px-4 rounded-lg max-w-[300px] `}
+          >
+            <p
+              className="absolute top-0 right-0 text-red-700 pr-5 pt-2 text-lg hover:text-red-950 transition ease-in active:text-red-950 font-bold cursor-pointer"
+              onClick={() => setReminderModal(false)}
+            >
+              X
+            </p>
+            <p className="italic font-light text-sm">
+              <i className="fa-solid fa-bell pr-3"></i>Keep this{" "}
+              <span className="font-bold text-lg">PAGE OPEN</span>
+            </p>
+            <p className="italic font-light text-sm">
+              <i className="fa-solid fa-bell pr-3"></i>Check back{" "}
+              <span className="font-bold text-lg">OFTEN</span>
+            </p>
+            <p className="italic font-light text-sm ">
+              <i className="fa-solid fa-volume-high pr-3"></i>Keep your audio{" "}
+              <span className="font-bold text-lg">UP</span>
+            </p>
+            <p className="italic font-light text-sm ">
+              <i className="fa-solid fa-volume-high pr-3"></i>Ensure you have Do
+              Not Disturb <span className="font-bold text-lg">OFF</span>
+            </p>{" "}
+          </div>
+        </div>
+      )}
+      {modalLeave && (
+        <div className="bg-primary-ultra-dark-green/85 min-w-[100%] min-h-[100%] absolute top-0 left-0 z-5 ">
+          <div
+            className={`${primaryBgClass} z-10 min-w-sm rounded-3xl text-center text-stone-700 dark:text-white absolute top-1/2 left-1/2 -translate-1/2 p-10 md:min-w-md`}
           >
             <h1 className="text-red-900 font-semibold text-2xl">Warning:</h1>
 
-            <p>Do you want to leave the queue?</p>
+            <p className="font-bold">
+              Are you sure you want to leave the queue?
+            </p>
 
             <br />
 
-            <p className="text-xs/4 italic font-light">
+            <p className="text-xs/4 lg:text-sm italic font-light">
               Agreeing to do so will <span className="font-semibold">kick</span>{" "}
               you out of the queue and you will lose your spot{" "}
               <span className="font-semibold">permanently.</span>
@@ -651,19 +811,21 @@ const Waiting = () => {
 
             <br />
 
-            <button
-              className={`${buttonClass} bg-primary-green hover:bg-primary-dark-green mr-3`}
-              onClick={(e) => handleLeaveQueue(e)}
-            >
-              Yes
-            </button>
-
-            <button
-              className={`${buttonClass} bg-red-700 hover:bg-red-900`}
-              onClick={() => setModalLeave(false)}
-            >
-              No
-            </button>
+            <div className="flex">
+              {" "}
+              <button
+                className={`${buttonClass} bg-primary-green hover:bg-primary-dark-green mr-3`}
+                onClick={(e) => handleLeaveQueue(e)}
+              >
+                Yes
+              </button>
+              <button
+                className={`${buttonClass} bg-red-700 hover:bg-red-900`}
+                onClick={() => setModalLeave(false)}
+              >
+                No
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -686,7 +848,9 @@ const Waiting = () => {
       )}
       {modalUpdate && (
         <div className="bg-primary-ultra-dark-green/85 min-w-full min-h-full absolute top-0 left-0 z-5">
-          <div className="bg-primary-cream z-10 min-w-sm rounded-3xl text-center text-stone-700 absolute top-1/2 left-1/2 -translate-1/2 p-10 md:min-w-md">
+          <div
+            className={`${primaryBgClass} z-10 min-w-sm rounded-3xl text-center text-stone-700 dark:text-white absolute top-1/2 left-1/2 -translate-1/2 p-10 md:min-w-md`}
+          >
             <h1 className="text-red-900 font-semibold text-2xl">Warning:</h1>
 
             <p>
@@ -708,7 +872,7 @@ const Waiting = () => {
                 </label>
 
                 <input
-                  className={`border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 text-xs leading-tight focus:outline-none focus:border-black peer active:border-black`}
+                  className={`border-1 border-gray-400 rounded-lg bg-transparent appearance-none block w-full py-3 px-4 text-gray-700 dark:text-white text-xs leading-tight focus:outline-none focus:border-black peer active:border-black`}
                   id="customer-pax"
                   type="number"
                   min="1"
@@ -780,7 +944,7 @@ const Waiting = () => {
         </div>
       )}
       {inactive && quit && (
-        <div className="text-center">
+        <div className="text-center max-w-[300px] mx-auto">
           <h1 className="text-3xl font-light pt-3 text-stone-600">
             {outlet.name}
           </h1>
@@ -824,7 +988,7 @@ const Waiting = () => {
           <h1 className={`text-3xl font-light pt-3 ${primaryTextClass}`}>
             {outlet.name}
           </h1>
-          <h4 className=" font-lg font-semibold py-3 text-primary-dark-green dark:text-primary-light-green">
+          <h4 className=" font-lg font-semibold pt-3 pb-1 text-primary-dark-green dark:text-primary-light-green">
             {message ||
               `Welcome back, ${
                 customer?.name !== queueItem?.name
@@ -832,13 +996,18 @@ const Waiting = () => {
                   : customer?.name || queueItem?.name || "N/A"
               }`}
           </h4>
-          <h2
-            className={`text-xs font-light italic ${primaryTextClass} w-full md:w-md justify-self-center mb-1`}
+          <div
+            className={`bg-orange-400 text-white cursor-pointer text-center px-3 py-2 max-w-[200px] rounded-lg mx-auto mb-4 hover:bg-primary-dark-green transition ease-in-out duration-600`}
+            onClick={() => setReminderModal(!reminderModal)}
           >
-            Please keep this page open for us to notify you when it is your
-            turn. Please make sure you are not in "Do Not Disturb" mode and your
-            volume is up!
-          </h2>
+            <i className="fa-solid fa-triangle-exclamation"></i> REMINDERS
+          </div>
+
+          {positionNotification !== null && (
+            <div className="mb-2 text-orange-400 font-bold">
+              {positionNotification}
+            </div>
+          )}
           {/* GRID FOR QUEUE INFO */}
           {!dataLoaded && <div>Loading...</div>}
           <div

@@ -1,12 +1,15 @@
 import React from "react";
 import { useParams } from "react-router-dom";
+import { primaryBgClass } from "../styles/tailwind_styles";
 
 const LeaveQueue = () => {
   const { acctSlug, queueId } = useParams();
   const subject = `Left ${acctSlug} using ${queueId} `;
   const emailAddress = import.meta.env.VITE_FEEDBACK_EMAIL_ADDRESS;
   return (
-    <div className="flex flex-col items-center justify-center ">
+    <div
+      className={`flex flex-col items-center justify-center lg:max-w-[300px] mx-auto p-5 ${primaryBgClass} text-stone-700 dark:text-white`}
+    >
       <div className="font-light max-w-xl mx-auto">
         <h1 className="font-extralight text-4xl mt-10 text-center">
           Sorry you had to leave the queue!

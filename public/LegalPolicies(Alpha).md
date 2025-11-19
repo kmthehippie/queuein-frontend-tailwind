@@ -26,7 +26,7 @@ We value your trust and are committed to protecting your personal data.
 This Privacy Policy explains how queuein collects, uses, and protects information in compliance with the PDPA and its upcoming amendments.
 
 queuein is developed and operated by an independent developer based in Malaysia.  
-Because this is an **alpha version**, certain features — including data export, deletion requests, or automated notifications — may still be under development.
+Because this is an **alpha version**, certain features — including data export, deletion requests, or automated notifications — may still be under development. Please use at your own risk.
 
 ---
 
@@ -44,7 +44,8 @@ Depending on how you use queuein, we may collect:
 
 - Customer names and phone numbers (encrypted)
 - Queue details (pax, position, timestamps)
-- Optional VIP records, if the customer consents to being remembered for future visits
+- Customers may optionally choose to mark themselves as VIPs. (Optional)
+  This preference only affects retention duration and does not replace the PDPA-required consent for data collection.
 
 ### c. Technical Information
 
@@ -108,6 +109,7 @@ You have the right to:
 - Access and correct personal data we hold about you
 - Withdraw consent for data processing
 - Request deletion of your account or data
+- Withdrawal does not affect data that was processed prior to the withdrawal.
 
 To make a request, contact **km_dev@hotmail.com**.
 
