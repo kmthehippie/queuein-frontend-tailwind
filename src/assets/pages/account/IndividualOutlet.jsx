@@ -34,7 +34,7 @@ const IndividualOutlet = () => {
         const res = await apiPrivate.get(
           `queueActivity/${params.accountId}/${params.outletId}`
         );
-        console.log("Individual data: ", JSON.stringify(res.data));
+        console.log("Individual data: ", JSON.stringify(res.data.outlet.name));
 
         if (res?.data?.outlet) {
           setOutletName(res.data.outlet.name);

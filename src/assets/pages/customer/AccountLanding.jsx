@@ -67,9 +67,7 @@ const AccountLanding = () => {
       </div>
       <h2
         className={`text-3xl ${primaryTextClass} mt-4 shadow-[0_4px_6px_-6px_black] dark:shadow-[0_4px_6px_-6px_white] px-5 pb-2 pt-4`}
-      >
-        Our locations:
-      </h2>
+      ></h2>
       {/* Outlets here */}
       <div>
         {outlets.length > 0 ? (

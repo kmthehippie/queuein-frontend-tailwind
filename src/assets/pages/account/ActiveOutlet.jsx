@@ -75,6 +75,10 @@ const ActiveOutlet = () => {
   const landscapeHeaderClass = `border-l-1 border-t-1 border-b-1 border-r-1 border-primary-green p-1 `;
   const buttonClassInModals = `mt-3 transition ease-in text-white bg-primary-green cursor-pointer font-light py-2 px-4 rounded-xl focus:outline-none focus:shadow-outline min-w-20 hover:bg-primary-dark-green`;
   const errorButtonInModals = `mt-3 transition ease-in text-white bg-red-700 cursor-pointer font-light py-2 px-4 rounded-xl focus:outline-none focus:shadow-outline min-w-20 hover:bg-red-900`;
+  const horizontalHeaderClass = `bg-white dark:bg-stone-700 text-primary-dark-green dark:text-primary-light-green `;
+  const inactiveQueueItemsClass = `border-1 border-stone-500 bg-stone-200 dark:bg-stone-800 dark:text-stone-400 font-light text-xs`;
+  const horizontalQuitQueueItemsClass = `border-1 border-red-600/50 bg-stone-200 dark:bg-stone-800 dark:text-stone-400 font-light text-xs`;
+  const horizontalActiveQueueItemsClass = ` dark:bg-stone-700 font-semibold `;
 
   const getWaitingTimeClass = useCallback(
     (date) => {
@@ -135,10 +139,7 @@ const ActiveOutlet = () => {
           `activeQueue/${params.accountId}/${params.queueId}/${params.outletId}`
         );
         if (res?.data) {
-          console.log(
-            "res data from active queue items: ",
-            JSON.stringify(res?.data)
-          );
+          console.log("Data from active queue fetch: ", res.data.queue.id);
           setQueueItems(res.data.queue.queueItems);
           setShowPax(res.data.showPax);
           setMaxQueueItems(res.data.queue.maxQueueItems);
@@ -561,7 +562,7 @@ const ActiveOutlet = () => {
         const res = await apiPrivate.patch(`/maxQueueItems/${queue.id}`, {
           maxQueueItems: parseInt(maxQueueItems),
         });
-        console.log("Response from updating max queuers: ", res);
+        console.log("Response from updating max queuers: ", res?.data.message);
         if (res?.status === 201) {
           setQueue((prev) => ({
             ...prev,
@@ -666,7 +667,9 @@ const ActiveOutlet = () => {
   if (maxQueuersModal === true) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 ">
-        <div className="flex flex-col items-center bg-primary-cream p-10 rounded-3xl m-2 max-w-[460px] text-center">
+        <div
+          className={`flex flex-col items-center ${primaryBgClass} dark:text-white p-10 rounded-3xl m-2 max-w-[460px] text-center`}
+        >
           <h1 className="text-2xl font-semibold text-center">Max queuers</h1>
           <p className="mt-3 font-light">
             You have reached the <span className="font-bold">maximum</span>{" "}
@@ -843,7 +846,7 @@ const ActiveOutlet = () => {
             <div className="">
               <div className="">
                 <p
-                  className={`text-sm ${primaryTextClass} font-semibold underline my-2`}
+                  className={`text-sm ${primaryTextClass} font-semibold underline mt-5 mb-2`}
                 >
                   Active {config.customerLabel}
                 </p>
@@ -853,7 +856,7 @@ const ActiveOutlet = () => {
                     return (
                       <div className="" key={item.id}>
                         <div
-                          className={`flex-row w-full my-3 rounded-2xl p-2 shadow-2xl dark:shadow-white/20 dark:bg-stone-800/90`}
+                          className={`flex-row w-full my-3 rounded-2xl p-2 shadow-2xl dark:shadow-white/20 border-stone-400 dark:border-stone-800 border-2`}
                         >
                           <div className="grid grid-cols-2 border-b-1">
                             <div className="flex items-center p-1 border-r-1">
@@ -937,7 +940,8 @@ const ActiveOutlet = () => {
                           )}
                           <div className="flex items-center p-1 border-b-1">
                             <div className={activeTableHeader}>
-                              <i className="fa-solid fa-phone"></i> Queuer
+                              <i className="fa-solid fa-phone"></i>{" "}
+                              {config.customerSingularLabel}{" "}
                             </div>
                             <div className={activeTableAnswer}>
                               {item.contactNumber ||
@@ -974,15 +978,15 @@ const ActiveOutlet = () => {
                               </div>
                               <div
                                 className={
-                                  activeTableAnswer + " flex items-center" // Corrected flex class
+                                  activeTableAnswer + " flex items-center pl-3"
                                 }
                               >
                                 <input
                                   type="checkbox"
-                                  id={`seated-${item.id}`} // Ensure unique IDs for labels
+                                  id={`seated-${item.id}`}
                                   className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
                                   onChange={(e) => handleSeated(e, item.id)}
-                                  checked={item.seated || false} // Provide a default if undefined
+                                  checked={item.seated || false}
                                 />
                                 <label
                                   htmlFor={`seated-${item.id}`}
@@ -1024,7 +1028,7 @@ const ActiveOutlet = () => {
                   return null;
                 })}
               </div>
-              <div className="">
+              <div className="mt-15">
                 <p
                   className={`text-sm ${primaryTextClass} font-semibold underline my-2`}
                 >
@@ -1034,17 +1038,28 @@ const ActiveOutlet = () => {
                   if (item.active === false && item.quit === false) {
                     return (
                       <div className="" key={item.id}>
-                        <div className="flex-row w-full  my-3 rounded-2xl p-2 shadow-2xl bg-stone-300 dark:bg-stone-900 ">
-                          <div className="grid grid-cols-2">
-                            <div className="flex items-center p-1 ">
-                              <div className={activeTableHeader + ""}>
-                                Queuer Number
-                              </div>
+                        <div
+                          className={`flex-row w-full  my-3 rounded-2xl p-2 shadow-2xl ${inactiveQueueItemsClass}`}
+                        >
+                          <div className="grid grid-cols-4">
+                            <div className="flex items-center p-1 col-span-1">
+                              <div className={activeTableHeader + ""}>Q #</div>
                               <div className={activeTableAnswer + ""}>
                                 {item.position}
                               </div>
                             </div>
-                            <div className="flex items-center p-1 relative">
+                            <div className="flex items-center p-1 col-span-1">
+                              <div
+                                className={
+                                  activeTableAnswer + " text-xs italic "
+                                }
+                              >
+                                {item.called && config.status.CALLED + " and "}
+                                {item.seated && config.status.SEATED}
+                                {item.noShow && config.status.NO_SHOW}
+                              </div>
+                            </div>
+                            <div className="flex items-center p-1 relative col-span-2">
                               <div className={activeTableHeader}>Name</div>
                               <div className={activeTableAnswer}>
                                 <span className="z-1">
@@ -1065,7 +1080,7 @@ const ActiveOutlet = () => {
                   return null;
                 })}
               </div>
-              <div className="">
+              <div className=" mt-5">
                 <p
                   className={`text-sm ${primaryTextClass} font-semibold underline my-2`}
                 >
@@ -1075,17 +1090,26 @@ const ActiveOutlet = () => {
                   if (item?.active === false && item?.quit === true) {
                     return (
                       <div className="" key={item?.id}>
-                        <div className="flex-row w-full  my-3 rounded-2xl p-2 shadow-2xl bg-red-950/50 text-white ">
-                          <div className="grid grid-cols-2">
-                            <div className="flex items-center p-1 ">
-                              <div className={activeTableHeader + ""}>
-                                Queuer Number
-                              </div>
+                        <div
+                          className={`flex-row w-full  my-3 rounded-2xl p-2 shadow-2xl ${horizontalQuitQueueItemsClass}`}
+                        >
+                          <div className="grid grid-cols-4">
+                            <div className="flex items-center p-1 col-span-1">
+                              <div className={activeTableHeader + ""}>Q #</div>
                               <div className={activeTableAnswer + ""}>
                                 {item.position}
                               </div>
                             </div>
-                            <div className="flex items-center p-1 relative">
+                            <div className="flex items-center p-1 col-span-1">
+                              <div
+                                className={
+                                  activeTableAnswer + " text-xs italic "
+                                }
+                              >
+                                Quit
+                              </div>
+                            </div>
+                            <div className="flex items-center p-1 relative col-span-2">
                               <div className={activeTableHeader}>Name</div>
                               <div className={activeTableAnswer}>
                                 <span className="z-1">
@@ -1112,7 +1136,7 @@ const ActiveOutlet = () => {
           {lg && queueItems && queueItems.length > 0 && (
             <div className="hidden md:block overflow-auto">
               <div
-                className={`grid grid-cols-13 mt-3 rounded-md p-2 shadow-2xl dark:shadow-white lg:shadow-none  bg-white dark:bg-stone-700 text-primary-dark-green dark:text-primary-light-green text-center `}
+                className={`grid grid-cols-13 mt-3 rounded-md p-2 shadow-2xl dark:shadow-white lg:shadow-none  ${horizontalHeaderClass} text-center `}
               >
                 <div
                   className={
@@ -1144,7 +1168,8 @@ const ActiveOutlet = () => {
                     <div className="font-light text-xs mt-1">
                       <span className="font-semibold">Seen</span> -{" "}
                       <span className="italic">
-                        Patient is being seen or has been seen.
+                        {config.customerSingularLabel} is being seen or has been
+                        seen.
                       </span>
                     </div>
                   ) : (
@@ -1157,44 +1182,32 @@ const ActiveOutlet = () => {
                 if (item.active === true) {
                   return (
                     <div
-                      className={`grid grid-cols-13 px-2 pb-1 shadow-xl lg:shadow-none dark:text-primary-light-green text-center bg-white dark:bg-stone-700`}
+                      className={`grid grid-cols-13 px-2 pb-1 shadow-xl lg:shadow-none dark:text-white text-center bg-white dark:bg-stone-700 align-middle`}
                       key={item.id}
                     >
                       <div
-                        className={
-                          landscapeHeaderClass +
-                          " dark:bg-stone-800/90 col-span-1 border-l-10 rounded-l-xl p-1"
-                        }
+                        className={`${landscapeHeaderClass} ${horizontalActiveQueueItemsClass} col-span-1 border-l-10 rounded-l-xl p-1`}
                       >
                         {item.position}
                       </div>
                       <div
-                        className={
-                          landscapeHeaderClass +
-                          " dark:bg-stone-800/90 col-span-2" +
-                          getWaitingTimeClass(item.createdAt)
-                        }
+                        className={` ${landscapeHeaderClass} ${horizontalActiveQueueItemsClass} col-span-2 ${getWaitingTimeClass(
+                          item.createdAt
+                        )}`}
                       >
                         {convertedTime(item.createdAt)}
                       </div>
                       {showPax && (
                         <div
-                          className={
-                            landscapeHeaderClass +
-                            ` dark:bg-stone-800/90 col-span-1
-                           ${
-                             item.id === highlightedItem ? "bg-yellow-200 " : ""
-                           }`
-                          }
+                          className={`${landscapeHeaderClass} ${horizontalActiveQueueItemsClass} col-span-1 ${
+                            item.id === highlightedItem ? "bg-yellow-200 " : ""
+                          }`}
                         >
                           {item.pax}
                         </div>
                       )}
                       <div
-                        className={
-                          landscapeHeaderClass +
-                          " dark:bg-stone-800/90 col-span-3"
-                        }
+                        className={` ${landscapeHeaderClass}${horizontalActiveQueueItemsClass} col-span-3`}
                       >
                         {item?.customer?.name || item?.name}
                         {item?.customer && (
@@ -1204,18 +1217,12 @@ const ActiveOutlet = () => {
                         )}
                       </div>
                       <div
-                        className={
-                          landscapeHeaderClass +
-                          " dark:bg-stone-800/90 col-span-2"
-                        }
+                        className={` ${landscapeHeaderClass}${horizontalActiveQueueItemsClass} col-span-2`}
                       >
                         {item.contactNumber || item?.customer?.number}
                       </div>
                       <div
-                        className={
-                          landscapeHeaderClass +
-                          " dark:bg-stone-800/90 col-span-4 rounded-r-xl"
-                        }
+                        className={` ${landscapeHeaderClass}${horizontalActiveQueueItemsClass} col-span-4 rounded-r-xl`}
                       >
                         <form className=" flex justify-center items-center mt-1 gap-1 ">
                           <div className={"flex items-center "}>
@@ -1285,7 +1292,8 @@ const ActiveOutlet = () => {
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-1 border-l-10 rounded-l-xl p-1 bg-stone-200 dark:bg-stone-900"
+                          " col-span-1 border-l-10 rounded-l-xl p-1 " +
+                          inactiveQueueItemsClass
                         }
                       >
                         {item.position}
@@ -1293,7 +1301,8 @@ const ActiveOutlet = () => {
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-2 bg-stone-200 dark:bg-stone-900"
+                          " col-span-2 " +
+                          inactiveQueueItemsClass
                         }
                       >
                         {convertedTime(item.createdAt)}
@@ -1302,7 +1311,8 @@ const ActiveOutlet = () => {
                         <div
                           className={
                             landscapeHeaderClass +
-                            " col-span-1 bg-stone-200 dark:bg-stone-900"
+                            " col-span-1 " +
+                            inactiveQueueItemsClass
                           }
                         >
                           {item.pax}
@@ -1311,7 +1321,8 @@ const ActiveOutlet = () => {
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-3 bg-stone-200 dark:bg-stone-900"
+                          " col-span-3 " +
+                          inactiveQueueItemsClass
                         }
                       >
                         {item?.customer?.name || item.name}
@@ -1324,7 +1335,8 @@ const ActiveOutlet = () => {
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-2 bg-stone-200 dark:bg-stone-900"
+                          " col-span-2 " +
+                          inactiveQueueItemsClass
                         }
                       >
                         {item.contactNumber || item?.customer?.number}
@@ -1332,59 +1344,33 @@ const ActiveOutlet = () => {
                       <div
                         className={
                           landscapeHeaderClass +
-                          " col-span-4 rounded-r-xl bg-stone-200 dark:bg-stone-900"
+                          " col-span-4 rounded-r-xl " +
+                          inactiveQueueItemsClass
                         }
                       >
-                        <form className=" flex justify-center items-center mt-1 gap-1 bg-stone-200 dark:bg-stone-900">
-                          <div className={"flex items-center "}>
-                            <input
-                              type="checkbox"
-                              id={`called-inactive-${item.id}`} // Unique ID
-                              className={checkBoxClass}
-                              onChange={(e) => handleCalled(e, item.id)}
-                              checked={item.called || false}
-                            />
-                            <label
-                              htmlFor={`called-inactive-${item.id}`}
-                              className={
-                                " ml-2 mr-2 text-xs " +
-                                getCalledTimeClass(item.calledAt)
-                              }
-                            >
-                              Called
-                            </label>
-                          </div>
-                          <div className={"flex items-center"}>
-                            <input
-                              type="checkbox"
-                              id={`seated-inactive-${item.id}`} // Unique ID
-                              className={checkBoxClass}
-                              onChange={(e) => handleSeated(e, item.id)}
-                              checked={item.seated || false}
-                            />
-                            <label
-                              htmlFor={`seated-inactive-${item.id}`}
-                              className={"text-xs ml-2"}
-                            >
+                        <div
+                          className={
+                            " flex justify-center items-center mt-1 gap-1 font-light text-xs" +
+                            inactiveQueueItemsClass
+                          }
+                        >
+                          {item?.called === true && (
+                            <span className="font-semibold">
+                              {config.status.CALLED}{" "}
+                              <span className="font-light">and</span>
+                            </span>
+                          )}
+                          {item?.seated === true && (
+                            <span className="font-semibold">
                               {config.status.SEATED}
-                            </label>
-                          </div>
-                          <div className={"flex items-center"}>
-                            <input
-                              type="checkbox"
-                              id={`noShow-inactive-${item.id}`} // Unique ID
-                              className={checkBoxClass}
-                              onChange={(e) => handleNoShow(e, item.id)}
-                              checked={item.noShow || false}
-                            />
-                            <label
-                              htmlFor={`noShow-inactive-${item.id}`}
-                              className={"text-xs ml-2"}
-                            >
-                              No Show
-                            </label>
-                          </div>
-                        </form>
+                            </span>
+                          )}
+                          {item?.noShow === true && (
+                            <span className="font-semibold underline decoration-red-600">
+                              {config.status.NO_SHOW}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -1400,36 +1386,24 @@ const ActiveOutlet = () => {
                       key={item.id}
                     >
                       <div
-                        className={
-                          landscapeHeaderClass +
-                          " col-span-1 border-l-10 rounded-l-xl p-1 bg-red-950/50 text-white"
-                        }
+                        className={`col-span-1 ${landscapeHeaderClass} border-l-10 rounded-l-xl p-1 ${horizontalQuitQueueItemsClass}`}
                       >
                         {item.position || "N/A"}
                       </div>
                       <div
-                        className={
-                          landscapeHeaderClass +
-                          " col-span-2 bg-red-950/50 text-white"
-                        }
+                        className={`col-span-2 ${landscapeHeaderClass} ${horizontalQuitQueueItemsClass}`}
                       >
                         {convertedTime(item.createdAt)}
                       </div>
                       {showPax && (
                         <div
-                          className={
-                            landscapeHeaderClass +
-                            " col-span-1 bg-red-950/50 text-white"
-                          }
+                          className={`col-span-1 ${landscapeHeaderClass} ${horizontalQuitQueueItemsClass}`}
                         >
                           {item.pax}
                         </div>
                       )}
                       <div
-                        className={
-                          landscapeHeaderClass +
-                          " col-span-3 bg-red-950/50 text-white"
-                        }
+                        className={`col-span-3 ${landscapeHeaderClass}${horizontalQuitQueueItemsClass}`}
                       >
                         {item.name || "N/A"}
                         {item?.customer && (
@@ -1439,69 +1413,16 @@ const ActiveOutlet = () => {
                         )}
                       </div>
                       <div
-                        className={
-                          landscapeHeaderClass +
-                          " col-span-2 bg-red-950/50 text-white"
-                        }
+                        className={`col-span-2 ${landscapeHeaderClass}${horizontalQuitQueueItemsClass}`}
                       >
                         {item.contactNumber || item?.customer?.number}
                       </div>
                       <div
-                        className={
-                          landscapeHeaderClass +
-                          " col-span-4 rounded-r-xl bg-red-950/50 text-white"
-                        }
+                        className={`col-span-4 rounded-r-xl ${landscapeHeaderClass}${horizontalQuitQueueItemsClass}`}
                       >
-                        <form className=" flex justify-center items-center mt-1 gap-1 text-white">
-                          <div className={"flex items-center "}>
-                            <input
-                              type="checkbox"
-                              id={`called-quit-${item.id}`}
-                              className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
-                              onChange={(e) => handleCalled(e, item.id)}
-                              checked={item.called || false}
-                            />
-                            <label
-                              htmlFor={`called-quit-${item.id}`}
-                              className={
-                                " ml-2 mr-2 text-xs " +
-                                getCalledTimeClass(item.calledAt)
-                              }
-                            >
-                              Called
-                            </label>
-                          </div>
-                          <div className={"flex items-center"}>
-                            <input
-                              type="checkbox"
-                              id={`seated-quit-${item.id}`}
-                              className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
-                              onChange={(e) => handleSeated(e, item.id)}
-                              checked={item.seated || false}
-                            />
-                            <label
-                              htmlFor={`seated-quit-${item.id}`}
-                              className={"text-xs ml-2"}
-                            >
-                              {config.status.SEATED}
-                            </label>
-                          </div>
-                          <div className={"flex items-center"}>
-                            <input
-                              type="checkbox"
-                              id={`noShow-quit-${item.id}`}
-                              className="h-5 w-5 cursor-pointer transition-all rounded shadow hover:shadow-md"
-                              onChange={(e) => handleNoShow(e, item.id)}
-                              checked={item.noShow || false}
-                            />
-                            <label
-                              htmlFor={`noShow-quit-${item.id}`}
-                              className={"text-xs ml-2"}
-                            >
-                              No Show
-                            </label>
-                          </div>
-                        </form>
+                        <div className=" flex justify-center items-center mt-1 gap-1 ">
+                          {config.customerSingularLabel} Quit the Queue
+                        </div>
                       </div>
                     </div>
                   );

@@ -158,12 +158,13 @@ const NewOutlet = () => {
     dataToSubmit.append("showPax", JSON.stringify(showPax));
 
     try {
-      console.log(
-        "Trying to post to new outlet ",
-        JSON.stringify(dataToSubmit)
-      );
+      console.log("Submitting the following data:");
+      for (let [key, value] of dataToSubmit.entries()) {
+        console.log(`${key}:`, value);
+      }
+
       setIsLoading(true);
-      // Authorised User
+
       const res = await apiPrivate.post(
         `/newOutlet/${accountId}/outlet_image`,
         dataToSubmit,

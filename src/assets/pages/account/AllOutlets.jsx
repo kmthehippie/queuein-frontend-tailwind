@@ -216,7 +216,7 @@ const AllOutlets = () => {
               <img
                 src={`${outlet.imgUrl}`}
                 alt=""
-                className="rounded-xl w-full"
+                className="rounded-xl w-full max-h-[450px] object-contain"
                 onError={(e) =>
                   (e.target.src =
                     "https://placehold.co/150x100/eeeeee/333333?text=Image+Error")
